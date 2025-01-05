@@ -1,0 +1,10 @@
+newmtl Material0
+Kd 1 0.7283841 0.2257428
+Ka 1 0.7283841 0.2257428
+Ks 0 0 0
+
+newmtl Material1
+Kd 1 1 1
+Ka 1 1 1
+Ks 0 0 0
+
