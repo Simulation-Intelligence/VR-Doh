@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- bulma css template -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <!-- model viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+    <title>User Study Results</title>
+    <link rel="icon" href="icon.ico">
+</head>
+<body>
+    <section>
+        <div class="container is-max-desktop has-text-centered">
+            <p class="title is-3 mt-5 has-text-centered"> User Study Results </p>
+            <img src="images/User_Study_Results_New.png" alt="User Study" width="100%" height="600px">
+        </div>
+        
+        <div class="container is-max-desktop has-text-left mt-5">
+            <h2 class="title is-4">Semi-Structure Interview Results (Experts, P1-P6)</h2>
+            <ol class="content is-size-6">
+                <li>
+                    <strong>Do you think the designs created using this tool align with your initial expectations?</strong>
+                    <p>P1 found the design mostly satisfactory, with minor areas for improvement. P2 stated that 80% of their expectations were fulfilled, with the pose being largely accurate, though fractures on the model surface hindered achieving a fully realized design. P3 expressed satisfaction with the details, particularly in the eyes of the SpongeBob model, and found the material texture consistent with the intended character image. P4 estimated that 70% of their expectations were met, as the realistic deformations matched their vision, but the finer details lacked completeness. Similarly, P5 found the results to align with their expectations despite minor fractures in the model. P6 noted that the outcome met basic expectations, though the initial design was not overly complex, and significant deformations led to fractures in the object.</p>
+                </li>
+                <li>
+                    <strong>During your experience with the tool, what aspects were the most satisfying and the least satisfying? Additionally, what do you consider to be the greatest difficulty encountered while using the tool?</strong>
+                    <p><strong><em>Most Satisfying:</em></strong> P1 highlighted the simplicity and enjoyment the tool brought to tasks, such as using a stick to create holes while designing strawberries, making the process feel immersive. The pinch gesture interaction using both hands was also found to be very practical. P2 appreciated the tool’s ease of use without requiring extensive expertise, along with its high efficiency. The realistic deformation process, especially while editing the mermaid model, provided a visually engaging experience, akin to real swimming. Additionally, the ability to switch material parameters during editing was highly valued. P3 praised the intuitive interaction with 3D models, such as touching and squeezing, and also found the ability to adjust material parameters during editing particularly useful. P4 noted the tool’s capability to provide real-time feedback on deformation with realistic rendering, which is often time-consuming in conventional modeling software. P5 found the tool effective for naturally and easily altering 3D model poses, with good continuity between joints, and appreciated the ease of adjusting movements and outfits to make designs more vivid. P6 valued the ability to merge objects seamlessly and highlighted the pinch gesture for shape editing without damaging surface details as especially useful.</p>
+                    <p><strong><em>Least Satisfying:</em></strong> P1 noted that the limited number of MPM simulation grids caused the texture of the strawberry object, which initially had a perforated texture, to become less apparent after merging. P2 expressed concern about potentially damaging the object too significantly during operations, which often led to surface fractures. P3 highlighted the absence of an undo function as a major limitation. P4 pointed out that the pinch gesture lacked proper visualization of the applied force, as well as recommended values for different materials and a clear indication of its maximum area of influence. P5 desired more detailed designs but found that insufficient particle counts made surfaces prone to fracturing. P6 also mentioned the lack of an undo function as a key drawback.</p>
+                    <p><strong><em>Greatest Difficulty:</em></strong> P1 found that the lack of tactile feedback made it challenging to adapt to deforming objects in a virtual reality environment, requiring some time to adapt to the new operational logic. P2 initially struggled with controlling the size of the selected area for the pinch gesture, leading to unsatisfactory results, but improved after multiple attempts. P3 identified difficulties in precisely adjusting the relative position of two merged objects using hands, as well as the issue of 3D Gaussian-based model surfaces easily fracturing. P4 noted that the pinch gesture lacked intuitive force control, making it hard to determine the appropriate force for different materials and avoid unexpected deformations. Additionally, 3D Gaussian-represented model surfaces were prone to breaking, with no automated surface repair function, and manual repairs proved difficult. P5 found it challenging to create symmetrical, streamlined shapes using hands. P6 highlighted the difficulty of precisely adjusting the relative position of two merged objects manually.</p>
+                </li>
+                <li>
+                    <strong>What 3D modeling software do you use most frequently? How long have you been using it? Compared to that software, what do you think are the key differences between our tool and your preferred software? What are the respective advantages and disadvantages?</strong>
+                    <p>P1 highlighted the advantages of the tool, including its ability to make objects soft for modeling, allowing for more flexible and realistic deformations compared to setting control points manually in traditional software, although the manual method is more precise. Additionally, the system offers stronger realism, enabling users to see rendered changes during deformation and creating natural irregularities that better match real-world shapes. However, the flexibility comes at the cost of precision, and the system does not support splitting objects into two parts.</p>
+                    <p>P2 emphasized the tool’s higher design efficiency compared to traditional modeling software, making it better suited for quickly expressing and brainstorming creative ideas. It also facilitates presentations and enhances communication with other designers. The ability to rotate perspectives and clearly view 3D models in a virtual reality environment is more intuitive than the traditional three-view method.</p>
+                    <p>P3 noted the stronger sense of immersion and the low learning curve, making it suitable for children. The real-time texture rendering during shape editing enhances the shape editing process. However, compared to traditional modeling software, the resulting objects are less detailed.</p>
+                    <p>P4 compared the tool to Blender, noting that the key advantage of the VR tool lies in its realism. However, Blender offers more diverse editing options, making it better suited for complex modeling needs.</p>
+                    <p>P5 discussed the fundamental difference in 3D modeling logic: traditional tools like 3DMax and ZBrush are mesh-based, requiring adjustments from points to lines to surfaces, while this system mirrors natural manipulation and plasticity, avoiding the need to learn internal operational logic. Advantages include intuitive and convenient operation, which better supports creative expression in 3D design, and realistic deformation without requiring rigging. Traditional tools struggle with deformation due to fixed meshes. However, this system is less capable of fine detailing compared to 3DMax, struggles with producing symmetrical, streamlined shapes, and assigns vertex colors directly, which negatively impacts rendering quality when modeling from scratch.</p>
+                    <p>P6 highlighted the low learning curve of the system, which allows users to achieve desired deformations quickly while benefiting from excellent real-time rendering. However, precise control is challenging, such as when adjusting the relative position of merged objects.</p>
+                </li>
+                <li>
+                    <strong>What aspects do you find unsatisfactory, and do you have any suggestions for improvements? Are there any features you think should be added?</strong>
+                    <p>P1 suggested adding support for splitting objects into two parts and increasing the density of modeling objects to enhance surface detail during reconstruction.</p>
+                    <p>P2 recommended introducing a sculpting-style workspace with a fixed object position that only allows rotation along the y-axis, enabling the use of more precise tools, such as small chisels, for editing. They also suggested adding an undo function and providing the ability to repair 3D Gaussian-based model surfaces after fracturing.</p>
+                    <p>P3 proposed implementing a grid-based snapping feature when merging objects to counteract hand-tracking instability and ensure precise placement. They also suggested adding functionality to repair fractured 3D Gaussian-based model surfaces.</p>
+                    <p>P4 highlighted the need for more guidance on the appropriate force to apply to different materials and suggested adopting a pinch gesture mechanism similar to Blender's sculpting tools, where the applied force decreases as the area increases. They also emphasized the importance of enabling repairs for fractured 3D Gaussian-based model surfaces.</p>
+                    <p>P5 recommended adding an undo function, supporting the creation of symmetrical, streamlined shapes by smoothing nearby points,  and introducing a feature to split objects into two parts.</p>
+                    <p>P6 proposed adding a grid-based snapping system for precise positioning during object merging to mitigate the effects of hand-tracking instability. They also suggested reducing the likelihood of fractures in 3D Gaussian-based model surfaces.</p>
+                </li>
+            </ol>
+            <h2 class="title is-4">Semi-Structure Interview Results (Novices, P7-P12)</h2>
+            <ol class="content is-size-6">
+                <li>
+                    <strong>Do you think the designs created using this tool align with your initial expectations?</strong>
+                    <p>P7 observed minor discrepancies in physical properties but found the designs largely met expectations. P8 stated their projects generally met expectations. P9 found the outcomes satisfactory but saw room for improvement. P10 noted the results met expectations but merging objects was cumbersome. P11 expressed satisfaction with the watermelon model's results. P12 confirmed the designs met expectations.</p>
+                </li>
+                <li>
+                    <strong>During your experience with the tool, what aspects were the most satisfying and the least satisfying? Additionally, what do you consider to be the greatest difficulty encountered while using the tool?</strong>
+                    <p><strong><em>Most Satisfying:</em></strong> P7 found the intuitive operation, such as "modeling like clay," to be highly satisfactory due to its low learning curve. P8 appreciated the wide range of hands-on modeling options and material adjustments. P9 highlighted the tool's diverse and comprehensive features, including gravity-assisted functionality. P10 valued the high usability of the tool, noting its support for high frame rates and smooth real-time performance. P11 praised the freedom in detailed operations and the smooth functionality of basic features. P12 appreciated the realistic object rendering provided by the tool.</p>
+                    <p><strong><em>Least Satisfying:</em></strong> P7 noted performance issues such as insufficient particle numbers and surface material effects that need improvement. P8 highlighted the lack of split and undo functionalities. P9 pointed out imprecise hand tracking as a significant drawback. P10 mentioned that the object deformation behavior was overly sensitive, leading to accidental triggers. P11 expressed dissatisfaction with the limited primitive shape options. P12 observed that insufficient particle numbers caused positional errors after merging objects.</p>
+                    <p><strong><em>Greatest Difficulty:</em></strong> Hand-tracking issues were a recurring challenge, with imprecision, significant errors, and instability making position adjustments and operations difficult for users.</p>
+                </li>
+                <li>
+                    <strong>From the perspective of usability (e.g., whether the tool is easy to learn and use), smoothness (e.g., whether operations are seamless and free from noticeable delays), realism (e.g., whether physical simulations of shape deformations meet your expectations), or any other aspects, please provide your feedback.</strong>
+                    <p>The tool was widely regarded as user-friendly, with low learning curves and easy-to-use interfaces across all participants (P7-P12). The system offered smooth and stable interactions with high frame rates, providing a seamless experience without noticeable lags or motion sickness (P7, P8, P10, P11, P12). In terms of realism, participants appreciated the adherence to physical rules and the overall accuracy in modeling (P8, P9, P10), though some noted areas for improvement, such as material diversity, detailed physical behaviors, and surface smoothing (P7, P8, P9, P11). Despite its strengths, hand-tracking performance was identified as a consistent issue, with imprecision and instability affecting precise operations and adjustments (P9, P12).</p>
+                </li>
+                <li>
+                    <strong>What aspects do you find unsatisfactory, and do you have any suggestions for improvements? Are there any features you think should be added?</strong>
+                    <p>Suggestions for improvement included adding an undo function (P7, P9, P12), enhancing particle numbers for better surface reconstruction (P7, P12), and introducing more geometric presets like ellipsoids and rectangular prisms (P8, P12). Other proposals involved supporting single-dimensional shape adjustments (P9), optimizing hand-tracking, and improving collision box handling (P10). Participants also recommended adding object separation and text insertion (P8).</p>
+                </li>
+            </ol>
+        </div>
+
+        <div class="container is-max-desktop has-text-left mt-5">
+            <h2 class="title is-4">Questionnaire Results (P1-P12)</h2>
+            <img src="images/Study_Statistics.png" alt="Study Statistics" width="100%" height="800px">
+            <!-- <img src="images/User_Study_Results_New.png" alt="User Study" width="100%" height="600px"> -->
+        </div>
+    </section>
+</body>
+</html>
