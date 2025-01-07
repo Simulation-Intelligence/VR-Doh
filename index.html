@@ -40,6 +40,24 @@
         #imageButtons img:hover {
             transform: scale(1.1);
         }
+
+        #imageButtonsGS {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #imageButtonsGS img {
+            width: 200px;
+            height: 200px;
+            margin: 0 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        #imageButtonsGS img:hover {
+            transform: scale(1.1);
+        }
     </style>
     <!-- Use importmap to define the module paths (must be before module scripts) -->
     <script type="importmap">
@@ -141,8 +159,10 @@
                 data-material="baozi_cage_full.mtl">
             <img src="images/pig_baozi.png" alt="Model 2" data-model="pig_cage_full.obj"
                 data-material="pig_cage_full.mtl">
-            <img src="images/chaji.png" alt="Model 3" data-model="chaji6.obj" data-material="chaji6.mtl">
+            <img src="images/cake.png" alt="Model 3" data-model="cake1_3.obj" data-material="cake1_3.mtl">
             <img src="images/panda.png" alt="Model 4" data-model="panda.obj" data-material="panda.mtl">
+            <img src="images/snowman.png" alt="Model 5" data-model="snowman_full2.obj"
+                data-material="snowman_full2.mtl">
         </div>
 
         <!-- 引入 modelViewer.js 文件 -->
@@ -177,6 +197,47 @@
 
         <p class="title is-3 mt-5 has-text-centered"> Editing 3D GS </p>
         <img src="images/Gaussian_Examples.png" alt="Editing 3D GS" width="100%" height="600px">
+        <!-- 3D GS 展示区域 -->
+        <div id="splatContainer">
+            <iframe id="splatIframe" src="splat/?url=3dgs/bright_red_pig.splat" width="800" height="600"
+                style="border: none;"></iframe>
+        </div>
+
+        <!-- 3D GS 按钮区域 -->
+        <div id="imageButtonsGS">
+            <img src="images/red_pig.png" alt="Model 1" data-splat="3dgs/bright_red_pig.splat">
+            <img src="images/truss_wooden-pile-up.png" alt="Model 2"
+                data-splat="3dgs/truss_wooden-pile-up-example2.splat">
+        </div>
+
+        <script type="module">
+            import { initModelViewer } from './js/modelViewer.js';
+
+            // 3D 模型展示部分
+            const modelContainer1 = document.getElementById('modelContainer');
+            initModelViewer('modelContainer', './models/panda.obj', './models/panda.mtl');
+
+            const imageButtons1 = document.querySelectorAll('#imageButtons img');
+            imageButtons1.forEach(img => {
+                img.addEventListener('click', () => {
+                    const modelPath = img.getAttribute('data-model');
+                    const materialPath = img.getAttribute('data-material');
+                    modelContainer1.innerHTML = '';
+                    initModelViewer('modelContainer', `./models/${modelPath}`, `./models/${materialPath}`);
+                });
+            });
+
+            // 3D GS 展示部分
+            const splatIframe = document.getElementById('splatIframe');
+            const imageButtonsGS = document.querySelectorAll('#imageButtonsGS img');
+
+            imageButtonsGS.forEach(img => {
+                img.addEventListener('click', () => {
+                    const splatPath = img.getAttribute('data-splat');
+                    splatIframe.src = `splat/?url=${splatPath}`;
+                });
+            });
+        </script>
 
         <p class="title is-3 mt-5 has-text-centered"> <a href="userstudy.html">User Study Results</a> </p>
         <img src="images/User_Study_Results_New.png" alt="User Study" width="100%" height="600px">
