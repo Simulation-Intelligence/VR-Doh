@@ -744,15 +744,16 @@ async function main() {
         carousel = false;
     } catch (err) { }
     const scriptPath = location.origin;
+    const relativePath = "3dgs/";
 
-    //如果是github域名，则添加VR-doh
-    if (scriptPath.includes("github")) {
-        scriptPath += "/VR-doh";
+    //如果origin含有github
+    if (location.origin.includes("github")) {
+        relativePath = "VR-doh/" + relativePath;
     }
     const url = new URL(
         // "nike.splat",
         // location.href,
-        params.get("url") || "train.splat",
+        relativePath + params.get("url") || "train.splat",
         scriptPath,
     );
     const req = await fetch(url, {
