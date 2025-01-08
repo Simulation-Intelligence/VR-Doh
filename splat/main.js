@@ -743,9 +743,8 @@ async function main() {
         viewMatrix = JSON.parse(decodeURIComponent(location.hash.slice(1)));
         carousel = false;
     } catch (err) { }
-    const scriptPath = location.origin;
-    let relativePath = "3dgs/";
 
+    let relativePath = "3dgs/";
     //如果origin含有github
     if (location.origin.includes("github")) {
         relativePath = "VR-doh/" + relativePath;
@@ -753,8 +752,8 @@ async function main() {
     const url = new URL(
         // "nike.splat",
         // location.href,
-        relativePath + params.get("url") || "train.splat",
-        scriptPath,
+        (relativePath + (params.get("url") || "train.splat")),
+        location.origin,
     );
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
