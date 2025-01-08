@@ -744,7 +744,7 @@ async function main() {
         carousel = false;
     } catch (err) { }
     const scriptPath = location.origin;
-    const relativePath = "3dgs/";
+    let relativePath = "3dgs/";
 
     //如果origin含有github
     if (location.origin.includes("github")) {
