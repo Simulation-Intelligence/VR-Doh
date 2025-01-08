@@ -743,17 +743,17 @@ async function main() {
         viewMatrix = JSON.parse(decodeURIComponent(location.hash.slice(1)));
         carousel = false;
     } catch (err) { }
-    const scriptPath = document.currentScript.src;
-    // 获取父目录的路径
-    const parentDirectory = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-    // 获取父目录的父目录路径
-    const grandParentDirectory = parentDirectory.substring(0, parentDirectory.lastIndexOf('/'));
+    const scriptPath = location.origin;
 
+    //如果是github域名，则添加VR-doh
+    if (scriptPath.includes("github")) {
+        scriptPath += "/VR-doh";
+    }
     const url = new URL(
         // "nike.splat",
         // location.href,
         params.get("url") || "train.splat",
-        grandParentDirectory + '/',
+        scriptPath,
     );
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
