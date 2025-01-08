@@ -745,10 +745,10 @@ async function main() {
     } catch (err) { }
     const scriptPath = location.origin;
 
-    // //如果是github域名，则添加VR-doh
-    // if (scriptPath.includes("github")) {
-    //     scriptPath += "/VR-doh";
-    // }
+    //如果是github域名，则添加VR-doh
+    if (scriptPath.includes("github")) {
+        scriptPath += "/VR-doh";
+    }
     const url = new URL(
         // "nike.splat",
         // location.href,
