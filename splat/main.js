@@ -753,7 +753,7 @@ async function main() {
         // "nike.splat",
         // location.href,
         params.get("url") || "train.splat",
-        grandParentDirectory + '/',
+        parentDirectory + '/',
     );
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
