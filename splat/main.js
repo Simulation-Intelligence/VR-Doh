@@ -759,26 +759,43 @@ async function main() {
     console.log(pathSegments);  // 输出: w/VR-doh-F299
 
     relativePath = relativePath + "3dgs/";
-    relativePath = "/VR-doh/3dgs/";
+
     const url = new URL(
         // "nike.splat",
         // location.href,
         (relativePath + (params.get("url") || "train.splat")),
-        // location.origin,
-        "https://simulation-intelligence.github.io",
+        location.origin,
     );
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
         credentials: "omit", // include, *same-origin, omit
     });
+
+    const clone_req = req.clone();
     console.log(req);
     if (req.status != 200)
         throw new Error(req.status + " Unable to load " + req.url);
 
     const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
+    // const reader = req.body.getReader();
+    // let splatData = new Uint8Array(req.headers.get("content-length"));
     const reader = req.body.getReader();
-    let splatData = new Uint8Array(req.headers.get("content-length"));
+    const clone_reader = clone_req.body.getReader();
+    let chunks = [];
+    let totalLength = 0;
 
+    // 逐块读取数据
+    while (true) {
+        const { done, value } = await clone_reader.read();
+        if (done) break;
+        chunks.push(value);
+        totalLength += value.length;
+    }
+
+    // 创建合并后的 Uint8Array
+    let splatData = new Uint8Array(totalLength);
+
+    console.log("Data loaded, total length:", totalLength);
     const downsample =
         splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
     console.log(splatData.length / rowLength, downsample);
