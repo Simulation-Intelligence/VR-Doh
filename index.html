@@ -140,7 +140,18 @@
         </p> -->
 
         <p class="content is-size-6 has-text-left">
-            We introduce <b>VR-Doh</b>, a hands-on 3D modeling system that enables intuitive creation and manipulation of elastoplastic objects in Virtual Reality (VR). By customizing the Material Point Method (MPM) for real-time simulation of hand-induced large deformations and enhancing 3D Gaussian Splatting for seamless rendering, VR-Doh provides an interactive and immersive 3D modeling experience. Users can naturally sculpt, deform, and edit objects through both contact- and gesture-based hand-object interactions. To achieve real-time performance, our system incorporates localized simulation techniques, particle-level collision handling, and the decoupling of physical and appearance representations, ensuring smooth and responsive interactions. VR-Doh supports both object creation and editing, enabling diverse modeling tasks such as designing food items, characters, and interlocking structures, all resulting in simulation-ready assets. A user study with both novice and experienced participants highlights the system's intuitive design, immersive feedback, and creative potential. Compared to existing geometric modeling tools, VR-Doh offers enhanced accessibility and natural interaction, making it a powerful tool for creative exploration in VR.
+            We introduce <b>VR-Doh</b>, a hands-on 3D modeling system that enables intuitive creation and manipulation
+            of elastoplastic objects in Virtual Reality (VR). By customizing the Material Point Method (MPM) for
+            real-time simulation of hand-induced large deformations and enhancing 3D Gaussian Splatting for seamless
+            rendering, VR-Doh provides an interactive and immersive 3D modeling experience. Users can naturally sculpt,
+            deform, and edit objects through both contact- and gesture-based hand-object interactions. To achieve
+            real-time performance, our system incorporates localized simulation techniques, particle-level collision
+            handling, and the decoupling of physical and appearance representations, ensuring smooth and responsive
+            interactions. VR-Doh supports both object creation and editing, enabling diverse modeling tasks such as
+            designing food items, characters, and interlocking structures, all resulting in simulation-ready assets. A
+            user study with both novice and experienced participants highlights the system's intuitive design, immersive
+            feedback, and creative potential. Compared to existing geometric modeling tools, VR-Doh offers enhanced
+            accessibility and natural interaction, making it a powerful tool for creative exploration in VR.
         </p>
 
         <!-- results (videos) -->
@@ -168,7 +179,9 @@
             <img src="images/snowman.png" alt="Model 5" data-model="snowman_full2.obj"
                 data-material="snowman_full2.mtl">
         </div>
-
+        <!-- 提示文本 -->
+        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
+            image to explore the 3D model in the viewer</p>
         <!-- 引入 modelViewer.js 文件 -->
         <script type="module">
             import { initModelViewer } from './js/modelViewer.js';
@@ -176,14 +189,13 @@
             // 初始化 3D 模型查看器
             let currentModel = null;  // 当前加载的模型
             const modelContainer = document.getElementById('modelContainer');
+            const imageButtons = document.querySelectorAll('#imageButtons img');
+            const hintText = document.getElementById('hintText');
 
             // 初始化并加载第一个模型
             initModelViewer('modelContainer', './models/panda.obj', './models/panda.mtl');
 
-            // 获取所有图片按钮
-            const imageButtons = document.querySelectorAll('#imageButtons img');
-
-            // 添加点击事件监听器
+            // 处理点击图片事件
             imageButtons.forEach(img => {
                 img.addEventListener('click', () => {
                     const modelPath = img.getAttribute('data-model');
@@ -194,11 +206,41 @@
 
                     // 加载新模型
                     initModelViewer('modelContainer', `./models/${modelPath}`, `./models/${materialPath}`);
+
+                    // 移除其他图片的框
+                    imageButtons.forEach(button => {
+                        button.classList.remove('selected');
+                    });
+
+                    // 给当前选中的图片添加框
+                    img.classList.add('selected');
+
+                    // 更新提示文本
+                    hintText.innerText = "Click on an image to explore the 3D model in the viewer";
                 });
             });
+
+            // 页面加载时自动点击第一个图片
+            window.addEventListener('load', () => {
+                const firstImage = imageButtons[0];
+                firstImage.click();  // 模拟点击第一个图片
+            });
         </script>
+
+        <style>
+            /* 添加选中图片时显示边框的样式 */
+            #imageButtons img.selected {
+                border: 3px solid #00A7E1;
+                box-shadow: 0 0 10px rgba(0, 167, 225, 0.7);
+            }
+
+            #imageButtonsGS img.selected {
+                border: 3px solid #00A7E1;
+                box-shadow: 0 0 10px rgba(0, 167, 225, 0.7);
+            }
+        </style>
         <img src="images/mc_examples_compressed.png" alt="Modeling from scratch example" width="100%" height="600px">
-        
+
         <p class="title is-3 mt-5 has-text-centered"> 3D GS Object Editing Examples </p>
         <img src="images/Gaussian_Examples.png" alt="Editing 3D GS" width="100%" height="600px">
         <!-- 3D GS 展示区域 -->
@@ -206,7 +248,7 @@
             <iframe id="splatIframe" src="splat/?url=2_red_pig.splat" width="800" height="600"
                 style="border: none;"></iframe>
         </div>
-        
+
         <!-- 3D GS 按钮区域 -->
         <div id="imageButtonsGS">
             <img src="images/red_pig.png" alt="Model 1" data-splat="2_red_pig.splat">
@@ -238,10 +280,26 @@
                 img.addEventListener('click', () => {
                     const splatPath = img.getAttribute('data-splat');
                     splatIframe.src = `splat/?url=${splatPath}`;
+
+                    // 移除其他图片的框
+                    imageButtonsGS.forEach(button => {
+                        button.classList.remove('selected');
+                    });
+
+                    // 给当前选中的图片添加框
+                    img.classList.add('selected');
                 });
             });
-        </script>
 
+            // 页面加载时自动点击第一个图片
+            window.addEventListener('load', () => {
+                const firstImage = imageButtonsGS[0];
+                firstImage.click();  // 模拟点击第一个图片
+            });
+        </script>
+        <!-- 提示文本 -->
+        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
+            image to explore the 3D GS in the viewer</p>
         <p class="title is-3 mt-5 has-text-centered"> <a href="userstudy.html">User Study Results</a> </p>
         <img src="images/User_Study_Results_New.png" alt="User Study" width="100%" height="600px">
 
