@@ -744,11 +744,22 @@ async function main() {
         carousel = false;
     } catch (err) { }
 
-    let relativePath = "3dgs/";
-    //如果origin含有github
-    if (location.origin.includes("github")) {
-        relativePath = "VR-doh/" + relativePath;
-    }
+    //let relativePath = "3dgs/";
+
+
+    // 获取当前页面的完整路径（不包括协议和域名）
+    const fullPath = window.location.pathname;
+
+    // 去掉 'index.html'
+    let relativePath = fullPath.replace('splat/', '');
+
+    // 提取相对路径部分（如 'w/VR-doh-F299'）
+    const pathSegments = relativePath.split('/').slice(1).join('/');
+
+    console.log(pathSegments);  // 输出: w/VR-doh-F299
+
+    relativePath = relativePath + "3dgs/";
+
     const url = new URL(
         // "nike.splat",
         // location.href,
