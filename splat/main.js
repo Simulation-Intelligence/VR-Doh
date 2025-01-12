@@ -759,12 +759,13 @@ async function main() {
     console.log(pathSegments);  // 输出: w/VR-doh-F299
 
     relativePath = relativePath + "3dgs/";
-
+    relativePath = "/VR-doh/3dgs/";
     const url = new URL(
         // "nike.splat",
         // location.href,
         (relativePath + (params.get("url") || "train.splat")),
-        location.origin,
+        // location.origin,
+        "https://simulation-intelligence.github.io",
     );
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
