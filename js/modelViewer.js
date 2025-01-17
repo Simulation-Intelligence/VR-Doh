@@ -21,13 +21,15 @@ export function initModelViewer(containerId, objPath, mtlPath) {
 
     // 渲染器
     const renderer = new THREE.WebGLRenderer();
+    renderer.gammaOutput = true;  // 启用伽马输出
+    renderer.gammaFactor = 2.2;   // 设置伽马值为2.2
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
     // 添加光源
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
