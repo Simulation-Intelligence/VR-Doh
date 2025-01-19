@@ -12,8 +12,8 @@ let cameras = [
             [-0.04747421839895102, 0.9972110940209488, -0.057586739349882114],
             [-0.4797239414934443, 0.027805376500959853, 0.8769787916452908],
         ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
+        fy: 3164.6601287484507,
+        fx: 3159.5880733038064,
     },
     {
         id: 1,
@@ -733,7 +733,7 @@ void main () {
 
 let defaultViewMatrix = [
     0.47, 0.04, 0.88, 0, -0.11, 0.99, 0.02, 0, -0.88, -0.11, 0.47, 0, 0.07,
-    0.03, 6.55, 1,
+    0.03, 6, 1,
 ];
 let viewMatrix = defaultViewMatrix;
 async function main() {
@@ -758,7 +758,7 @@ async function main() {
 
     console.log(pathSegments);  // 输出: w/VR-doh-F299
 
-    relativePath = relativePath + "3dgs/";
+    relativePath = relativePath + "3dgs/SplatFiles/";
 
     const url = new URL(
         // "nike.splat",
@@ -1058,8 +1058,8 @@ async function main() {
         if (down == 1) {
             let inv = invert4(viewMatrix);
             let dx = (5 * (e.clientX - startX)) / innerWidth;
-            let dy = (5 * (e.clientY - startY)) / innerHeight;
-            let d = 4;
+            let dy = 0;//(5 * (e.clientY - startY)) / innerHeight;
+            let d = 6;
 
             inv = translate4(inv, 0, 0, d);
             inv = rotate4(inv, dx, 0, 1, 0);
@@ -1072,22 +1072,23 @@ async function main() {
 
             startX = e.clientX;
             startY = e.clientY;
-        } else if (down == 2) {
-            let inv = invert4(viewMatrix);
-            // inv = rotateY(inv, );
-            // let preY = inv[13];
-            inv = translate4(
-                inv,
-                (-10 * (e.clientX - startX)) / innerWidth,
-                0,
-                (10 * (e.clientY - startY)) / innerHeight,
-            );
-            // inv[13] = preY;
-            viewMatrix = invert4(inv);
-
-            startX = e.clientX;
-            startY = e.clientY;
         }
+        // } else if (down == 2) {
+        //     let inv = invert4(viewMatrix);
+        //     // inv = rotateY(inv, );
+        //     // let preY = inv[13];
+        //     inv = translate4(
+        //         inv,
+        //         (-10 * (e.clientX - startX)) / innerWidth,
+        //         0,
+        //         (10 * (e.clientY - startY)) / innerHeight,
+        //     );
+        //     // inv[13] = preY;
+        //     viewMatrix = invert4(inv);
+
+        //     startX = e.clientX;
+        //     startY = e.clientY;
+        // }
     });
     canvas.addEventListener("mouseup", (e) => {
         e.preventDefault();
@@ -1363,15 +1364,15 @@ async function main() {
 
         viewMatrix = invert4(inv);
 
-        if (carousel) {
-            let inv = invert4(defaultViewMatrix);
+        // if (carousel) {
+        //     let inv = invert4(defaultViewMatrix);
 
-            const t = Math.sin((Date.now() - start) / 5000);
-            inv = translate4(inv, 2.5 * t, 0, 6 * (1 - Math.cos(t)));
-            inv = rotate4(inv, -0.6 * t, 0, 1, 0);
+        //     const t = Math.sin((Date.now() - start) / 5000);
+        //     inv = translate4(inv, 2.5 * t, 0, 6 * (1 - Math.cos(t)));
+        //     inv = rotate4(inv, -0.6 * t, 0, 1, 0);
 
-            viewMatrix = invert4(inv);
-        }
+        //     viewMatrix = invert4(inv);
+        // }
 
         if (isJumping) {
             jumpDelta = Math.min(1, jumpDelta + 0.05);

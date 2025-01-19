@@ -7,7 +7,7 @@ import argparse
 from io import BytesIO
 
 
-def process_ply_to_splat(ply_file_path):
+def process_ply_to_splat(ply_file_path, scale=1):
     plydata = PlyData.read(ply_file_path)
     vert = plydata["vertex"]
     sorted_indices = np.argsort(
@@ -17,8 +17,8 @@ def process_ply_to_splat(ply_file_path):
     buffer = BytesIO()
     for idx in sorted_indices:
         v = plydata["vertex"][idx]
-        position = np.array([v["x"], v["y"], v["z"]], dtype=np.float32)
-        scales = np.exp(
+        position = np.array([scale*v["x"], scale*v["y"],-scale*v["z"]], dtype=np.float32)
+        scales =1.3* scale*np.exp(
             np.array(
                 [v["scale_0"], v["scale_1"], v["scale_2"]],
                 dtype=np.float32,
@@ -63,10 +63,13 @@ def main():
     parser.add_argument(
         "--output", "-o", default="output.splat", help="The output SPLAT file."
     )
+    parser.add_argument(
+        "--scale", "-s", default=1, help="scale factor."
+    )
     args = parser.parse_args()
     for input_file in args.input_files:
         print(f"Processing {input_file}...")
-        splat_data = process_ply_to_splat(input_file)
+        splat_data = process_ply_to_splat(input_file, scale=float(args.scale))
         output_file = (
             args.output if len(args.input_files) == 1 else input_file + ".splat"
         )
