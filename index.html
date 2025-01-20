@@ -131,19 +131,6 @@
 
         <!-- abstract -->
         <p class="title is-3 mt-5 has-text-centered"> Abstract </p>
-        <!-- <p class="content is-size-6 has-text-left">
-            We present <b>VR-Doh</b>, a hands-on 3D modeling system designed for creating and manipulating
-            elastoplastic
-            objects in virtual reality (VR). The system employs the Material Point Method (MPM) for simulating
-            realistic large deformations and incorporates optimized Gaussian Splatting for seamless rendering. With
-            direct, hand-based interactions, users can naturally sculpt, deform, and edit objects interactively. To
-            achieve real-time performance, we developed localized simulation techniques, optimized collision
-            handling, and separated appearance and physical representations, ensuring smooth and responsive user
-            interaction. The system supports both freeform creation and precise adjustments, catering to diverse
-            modeling tasks. A user study involving novice and experienced users highlights the system's intuitive
-            design, immersive feedback, and creative potential. Compared to traditional geometry-based modeling
-            tools, our approach offers improved accessibility and natural interaction in specific contexts.
-        </p> -->
 
         <p class="content is-size-6 has-text-left">
             We introduce <b>VR-Doh</b>, a hands-on 3D modeling system that enables intuitive creation and manipulation
@@ -172,6 +159,9 @@
         <p class="title is-3 mt-5 has-text-centered"> Modeling from scratch </p>
 
         <!-- 3D 模型展示区域 -->
+        <!-- 提示文本 -->
+        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
+            image to explore the 3D model in the viewer</p>
         <div id="modelContainer"></div>
 
         <!-- 按钮区域，包含四个图片按钮 -->
@@ -184,14 +174,12 @@
             <img src="images/panda.png" alt="Model 4" data-model="panda.obj" data-material="panda.mtl">
             <img src="images/snowman.png" alt="Model 5" data-model="snowman_full2.obj"
                 data-material="snowman_full2.mtl">
-            <img src="images/burger.png" alt="Model 3" data-model="burger_new.obj" data-material="burger_new.mtl">
-            <img src="images/grape.png" alt="Model 4" data-model="full_grape.obj" data-material="full_grape.mtl">
-            <img src="images/frog.png" alt="Model 5" data-model="frog.obj" data-material="frog.mtl">
-            <img src="images/cup.png" alt="Model 5" data-model="cup3.obj" data-material="cup3.mtl">
+            <img src="images/burger.png" alt="Model 6" data-model="burger_new.obj" data-material="burger_new.mtl">
+            <img src="images/grape.png" alt="Model 7" data-model="full_grape.obj" data-material="full_grape.mtl">
+            <img src="images/frog.png" alt="Model 8" data-model="frog.obj" data-material="frog.mtl">
+            <img src="images/cup.png" alt="Model 9" data-model="cup3.obj" data-material="cup3.mtl">
         </div>
-        <!-- 提示文本 -->
-        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
-            image to explore the 3D model in the viewer</p>
+
         <!-- 引入 modelViewer.js 文件 -->
         <script type="module">
             import { initModelViewer } from './js/modelViewer.js';
@@ -249,53 +237,63 @@
                 box-shadow: 0 0 10px rgba(0, 167, 225, 0.7);
             }
         </style>
-        <img src="images/mc_examples_compressed.png" alt="Modeling from scratch example" width="60%" height="600px">
+        <!-- <img src="images/mc_examples_compressed.png" alt="Modeling from scratch example" width="60%" height="600px"> -->
 
         <p class="title is-3 mt-5 has-text-centered"> 3D GS Object Editing Examples </p>
-        <img src="images/Gaussian_Examples.png" alt="Editing 3D GS" width="100%" height="600px">
+        <!-- <img src="images/Gaussian_Examples.png" alt="Editing 3D GS" width="100%" height="600px"> -->
+        <!-- 提示文本 -->
+        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
+            image to explore the 3D GS in the viewer</p>
         <!-- 3D GS 展示区域 -->
-        <div id="splatContainer">
-            <iframe id="splatIframe" src="splat/?url=2_red_pig.splat" width="800" height="600"
-                style="border: none;"></iframe>
-        </div>
+        <!-- 第一个 iframe -->
+        <iframe id="splatIframe1" src="splat/?url=2_red_pig.splat" style="width: 800px; height: 600px; "></iframe>
+        <!-- 提示文本 -->
+        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Unedited 3D
+            GS
+        </p>
+        <!-- 第二个 iframe -->
+        <iframe id="splatIframe2" src="splat/?url=3_taoyong.splat" style="width: 800px; height: 600px; "></iframe>
+        <!-- 提示文本 -->
+        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Edited 3D
+            GS
+        </p>
+
+
+
 
         <!-- 3D GS 按钮区域 -->
         <div id="imageButtonsGS">
-            <img src="images/1.png" alt="Model 1" data-splat="1_translate.splat">
-            <img src="images/2.png" alt="Model 2" data-splat="2_translate.splat">
-            <img src="images/3.png" alt="Model 3" data-splat="3_translate.splat">
-            <img src="images/4.png" alt="Model 4" data-splat="4_translate.splat">
-            <img src="images/5.png" alt="Model 5" data-splat="5_translate.splat">
-            <img src="images/6.png" alt="Model 6" data-splat="6_translate.splat">
-            <img src="images/7.png" alt="Model 7" data-splat="7_translate.splat">
-            <img src="images/8.png" alt="Model 8" data-splat="8_translate.splat">
+            <img src="images/1.png" alt="Model 1" data-splat1="1_unedited_translate.splat"
+                data-splat2="1_translate.splat">
+            <img src="images/2.png" alt="Model 2" data-splat1="2_unedited_translate.splat"
+                data-splat2="2_translate.splat">
+            <img src="images/3.png" alt="Model 3" data-splat1="3_unedited_translate.splat"
+                data-splat2="3_translate.splat">
+            <img src="images/4.png" alt="Model 4" data-splat1="4_unedited_translate.splat"
+                data-splat2="4_translate.splat">
+            <img src="images/5.png" alt="Model 5" data-splat1="5_unedited_translate.splat"
+                data-splat2="5_translate.splat">
+            <img src="images/6.png" alt="Model 6" data-splat1="6_unedited_translate.splat"
+                data-splat2="6_translate.splat">
+            <img src="images/7.png" alt="Model 7" data-splat1="7_unedited_translate.splat"
+                data-splat2="7_translate.splat">
+            <img src="images/8.png" alt="Model 8" data-splat1="8_unedited_translate.splat"
+                data-splat2="8_translate.splat">
         </div>
 
         <script type="module">
-            import { initModelViewer } from './js/modelViewer.js';
-
-            // 3D 模型展示部分
-            const modelContainer1 = document.getElementById('modelContainer');
-            initModelViewer('modelContainer', './models/panda.obj', './models/panda.mtl');
-
-            const imageButtons1 = document.querySelectorAll('#imageButtons img');
-            imageButtons1.forEach(img => {
-                img.addEventListener('click', () => {
-                    const modelPath = img.getAttribute('data-model');
-                    const materialPath = img.getAttribute('data-material');
-                    modelContainer1.innerHTML = '';
-                    initModelViewer('modelContainer', `./models/${modelPath}`, `./models/${materialPath}`);
-                });
-            });
 
             // 3D GS 展示部分
-            const splatIframe = document.getElementById('splatIframe');
+            const splatIframe1 = document.getElementById('splatIframe1');
+            const splatIframe2 = document.getElementById('splatIframe2');
             const imageButtonsGS = document.querySelectorAll('#imageButtonsGS img');
 
             imageButtonsGS.forEach(img => {
                 img.addEventListener('click', () => {
-                    const splatPath = img.getAttribute('data-splat');
-                    splatIframe.src = `splat/?url=${splatPath}`;
+                    const splatPath1 = img.getAttribute('data-splat1');
+                    const splatPath2 = img.getAttribute('data-splat2');
+                    splatIframe1.src = `splat/?url=${splatPath1}`;
+                    splatIframe2.src = `splat/?url=${splatPath2}`;
 
                     // 移除其他图片的框
                     imageButtonsGS.forEach(button => {
@@ -309,13 +307,11 @@
 
             // 页面加载时自动点击第一个图片
             window.addEventListener('load', () => {
-                const firstImage = imageButtonsGS[0];
+                const firstImage = imageButtonsGS[1];
                 firstImage.click();  // 模拟点击第一个图片
             });
         </script>
-        <!-- 提示文本 -->
-        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
-            image to explore the 3D GS in the viewer</p>
+
         <p class="title is-3 mt-5 has-text-centered"> <a href="userstudy.html">User Study Results</a> </p>
         <img src="images/User_Study_Results_New.png" alt="User Study" width="100%" height="600px">
 

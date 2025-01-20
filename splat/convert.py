@@ -18,7 +18,7 @@ def process_ply_to_splat(ply_file_path, scale=1):
     for idx in sorted_indices:
         v = plydata["vertex"][idx]
         position = np.array([scale*v["x"], scale*v["y"],-scale*v["z"]], dtype=np.float32)
-        scales =1.3* scale*np.exp(
+        scales =scale*np.exp(
             np.array(
                 [v["scale_0"], v["scale_1"], v["scale_2"]],
                 dtype=np.float32,
