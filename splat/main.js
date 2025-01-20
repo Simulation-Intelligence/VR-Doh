@@ -1007,49 +1007,49 @@ async function main() {
         activeKeys = [];
     });
 
-    window.addEventListener(
-        "wheel",
-        (e) => {
-            carousel = false;
-            e.preventDefault();
-            const lineHeight = 10;
-            const scale =
-                e.deltaMode == 1
-                    ? lineHeight
-                    : e.deltaMode == 2
-                        ? innerHeight
-                        : 1;
-            let inv = invert4(viewMatrix);
-            if (e.shiftKey) {
-                inv = translate4(
-                    inv,
-                    (e.deltaX * scale) / innerWidth,
-                    (e.deltaY * scale) / innerHeight,
-                    0,
-                );
-            } else if (e.ctrlKey || e.metaKey) {
-                // inv = rotate4(inv,  (e.deltaX * scale) / innerWidth,  0, 0, 1);
-                // inv = translate4(inv,  0, (e.deltaY * scale) / innerHeight, 0);
-                // let preY = inv[13];
-                inv = translate4(
-                    inv,
-                    0,
-                    0,
-                    (-10 * (e.deltaY * scale)) / innerHeight,
-                );
-                // inv[13] = preY;
-            } else {
-                let d = 4;
-                inv = translate4(inv, 0, 0, d);
-                inv = rotate4(inv, -(e.deltaX * scale) / innerWidth, 0, 1, 0);
-                inv = rotate4(inv, (e.deltaY * scale) / innerHeight, 1, 0, 0);
-                inv = translate4(inv, 0, 0, -d);
-            }
+    // window.addEventListener(
+    //     "wheel",
+    //     (e) => {
+    //         carousel = false;
+    //         e.preventDefault();
+    //         const lineHeight = 10;
+    //         const scale =
+    //             e.deltaMode == 1
+    //                 ? lineHeight
+    //                 : e.deltaMode == 2
+    //                     ? innerHeight
+    //                     : 1;
+    //         let inv = invert4(viewMatrix);
+    //         if (e.shiftKey) {
+    //             inv = translate4(
+    //                 inv,
+    //                 (e.deltaX * scale) / innerWidth,
+    //                 (e.deltaY * scale) / innerHeight,
+    //                 0,
+    //             );
+    //         } else if (e.ctrlKey || e.metaKey) {
+    //             // inv = rotate4(inv,  (e.deltaX * scale) / innerWidth,  0, 0, 1);
+    //             // inv = translate4(inv,  0, (e.deltaY * scale) / innerHeight, 0);
+    //             // let preY = inv[13];
+    //             inv = translate4(
+    //                 inv,
+    //                 0,
+    //                 0,
+    //                 (-10 * (e.deltaY * scale)) / innerHeight,
+    //             );
+    //             // inv[13] = preY;
+    //         } else {
+    //             let d = 4;
+    //             inv = translate4(inv, 0, 0, d);
+    //             inv = rotate4(inv, -(e.deltaX * scale) / innerWidth, 0, 1, 0);
+    //             inv = rotate4(inv, (e.deltaY * scale) / innerHeight, 1, 0, 0);
+    //             inv = translate4(inv, 0, 0, -d);
+    //         }
 
-            viewMatrix = invert4(inv);
-        },
-        { passive: false },
-    );
+    //         viewMatrix = invert4(inv);
+    //     },
+    //     { passive: false },
+    // );
 
     let startX, startY, down;
     canvas.addEventListener("mousedown", (e) => {
