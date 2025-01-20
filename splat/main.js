@@ -732,8 +732,22 @@ void main () {
 `.trim();
 
 let defaultViewMatrix = [
-    0.47, 0.04, 0.88, 0, -0.11, 0.99, 0.02, 0, -0.88, -0.11, 0.47, 0, 0.07,
-    0.03, 6, 1,
+    -0.9907353839360805,
+    0.09853483746655925,
+    -0.07506187329440378,
+    0,
+    0.10454905257033219,
+    0.9756735022231624,
+    -0.1724259628542743,
+    0,
+    0.060828056277254315,
+    -0.1833469231499439,
+    -0.9849283493437294,
+    0,
+    -0.03511597988961309,
+    0.03637640032387591,
+    6,
+    0.9999999999999771
 ];
 let viewMatrix = defaultViewMatrix;
 async function main() {
@@ -1058,7 +1072,7 @@ async function main() {
         if (down == 1) {
             let inv = invert4(viewMatrix);
             let dx = (5 * (e.clientX - startX)) / innerWidth;
-            let dy = 0;//(5 * (e.clientY - startY)) / innerHeight;
+            let dy = (5 * (e.clientY - startY)) / innerHeight;
             let d = 6;
 
             inv = translate4(inv, 0, 0, d);
