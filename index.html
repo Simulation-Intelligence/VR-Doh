@@ -24,19 +24,14 @@
         }
 
         #imageButtons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            /* 第一行3张图片 */
-            gap: 10px;
-            /* 图片之间的间距 */
-            justify-items: center;
-            /* 居中图片 */
+            display: flex;
+            justify-content: center;
             margin-top: 20px;
         }
 
         #imageButtons img {
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
             margin: 0 10px;
             cursor: pointer;
             transition: transform 0.3s;
@@ -47,20 +42,14 @@
         }
 
         #imageButtonsGS {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            /* 每行4张图片 */
-            gap: 10px;
-            /* 图片之间的间距 */
-            justify-items: center;
-            /* 居中图片 */
+            display: flex;
+            justify-content: center;
             margin-top: 20px;
         }
 
-
         #imageButtonsGS img {
-            width: 250px;
-            height: 200px;
+            width: 180px;
+            height: 150px;
             margin: 0 10px;
             cursor: pointer;
             transition: transform 0.3s;
@@ -70,33 +59,35 @@
             transform: scale(1.1);
         }
 
-        /* 让第二行显示4张图片 */
-        @media (min-width: 768px) {
-            #imageButtons {
-                grid-template-columns: repeat(3, 1fr);
-                /* 保持第一行5张 */
-            }
-
-            #imageButtons img:nth-child(n+6) {
-                grid-column: span 1;
-                /* 让第6张图片开始显示在第二行 */
-            }
+        /* 使用 flexbox 将 iframe 和文字横向排列 */
+        .iframe-container {
+            display: flex;
+            justify-content: center;
+            /* 居中显示 */
+            gap: 20px;
+            /* iframe 之间的间距 */
+            margin-top: 20px;
+            /* 上间距 */
         }
 
-        /* 小屏幕适配，调整为每行3个 */
-        @media (max-width: 768px) {
-            #imageButtons {
-                grid-template-columns: repeat(3, 1fr);
-                /* 每行3张图片 */
-            }
+        /* 每个 iframe 和文字的容器 */
+        .iframe-item {
+            text-align: center;
+            /* 让文字居中 */
         }
 
-        /* 小屏幕适配，调整为每行2个 */
-        @media (max-width: 768px) {
-            #imageButtonsGS {
-                grid-template-columns: repeat(2, 1fr);
-                /* 每行2张图片 */
-            }
+        /* 每个 iframe 设置固定宽度和高度 */
+        iframe {
+            width: 800px;
+            height: 600px;
+            border: none;
+        }
+
+        /* 提示文本样式 */
+        .hint-text {
+            font-size: 24px;
+            color: #555;
+            margin-top: 10px;
         }
     </style>
     <!-- Use importmap to define the module paths (must be before module scripts) -->
@@ -124,7 +115,7 @@
 
     <div class="container has-text-centered">
         <!-- paper title -->
-        <p class="title is-3"> VR-Doh: Hands-on 3D Modeling in Virtual Reality </p>
+        <p class="title is-1"> VR-Doh: Hands-on 3D Modeling in Virtual Reality </p>
         <!-- publication -->
         <!-- <p class="subtitle is-4"> ICLR 2024 (Oral) </p> -->
         <!-- authors -->
@@ -200,7 +191,7 @@
 
         <!-- 3D 模型展示区域 -->
         <!-- 提示文本 -->
-        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
+        <p id="hintText" class="has-text-centered" style="font-size: 24px; color: #555; margin-top: 10px;">Click on an
             image to explore the 3D model in the viewer</p>
         <div id="modelContainer"></div>
 
@@ -282,21 +273,21 @@
         <p class="title is-3 mt-5 has-text-centered"> 3D GS Object Editing Examples </p>
         <!-- <img src="images/Gaussian_Examples.png" alt="Editing 3D GS" width="100%" height="600px"> -->
         <!-- 提示文本 -->
-        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Click on an
+        <p id="hintText" class="has-text-centered" style="font-size: 24px; color: #555; margin-top: 10px;">Click on an
             image to explore the 3D GS in the viewer</p>
         <!-- 3D GS 展示区域 -->
-        <!-- 第一个 iframe -->
-        <iframe id="splatIframe1" src="splat/?url=2_red_pig.splat" style="width: 800px; height: 600px; "></iframe>
-        <!-- 提示文本 -->
-        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Unedited 3D
-            GS
-        </p>
-        <!-- 第二个 iframe -->
-        <iframe id="splatIframe2" src="splat/?url=3_taoyong.splat" style="width: 800px; height: 600px; "></iframe>
-        <!-- 提示文本 -->
-        <p id="hintText" class="has-text-centered" style="font-size: 36px; color: #555; margin-top: 10px;">Edited 3D
-            GS
-        </p>
+        <div class="iframe-container">
+            <!-- 第一个 iframe 和提示文本 -->
+            <div class="iframe-item">
+                <iframe id="splatIframe1" src="splat/?url=2_red_pig.splat"></iframe>
+                <p id="hintText" class="hint-text">Input 3D GS</p>
+            </div>
+            <!-- 第二个 iframe 和提示文本 -->
+            <div class="iframe-item">
+                <iframe id="splatIframe2" src="splat/?url=3_taoyong.splat"></iframe>
+                <p id="hintText" class="hint-text">Edited 3D GS</p>
+            </div>
+        </div>
 
 
 
@@ -351,9 +342,9 @@
                 firstImage.click();  // 模拟点击第一个图片
             });
         </script>
-
+        <!-- 
         <p class="title is-3 mt-5 has-text-centered"> <a href="userstudy.html">User Study Results</a> </p>
-        <img src="images/User_Study_Results_New.png" alt="User Study" width="100%" height="600px">
+        <img src="images/User_Study_Results_New.png" alt="User Study" width="100%" height="600px"> -->
 
         <!-- <p class="title is-3 mt-5 has-text-centered"> System Pipeline </p>
         <img src="images/Technical_Framework.png" alt="User Study" width="100%" height="600px"> -->
