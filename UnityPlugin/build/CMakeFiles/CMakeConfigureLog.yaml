@@ -1,0 +1,849 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineSystem.cmake:205 (message)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      The system is: Windows - 10.0.22631 - AMD64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler:  
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      MSBuild version 17.8.3+195e7f5a3 for .NET Framework
+      Build started 7/27/2024 3:52:42 PM.
+      
+      Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdC\\CompilerIdC.vcxproj" on node 1 (default targets).
+      PrepareForBuild:
+        Creating directory "Debug\\".
+        Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+        Creating directory "Debug\\CompilerIdC.tlog\\".
+      InitializeBuildStatus:
+        Creating "Debug\\CompilerIdC.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+        Touching "Debug\\CompilerIdC.tlog\\unsuccessfulbuild".
+      VcpkgTripletSelection:
+        Using triplet "x64-windows" from "D:\\work\\vcpkg\\installed\\x64-windows\\"
+        Using normalized configuration "Release"
+      ClCompile:
+        C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\CL.exe /c /I"D:\\work\\vcpkg\\installed\\x64-windows\\include" /nologo /W0 /WX- /diagnostics:column /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\\\" /Fd"Debug\\vc143.pdb" /external:W0 /Gd /TC /FC /errorReport:queue CMakeCCompilerId.c
+        CMakeCCompilerId.c
+      Link:
+        C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdC.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdC.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdC.lib" /MACHINE:X64 Debug\\CMakeCCompilerId.obj
+        CompilerIdC.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdC\\CompilerIdC.exe
+      AppLocalFromInstalled:
+        pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\work\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdC\\CompilerIdC.exe" "D:\\work\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdC.tlog\\CompilerIdC.write.1u.tlog" "Debug\\vcpkg.applocal.log"
+      PostBuildEvent:
+        for %%i in (cl.exe) do @echo CMAKE_C_COMPILER=%%~$PATH:i
+        :VCEnd
+        CMAKE_C_COMPILER=C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe
+      FinalizeBuildStatus:
+        Deleting file "Debug\\CompilerIdC.tlog\\unsuccessfulbuild".
+        Touching "Debug\\CompilerIdC.tlog\\CompilerIdC.lastbuildstate".
+      Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdC\\CompilerIdC.vcxproj" (default targets).
+      
+      Build succeeded.
+          0 Warning(s)
+          0 Error(s)
+      
+      Time Elapsed 00:00:01.71
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.vcxproj"
+      
+      The C compiler identification is MSVC, found in:
+        D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdC/CompilerIdC.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler:  
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      MSBuild version 17.8.3+195e7f5a3 for .NET Framework
+      Build started 7/27/2024 3:52:44 PM.
+      
+      Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCXX\\CompilerIdCXX.vcxproj" on node 1 (default targets).
+      PrepareForBuild:
+        Creating directory "Debug\\".
+        Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+        Creating directory "Debug\\CompilerIdCXX.tlog\\".
+      InitializeBuildStatus:
+        Creating "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+        Touching "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild".
+      VcpkgTripletSelection:
+        Using triplet "x64-windows" from "D:\\work\\vcpkg\\installed\\x64-windows\\"
+        Using normalized configuration "Release"
+      ClCompile:
+        C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\CL.exe /c /I"D:\\work\\vcpkg\\installed\\x64-windows\\include" /nologo /W0 /WX- /diagnostics:column /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\\\" /Fd"Debug\\vc143.pdb" /external:W0 /Gd /TP /FC /errorReport:queue CMakeCXXCompilerId.cpp
+        CMakeCXXCompilerId.cpp
+      Link:
+        C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCXX.lib" /MACHINE:X64 Debug\\CMakeCXXCompilerId.obj
+        CompilerIdCXX.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCXX\\CompilerIdCXX.exe
+      AppLocalFromInstalled:
+        pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\work\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCXX\\CompilerIdCXX.exe" "D:\\work\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"
+      PostBuildEvent:
+        for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
+        :VCEnd
+        CMAKE_CXX_COMPILER=C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe
+      FinalizeBuildStatus:
+        Deleting file "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild".
+        Touching "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.lastbuildstate".
+      Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCXX\\CompilerIdCXX.vcxproj" (default targets).
+      
+      Build succeeded.
+          0 Warning(s)
+          0 Error(s)
+      
+      Time Elapsed 00:00:01.31
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcxproj"
+      
+      The CXX compiler identification is MSVC, found in:
+        D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCXX/CompilerIdCXX.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:53 (__determine_compiler_id_test)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCUDACompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Compiling the CUDA compiler identification source file "CMakeCUDACompilerId.cu" succeeded.
+      Compiler:  
+      Build flags: 
+      Id flags: --keep;--keep-dir;tmp -v
+      
+      The output was:
+      0
+      MSBuild version 17.8.3+195e7f5a3 for .NET Framework
+      Build started 7/27/2024 3:52:46 PM.
+      
+      Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" on node 1 (default targets).
+      PrepareForBuild:
+        Creating directory "Debug\\".
+        Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+        Creating directory "Debug\\CompilerIdCUDA.tlog\\".
+      InitializeBuildStatus:
+        Creating "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+        Touching "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild".
+      AddCudaCompileDeps:
+        C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\cl.exe /E /nologo /showIncludes /TP /D__CUDACC__ /D__CUDACC_VER_MAJOR__=12 /D__CUDACC_VER_MINOR__=3 /D_MBCS /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /ID:\\work\\vcpkg\\installed\\x64-windows\\include /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin" /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /I. /FIcuda_runtime.h /c D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu 
+      Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (1) is building "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (1:2) on node 1 (CudaBuildCore target(s)).
+      CudaBuildCore:
+        Compiling CUDA source file CMakeCUDACompilerId.cu...
+        Creating directory "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug".
+        cmd.exe /C "C:\\Users\\danie\\AppData\\Local\\Temp\\tmp9526a70e3aa7479f970f4d56bad1ed9f.cmd"
+        "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe" -gencode=arch=compute_52,code=\\"sm_52,compute_52\\" --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu   -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" -I"D:\\work\\vcpkg\\installed\\x64-windows\\include" -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"  -G   --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static -v -allow-unsupported-compiler -g  -D_MBCS -Xcompiler "/EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/FdDebug\\vc143.pdb" -o D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu"
+        
+        (base) D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA>"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe" -gencode=arch=compute_52,code=\\"sm_52,compute_52\\" --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu   -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" -I"D:\\work\\vcpkg\\installed\\x64-windows\\include" -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"  -G   --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static -v -allow-unsupported-compiler -g  -D_MBCS -Xcompiler "/EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/FdDebug\\vc143.pdb" -o D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" 
+        #$ _NVVM_BRANCH_=nvvm
+        #$ _SPACE_= 
+        #$ _CUDART_=cudart
+        #$ _HERE_=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin
+        #$ _THERE_=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin
+        #$ _TARGET_SIZE_=
+        #$ _TARGET_DIR_=
+        #$ _TARGET_SIZE_=64
+        #$ _WIN_PLATFORM_=x64
+        #$ TOP=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/..
+        #$ NVVMIR_LIBRARY_DIR=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../nvvm/libdevice
+        #$ PATH=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../nvvm/bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../lib;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64;;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x86;;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\ide;C:\\Program Files (x86)\\HTML Help Workshop;;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\;C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin;C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\;;E:\\anaconda;E:\\anaconda\\Library\\mingw-w64\\bin;E:\\anaconda\\Library\\usr\\bin;E:\\anaconda\\Library\\bin;E:\\anaconda\\Scripts;E:\\anaconda\\bin;E:\\anaconda\\condabin;C:\\Program Files\\PowerShell\\7;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\libnvvp;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\libnvvp;E:\\Oculus\\Support\\oculus-runtime;C:\\Users\\danie\\AppData\\Local\\ti-build-cache\\vulkan-1.3.236.0\\Bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\Git\\cmd;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\CMake\\bin;C:\\Program Files\\doxygen\\bin;C:\\Program Files\\PowerShell\\7;C:\\Program Files\\Tailscale;C:\\Program Files\\dotnet;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2023.3.0;C:\\Users\\danie\\.cargo\\bin;E:\\anaconda;E:\\anaconda\\Library\\mingw-w64\\bin;E:\\anaconda\\Library\\usr\\bin;E:\\anaconda\\Library\\bin;E:\\anaconda\\Scripts;C:\\Users\\danie\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\Users\\danie\\.dotnet\\tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\GnuWin32\\bin;C:\\Users\\danie\\AppData\\Local\\Programs\\oh-my-posh\\bin;D:\\txc\\sibr_core\\extlibs\\opencv\\opencv-4.5.0\\build\\x64\\vc16\\bin;D:\\txc\\executables\\COLMAP-3.9.1-windows-cuda;D:\\Program Files\\ffmpeg-2024-07-22-git-172da370e7-essentials_build\\bin;c:\\Users\\danie\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;.;
+        #$ INCLUDES="-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"  
+        #$ LIBRARIES=  "/LIBPATH:C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../lib/x64"
+        #$ CUDAFE_FLAGS=--sdk_dir "C:\\Program Files (x86)\\Windows Kits\\10"
+        #$ PTXAS_FLAGS=
+        CMakeCUDACompilerId.cu
+        #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res: [-D__CUDA_ARCH_LIST__=520 -nologo -E -TP -EHsc -D__CUDACC__ -D__NVCC__ -D__CUDACC_DEBUG__  /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"    -D "_MBCS" -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -FI "cuda_runtime.h" -Zi "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]
+        #$ cl.exe -D__NV_NO_HOST_COMPILER_CHECK=1 @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res" > "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-6_CMakeCUDACompilerId.cpp4.ii" 
+        CMakeCUDACompilerId.cu
+        #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res
+        #$ cudafe++ --microsoft_version=1938 --msvc_target_version=1938 --compiler_bindir "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/../../../../../../.." --display_error_number --orig_src_file_name "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --orig_src_path_name "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" --allow_managed --debug_mode --sdk_dir "C:\\Program Files (x86)\\Windows Kits\\10" --m64 --parse_templates --gen_c_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.stub.c" --gen_module_id_file --module_id_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-5_CMakeCUDACompilerId.module_id" "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-6_CMakeCUDACompilerId.cpp4.ii" 
+        #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res: [-D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -nologo -E -TP  -DCUDA_DOUBLE_MATH_FUNCTIONS -EHsc -D__CUDACC__ -D__NVCC__ -D__CUDACC_DEBUG__  /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"    -D "_MBCS" -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -FI "cuda_runtime.h" -Zi "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]
+        #$ cl.exe -D__NV_NO_HOST_COMPILER_CHECK=1 @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res" > "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-9_CMakeCUDACompilerId.cpp1.ii" 
+        CMakeCUDACompilerId.cu
+        #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res
+        #$ cicc --microsoft_version=1938 --msvc_target_version=1938 --compiler_bindir "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/../../../../../../.." --display_error_number --orig_src_file_name "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --orig_src_path_name "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" --allow_managed --debug_mode --sdk_dir "C:\\Program Files (x86)\\Windows Kits\\10"  -arch compute_52 -m64 --no-version-ident -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin.c" -g -O0 -tused --module_id_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-5_CMakeCUDACompilerId.module_id" --gen_c_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.c" --stub_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.gpu"  "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-9_CMakeCUDACompilerId.cpp1.ii" -o "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx"
+        #$ ptxas -arch=sm_52 -m64 -g --dont-merge-basicblocks --return-at-end "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx"  -o "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-11_CMakeCUDACompilerId.sm_52.cubin" 
+        #$ fatbinary -64 --ident="D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --cmdline="-g --dont-merge-basicblocks --return-at-end " --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -g "--image3=kind=elf,sm=52,file=C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-11_CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx" --embedded-fatbin="C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin.c" 
+        #$ erase C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin
+        #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res: [-D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -nologo -c -TP  -DCUDA_DOUBLE_MATH_FUNCTIONS -EHsc /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"   -Zi "C:\\Users\\danie\\AppData\\Local\\Temp\\tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp" ]
+        #$ cl.exe @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res" -Fo"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/x64/Debug/CMakeCUDACompilerId.cu.obj" 
+        tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp
+        #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res
+      Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (CudaBuildCore target(s)).
+      VcpkgTripletSelection:
+        Using triplet "x64-windows" from "D:\\work\\vcpkg\\installed\\x64-windows\\"
+        Using normalized configuration "Release"
+      Link:
+        C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCUDA.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" cudart_static.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCUDA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCUDA.lib" /MACHINE:X64 "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj"
+           Creating library .\\CompilerIdCUDA.lib and object .\\CompilerIdCUDA.exp
+      LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj]
+        CompilerIdCUDA.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.exe
+      AppLocalFromInstalled:
+        pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\work\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.exe" "D:\\work\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCUDA.tlog\\CompilerIdCUDA.write.1u.tlog" "Debug\\vcpkg.applocal.log"
+      PostBuildEvent:
+        echo CMAKE_CUDA_COMPILER=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe
+        :VCEnd
+        CMAKE_CUDA_COMPILER=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe
+      FinalizeBuildStatus:
+        Deleting file "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild".
+        Touching "Debug\\CompilerIdCUDA.tlog\\CompilerIdCUDA.lastbuildstate".
+      Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (default targets).
+      
+      Build succeeded.
+      
+      "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (default target) (1) ->
+      (Link target) -> 
+        LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj]
+      
+          1 Warning(s)
+          0 Error(s)
+      
+      Time Elapsed 00:00:03.01
+      
+      
+      Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "CompilerIdCUDA.exe"
+      
+      Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "CompilerIdCUDA.exp"
+      
+      Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "CompilerIdCUDA.lib"
+      
+      Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "CompilerIdCUDA.vcxproj"
+      
+      The CUDA compiler identification is NVIDIA, found in:
+        D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CompilerIdCUDA.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/Internal/CMakeNVCCParseImplicitInfo.cmake:128 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCUDACompiler.cmake:242 (cmake_nvcc_parse_implicit_info)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CUDA nvcc implicit link information:
+        found 'PATH=' string: [C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../nvvm/bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../lib;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64;;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x86;;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\ide;C:\\Program Files (x86)\\HTML Help Workshop;;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\;C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin;C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\;;E:\\anaconda;E:\\anaconda\\Library\\mingw-w64\\bin;E:\\anaconda\\Library\\usr\\bin;E:\\anaconda\\Library\\bin;E:\\anaconda\\Scripts;E:\\anaconda\\bin;E:\\anaconda\\condabin;C:\\Program Files\\PowerShell\\7;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\libnvvp;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\libnvvp;E:\\Oculus\\Support\\oculus-runtime;C:\\Users\\danie\\AppData\\Local\\ti-build-cache\\vulkan-1.3.236.0\\Bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\Git\\cmd;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\CMake\\bin;C:\\Program Files\\doxygen\\bin;C:\\Program Files\\PowerShell\\7;C:\\Program Files\\Tailscale;C:\\Program Files\\dotnet;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2023.3.0;C:\\Users\\danie\\.cargo\\bin;E:\\anaconda;E:\\anaconda\\Library\\mingw-w64\\bin;E:\\anaconda\\Library\\usr\\bin;E:\\anaconda\\Library\\bin;E:\\anaconda\\Scripts;C:\\Users\\danie\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\Users\\danie\\.dotnet\\tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\GnuWin32\\bin;C:\\Users\\danie\\AppData\\Local\\Programs\\oh-my-posh\\bin;D:\\txc\\sibr_core\\extlibs\\opencv\\opencv-4.5.0\\build\\x64\\vc16\\bin;D:\\txc\\executables\\COLMAP-3.9.1-windows-cuda;D:\\Program Files\\ffmpeg-2024-07-22-git-172da370e7-essentials_build\\bin;c:\\Users\\danie\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;.;]
+        found 'LIBRARIES=' string: ["/LIBPATH:C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../lib/x64"]
+        found 'INCLUDES=' string: ["-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"  ]
+        considering line: [MSBuild version 17.8.3+195e7f5a3 for .NET Framework]
+        considering line: [Build started 7/27/2024 3:52:46 PM.]
+        considering line: [Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" on node 1 (default targets).]
+        considering line: [PrepareForBuild:]
+        considering line: [  Creating directory "Debug\\".]
+        considering line: [  Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.]
+        considering line: [  Creating directory "Debug\\CompilerIdCUDA.tlog\\".]
+        considering line: [InitializeBuildStatus:]
+        considering line: [  Creating "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.]
+        considering line: [  Touching "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild".]
+        considering line: [AddCudaCompileDeps:]
+        considering line: [  C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\cl.exe /E /nologo /showIncludes /TP /D__CUDACC__ /D__CUDACC_VER_MAJOR__=12 /D__CUDACC_VER_MINOR__=3 /D_MBCS /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /ID:\\work\\vcpkg\\installed\\x64-windows\\include /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin" /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /I. /FIcuda_runtime.h /c D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu ]
+        considering line: [Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (1) is building "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (1:2) on node 1 (CudaBuildCore target(s)).]
+        considering line: [CudaBuildCore:]
+        considering line: [  Compiling CUDA source file CMakeCUDACompilerId.cu...]
+        considering line: [  Creating directory "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug".]
+        considering line: [  cmd.exe /C "C:\\Users\\danie\\AppData\\Local\\Temp\\tmp9526a70e3aa7479f970f4d56bad1ed9f.cmd"]
+        considering line: [  "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe" -gencode=arch=compute_52,code=\\"sm_52,compute_52\\" --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu   -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" -I"D:\\work\\vcpkg\\installed\\x64-windows\\include" -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"  -G   --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static -v -allow-unsupported-compiler -g  -D_MBCS -Xcompiler "/EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/FdDebug\\vc143.pdb" -o D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu"]
+        considering line: [  ]
+        considering line: [  (base) D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA>"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe" -gencode=arch=compute_52,code=\\"sm_52,compute_52\\" --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu   -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" -I"D:\\work\\vcpkg\\installed\\x64-windows\\include" -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"  -G   --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static -v -allow-unsupported-compiler -g  -D_MBCS -Xcompiler "/EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/FdDebug\\vc143.pdb" -o D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]
+        considering line: [                                  CMakeCUDACompilerId.cu]
+        considering line: [  #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res: [-D__CUDA_ARCH_LIST__=520 -nologo -E -TP -EHsc -D__CUDACC__ -D__NVCC__ -D__CUDACC_DEBUG__  /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"    -D "_MBCS" -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -FI "cuda_runtime.h" -Zi "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]]
+        considering line: [  #$ cl.exe -D__NV_NO_HOST_COMPILER_CHECK=1 @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res" > "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-6_CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: [  CMakeCUDACompilerId.cu]
+        considering line: [  #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res]
+        considering line: [  #$ cudafe++ --microsoft_version=1938 --msvc_target_version=1938 --compiler_bindir "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/../../../../../../.." --display_error_number --orig_src_file_name "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --orig_src_path_name "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" --allow_managed --debug_mode --sdk_dir "C:\\Program Files (x86)\\Windows Kits\\10" --m64 --parse_templates --gen_c_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.stub.c" --gen_module_id_file --module_id_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-5_CMakeCUDACompilerId.module_id" "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-6_CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: [  #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res: [-D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -nologo -E -TP  -DCUDA_DOUBLE_MATH_FUNCTIONS -EHsc -D__CUDACC__ -D__NVCC__ -D__CUDACC_DEBUG__  /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"    -D "_MBCS" -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -FI "cuda_runtime.h" -Zi "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]]
+        considering line: [  #$ cl.exe -D__NV_NO_HOST_COMPILER_CHECK=1 @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res" > "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-9_CMakeCUDACompilerId.cpp1.ii" ]
+        considering line: [  CMakeCUDACompilerId.cu]
+        considering line: [  #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res]
+        considering line: [  #$ cicc --microsoft_version=1938 --msvc_target_version=1938 --compiler_bindir "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/../../../../../../.." --display_error_number --orig_src_file_name "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --orig_src_path_name "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" --allow_managed --debug_mode --sdk_dir "C:\\Program Files (x86)\\Windows Kits\\10"  -arch compute_52 -m64 --no-version-ident -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin.c" -g -O0 -tused --module_id_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-5_CMakeCUDACompilerId.module_id" --gen_c_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.c" --stub_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.gpu"  "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-9_CMakeCUDACompilerId.cpp1.ii" -o "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx"]
+        considering line: [  #$ ptxas -arch=sm_52 -m64 -g --dont-merge-basicblocks --return-at-end "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx"  -o "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-11_CMakeCUDACompilerId.sm_52.cubin" ]
+        considering line: [  #$ fatbinary -64 --ident="D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --cmdline="-g --dont-merge-basicblocks --return-at-end " --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -g "--image3=kind=elf,sm=52,file=C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-11_CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx" --embedded-fatbin="C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin.c" ]
+        considering line: [  #$ erase C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin]
+        considering line: [  #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res: [-D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -nologo -c -TP  -DCUDA_DOUBLE_MATH_FUNCTIONS -EHsc /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"   -Zi "C:\\Users\\danie\\AppData\\Local\\Temp\\tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp" ]]
+        considering line: [  #$ cl.exe @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res" -Fo"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/x64/Debug/CMakeCUDACompilerId.cu.obj" ]
+        considering line: [  tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp]
+        considering line: [  #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res]
+        considering line: [Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (CudaBuildCore target(s)).]
+        considering line: [VcpkgTripletSelection:]
+        considering line: [  Using triplet "x64-windows" from "D:\\work\\vcpkg\\installed\\x64-windows\\"]
+        considering line: [  Using normalized configuration "Release"]
+        considering line: [Link:]
+        considering line: [  C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCUDA.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" cudart_static.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCUDA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCUDA.lib" /MACHINE:X64 "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj"]
+          extracted link line: [link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCUDA.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" cudart_static.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCUDA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCUDA.lib" /MACHINE:X64 "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj"]
+        considering line: [     Creating library .\\CompilerIdCUDA.lib and object .\\CompilerIdCUDA.exp]
+        considering line: [LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs]
+        considering line: [ use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj]]
+        considering line: [  CompilerIdCUDA.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.exe]
+        considering line: [AppLocalFromInstalled:]
+        considering line: [  pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\work\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.exe" "D:\\work\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCUDA.tlog\\CompilerIdCUDA.write.1u.tlog" "Debug\\vcpkg.applocal.log"]
+        considering line: [PostBuildEvent:]
+        considering line: [  echo CMAKE_CUDA_COMPILER=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe]
+        considering line: [  :VCEnd]
+        considering line: [  CMAKE_CUDA_COMPILER=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe]
+        considering line: [FinalizeBuildStatus:]
+        considering line: [  Deleting file "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild".]
+        considering line: [  Touching "Debug\\CompilerIdCUDA.tlog\\CompilerIdCUDA.lastbuildstate".]
+        considering line: [Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (default targets).]
+        considering line: [Build succeeded.]
+        considering line: ["D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (default target) (1) ->]
+        considering line: [(Link target) -> ]
+        considering line: [  LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs]
+        considering line: [ use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj]]
+        considering line: [    1 Warning(s)]
+        considering line: [    0 Error(s)]
+        considering line: [Time Elapsed 00:00:03.01]
+        considering line: []
+      
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        link line: [cuda-fake-ld link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCUDA.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" cudart_static.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCUDA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCUDA.lib" /MACHINE:X64 "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj"]
+          arg [cuda-fake-ld] ==> ignore
+          arg [link.exe] ==> ignore
+          arg [/ERRORREPORT:QUEUE] ==> ignore
+          arg [/OUT:.\\CompilerIdCUDA.exe] ==> ignore
+          arg [/INCREMENTAL:NO] ==> ignore
+          arg [/NOLOGO] ==> ignore
+          arg [/LIBPATH:C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64] ==> dir [C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64]
+          arg [/LIBPATH:D:\\work\\vcpkg\\installed\\x64-windows\\lib] ==> dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib]
+          arg [/LIBPATH:D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link] ==> dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link]
+          arg [cudart_static.lib] ==> lib [cudart_static.lib]
+          arg [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib] ==> lib [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib]
+          arg [/MANIFEST] ==> ignore
+          arg [/MANIFESTUAC:level='asInvoker' uiAccess='false'] ==> ignore
+          arg [/manifest:embed] ==> ignore
+          arg [/PDB:.\\CompilerIdCUDA.pdb] ==> ignore
+          arg [/SUBSYSTEM:CONSOLE] ==> ignore
+          arg [/TLBID:1] ==> ignore
+          arg [/DYNAMICBASE] ==> ignore
+          arg [/NXCOMPAT] ==> ignore
+          arg [/IMPLIB:.\\CompilerIdCUDA.lib] ==> ignore MSVC link option
+          arg [/MACHINE:X64] ==> ignore
+          arg [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj] ==> ignore
+        collapse lib [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib] ==> [D:/work/vcpkg/installed/x64-windows/lib/*.lib]
+        collapse library dir [C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64] ==> [C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/lib/x64]
+        collapse library dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib] ==> [D:/work/vcpkg/installed/x64-windows/lib]
+        collapse library dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link] ==> [D:/work/vcpkg/installed/x64-windows/lib/manual-link]
+        implicit libs: [cudart_static.lib;D:/work/vcpkg/installed/x64-windows/lib/*.lib]
+        implicit objs: []
+        implicit dirs: [C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/lib/x64;D:/work/vcpkg/installed/x64-windows/lib;D:/work/vcpkg/installed/x64-windows/lib/manual-link]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/Internal/CMakeNVCCParseImplicitInfo.cmake:146 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCUDACompiler.cmake:242 (cmake_nvcc_parse_implicit_info)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CUDA nvcc include information:
+        found 'PATH=' string: [C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../nvvm/bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../lib;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64;;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x86;;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\ide;C:\\Program Files (x86)\\HTML Help Workshop;;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\;C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\;C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin;C:\\WINDOWS\\Microsoft.NET\\Framework\\v4.0.30319\\;;E:\\anaconda;E:\\anaconda\\Library\\mingw-w64\\bin;E:\\anaconda\\Library\\usr\\bin;E:\\anaconda\\Library\\bin;E:\\anaconda\\Scripts;E:\\anaconda\\bin;E:\\anaconda\\condabin;C:\\Program Files\\PowerShell\\7;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\libnvvp;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\libnvvp;E:\\Oculus\\Support\\oculus-runtime;C:\\Users\\danie\\AppData\\Local\\ti-build-cache\\vulkan-1.3.236.0\\Bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\Git\\cmd;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\CMake\\bin;C:\\Program Files\\doxygen\\bin;C:\\Program Files\\PowerShell\\7;C:\\Program Files\\Tailscale;C:\\Program Files\\dotnet;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2023.3.0;C:\\Users\\danie\\.cargo\\bin;E:\\anaconda;E:\\anaconda\\Library\\mingw-w64\\bin;E:\\anaconda\\Library\\usr\\bin;E:\\anaconda\\Library\\bin;E:\\anaconda\\Scripts;C:\\Users\\danie\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Microsoft VS Code\\bin;C:\\Users\\danie\\.dotnet\\tools;C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\GnuWin32\\bin;C:\\Users\\danie\\AppData\\Local\\Programs\\oh-my-posh\\bin;D:\\txc\\sibr_core\\extlibs\\opencv\\opencv-4.5.0\\build\\x64\\vc16\\bin;D:\\txc\\executables\\COLMAP-3.9.1-windows-cuda;D:\\Program Files\\ffmpeg-2024-07-22-git-172da370e7-essentials_build\\bin;c:\\Users\\danie\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;.;]
+        found 'LIBRARIES=' string: ["/LIBPATH:C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../lib/x64"]
+        found 'INCLUDES=' string: ["-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"  ]
+        considering line: [MSBuild version 17.8.3+195e7f5a3 for .NET Framework]
+        considering line: [Build started 7/27/2024 3:52:46 PM.]
+        considering line: [Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" on node 1 (default targets).]
+        considering line: [PrepareForBuild:]
+        considering line: [  Creating directory "Debug\\".]
+        considering line: [  Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.]
+        considering line: [  Creating directory "Debug\\CompilerIdCUDA.tlog\\".]
+        considering line: [InitializeBuildStatus:]
+        considering line: [  Creating "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.]
+        considering line: [  Touching "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild".]
+        considering line: [AddCudaCompileDeps:]
+        considering line: [  C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\cl.exe /E /nologo /showIncludes /TP /D__CUDACC__ /D__CUDACC_VER_MAJOR__=12 /D__CUDACC_VER_MINOR__=3 /D_MBCS /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /ID:\\work\\vcpkg\\installed\\x64-windows\\include /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin" /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /I. /FIcuda_runtime.h /c D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu ]
+        considering line: [Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (1) is building "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (1:2) on node 1 (CudaBuildCore target(s)).]
+        considering line: [CudaBuildCore:]
+        considering line: [  Compiling CUDA source file CMakeCUDACompilerId.cu...]
+        considering line: [  Creating directory "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug".]
+        considering line: [  cmd.exe /C "C:\\Users\\danie\\AppData\\Local\\Temp\\tmp9526a70e3aa7479f970f4d56bad1ed9f.cmd"]
+        considering line: [  "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe" -gencode=arch=compute_52,code=\\"sm_52,compute_52\\" --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu   -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" -I"D:\\work\\vcpkg\\installed\\x64-windows\\include" -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"  -G   --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static -v -allow-unsupported-compiler -g  -D_MBCS -Xcompiler "/EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/FdDebug\\vc143.pdb" -o D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu"]
+        considering line: [  ]
+        considering line: [  (base) D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA>"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe" -gencode=arch=compute_52,code=\\"sm_52,compute_52\\" --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu   -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" -I"D:\\work\\vcpkg\\installed\\x64-windows\\include" -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"  -G   --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static -v -allow-unsupported-compiler -g  -D_MBCS -Xcompiler "/EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/FdDebug\\vc143.pdb" -o D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]
+        considering line: [                                  CMakeCUDACompilerId.cu]
+        considering line: [  #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res: [-D__CUDA_ARCH_LIST__=520 -nologo -E -TP -EHsc -D__CUDACC__ -D__NVCC__ -D__CUDACC_DEBUG__  /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"    -D "_MBCS" -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -FI "cuda_runtime.h" -Zi "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]]
+        considering line: [  #$ cl.exe -D__NV_NO_HOST_COMPILER_CHECK=1 @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res" > "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-6_CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: [  CMakeCUDACompilerId.cu]
+        considering line: [  #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-8.res]
+        considering line: [  #$ cudafe++ --microsoft_version=1938 --msvc_target_version=1938 --compiler_bindir "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/../../../../../../.." --display_error_number --orig_src_file_name "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --orig_src_path_name "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" --allow_managed --debug_mode --sdk_dir "C:\\Program Files (x86)\\Windows Kits\\10" --m64 --parse_templates --gen_c_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.stub.c" --gen_module_id_file --module_id_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-5_CMakeCUDACompilerId.module_id" "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-6_CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: [  #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res: [-D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -nologo -E -TP  -DCUDA_DOUBLE_MATH_FUNCTIONS -EHsc -D__CUDACC__ -D__NVCC__ -D__CUDACC_DEBUG__  /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"    -D "_MBCS" -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -FI "cuda_runtime.h" -Zi "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" ]]
+        considering line: [  #$ cl.exe -D__NV_NO_HOST_COMPILER_CHECK=1 @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res" > "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-9_CMakeCUDACompilerId.cpp1.ii" ]
+        considering line: [  CMakeCUDACompilerId.cu]
+        considering line: [  #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-10.res]
+        considering line: [  #$ cicc --microsoft_version=1938 --msvc_target_version=1938 --compiler_bindir "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/../../../../../../.." --display_error_number --orig_src_file_name "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --orig_src_path_name "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CMakeCUDACompilerId.cu" --allow_managed --debug_mode --sdk_dir "C:\\Program Files (x86)\\Windows Kits\\10"  -arch compute_52 -m64 --no-version-ident -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin.c" -g -O0 -tused --module_id_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-5_CMakeCUDACompilerId.module_id" --gen_c_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.c" --stub_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.gpu"  "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-9_CMakeCUDACompilerId.cpp1.ii" -o "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx"]
+        considering line: [  #$ ptxas -arch=sm_52 -m64 -g --dont-merge-basicblocks --return-at-end "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx"  -o "C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-11_CMakeCUDACompilerId.sm_52.cubin" ]
+        considering line: [  #$ fatbinary -64 --ident="D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/CMakeCUDACompilerId.cu" --cmdline="-g --dont-merge-basicblocks --return-at-end " --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -g "--image3=kind=elf,sm=52,file=C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-11_CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-7_CMakeCUDACompilerId.ptx" --embedded-fatbin="C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin.c" ]
+        considering line: [  #$ erase C:/Users/danie/AppData/Local/Temp/tmpxft_00008838_00000000-4_CMakeCUDACompilerId.fatbin]
+        considering line: [  #$ resource file C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res: [-D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -nologo -c -TP  -DCUDA_DOUBLE_MATH_FUNCTIONS -EHsc /EHsc /W0 /nologo /Od /FS /Zi /RTC1 /MDd /FdDebug\\vc143.pdb -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" -I"D:/work/vcpkg/installed/x64-windows/include" -I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include" "-IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin/../include"   -Zi "C:\\Users\\danie\\AppData\\Local\\Temp\\tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp" ]]
+        considering line: [  #$ cl.exe @"C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res" -Fo"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/3.30.0/CompilerIdCUDA/x64/Debug/CMakeCUDACompilerId.cu.obj" ]
+        considering line: [  tmpxft_00008838_00000000-7_CMakeCUDACompilerId.cudafe1.cpp]
+        considering line: [  #$ erase C:\\Users\\danie\\AppData\\Local\\Temp/tmpxft_00008838_00000000-12.res]
+        considering line: [Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (CudaBuildCore target(s)).]
+        considering line: [VcpkgTripletSelection:]
+        considering line: [  Using triplet "x64-windows" from "D:\\work\\vcpkg\\installed\\x64-windows\\"]
+        considering line: [  Using normalized configuration "Release"]
+        considering line: [Link:]
+        considering line: [  C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCUDA.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" cudart_static.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCUDA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCUDA.lib" /MACHINE:X64 "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj"]
+          extracted link line: [link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCUDA.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" cudart_static.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCUDA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCUDA.lib" /MACHINE:X64 "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj"]
+        considering line: [     Creating library .\\CompilerIdCUDA.lib and object .\\CompilerIdCUDA.exp]
+        considering line: [LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs]
+        considering line: [ use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj]]
+        considering line: [  CompilerIdCUDA.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.exe]
+        considering line: [AppLocalFromInstalled:]
+        considering line: [  pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\work\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.exe" "D:\\work\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCUDA.tlog\\CompilerIdCUDA.write.1u.tlog" "Debug\\vcpkg.applocal.log"]
+        considering line: [PostBuildEvent:]
+        considering line: [  echo CMAKE_CUDA_COMPILER=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe]
+        considering line: [  :VCEnd]
+        considering line: [  CMAKE_CUDA_COMPILER=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe]
+        considering line: [FinalizeBuildStatus:]
+        considering line: [  Deleting file "Debug\\CompilerIdCUDA.tlog\\unsuccessfulbuild".]
+        considering line: [  Touching "Debug\\CompilerIdCUDA.tlog\\CompilerIdCUDA.lastbuildstate".]
+        considering line: [Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (default targets).]
+        considering line: [Build succeeded.]
+        considering line: ["D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj" (default target) (1) ->]
+        considering line: [(Link target) -> ]
+        considering line: [  LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs]
+        considering line: [ use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\CompilerIdCUDA.vcxproj]]
+        considering line: [    1 Warning(s)]
+        considering line: [    0 Error(s)]
+        considering line: [Time Elapsed 00:00:03.01]
+        considering line: []
+      
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        link line: [cuda-fake-ld link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCUDA.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link" cudart_static.lib "D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCUDA.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCUDA.lib" /MACHINE:X64 "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj"]
+          arg [cuda-fake-ld] ==> ignore
+          arg [link.exe] ==> ignore
+          arg [/ERRORREPORT:QUEUE] ==> ignore
+          arg [/OUT:.\\CompilerIdCUDA.exe] ==> ignore
+          arg [/INCREMENTAL:NO] ==> ignore
+          arg [/NOLOGO] ==> ignore
+          arg [/LIBPATH:C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64] ==> dir [C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64]
+          arg [/LIBPATH:D:\\work\\vcpkg\\installed\\x64-windows\\lib] ==> dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib]
+          arg [/LIBPATH:D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link] ==> dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link]
+          arg [cudart_static.lib] ==> lib [cudart_static.lib]
+          arg [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib] ==> lib [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib]
+          arg [/MANIFEST] ==> ignore
+          arg [/MANIFESTUAC:level='asInvoker' uiAccess='false'] ==> ignore
+          arg [/manifest:embed] ==> ignore
+          arg [/PDB:.\\CompilerIdCUDA.pdb] ==> ignore
+          arg [/SUBSYSTEM:CONSOLE] ==> ignore
+          arg [/TLBID:1] ==> ignore
+          arg [/DYNAMICBASE] ==> ignore
+          arg [/NXCOMPAT] ==> ignore
+          arg [/IMPLIB:.\\CompilerIdCUDA.lib] ==> ignore MSVC link option
+          arg [/MACHINE:X64] ==> ignore
+          arg [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\3.30.0\\CompilerIdCUDA\\x64\\Debug\\CMakeCUDACompilerId.cu.obj] ==> ignore
+        collapse lib [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\*.lib] ==> [D:/work/vcpkg/installed/x64-windows/lib/*.lib]
+        collapse library dir [C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64] ==> [C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/lib/x64]
+        collapse library dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib] ==> [D:/work/vcpkg/installed/x64-windows/lib]
+        collapse library dir [D:\\work\\vcpkg\\installed\\x64-windows\\lib\\manual-link] ==> [D:/work/vcpkg/installed/x64-windows/lib/manual-link]
+        implicit libs: [cudart_static.lib;D:/work/vcpkg/installed/x64-windows/lib/*.lib]
+        implicit objs: []
+        implicit dirs: [C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/lib/x64;D:/work/vcpkg/installed/x64-windows/lib;D:/work/vcpkg/installed/x64-windows/lib/manual-link]
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:74 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-soghe3"
+      binary: "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-soghe3"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "52"
+      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS"
+      CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      VCPKG_INSTALLED_DIR: "D:/work/vcpkg/installed"
+      VCPKG_PREFER_SYSTEM_LIBS: "OFF"
+      VCPKG_TARGET_TRIPLET: "x64-windows"
+      Z_VCPKG_ROOT_DIR: "D:/work/vcpkg"
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-soghe3'
+        
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_f3567.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        MSBuild version 17.8.3+195e7f5a3 for .NET Framework
+        Build started 7/27/2024 3:52:49 PM.
+        
+        Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-soghe3\\cmTC_f3567.vcxproj" on node 1 (default targets).
+        PrepareForBuild:
+          Creating directory "cmTC_f3567.dir\\Debug\\".
+          Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+          Creating directory "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-soghe3\\Debug\\".
+          Creating directory "cmTC_f3567.dir\\Debug\\cmTC_f3567.tlog\\".
+        InitializeBuildStatus:
+          Creating "cmTC_f3567.dir\\Debug\\cmTC_f3567.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Touching "cmTC_f3567.dir\\Debug\\cmTC_f3567.tlog\\unsuccessfulbuild".
+        ClCompile:
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_f3567.dir\\Debug\\\\" /Fd"cmTC_f3567.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCCompilerABI.c"
+          Microsoft (R) C/C++ Optimizing Compiler Version 19.38.33133 for x64
+          Copyright (C) Microsoft Corporation.  All rights reserved.
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_f3567.dir\\Debug\\\\" /Fd"cmTC_f3567.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCCompilerABI.c"
+          CMakeCCompilerABI.c
+        Link:
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-soghe3\\Debug\\cmTC_f3567.exe" /INCREMENTAL /ILK:"cmTC_f3567.dir\\Debug\\cmTC_f3567.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-soghe3/Debug/cmTC_f3567.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-soghe3/Debug/cmTC_f3567.lib" /MACHINE:X64  /machine:x64 cmTC_f3567.dir\\Debug\\CMakeCCompilerABI.obj
+          cmTC_f3567.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-soghe3\\Debug\\cmTC_f3567.exe
+        FinalizeBuildStatus:
+          Deleting file "cmTC_f3567.dir\\Debug\\cmTC_f3567.tlog\\unsuccessfulbuild".
+          Touching "cmTC_f3567.dir\\Debug\\cmTC_f3567.tlog\\cmTC_f3567.lastbuildstate".
+        Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-soghe3\\cmTC_f3567.vcxproj" (default targets).
+        
+        Build succeeded.
+            0 Warning(s)
+            0 Error(s)
+        
+        Time Elapsed 00:00:00.94
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:218 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?))("|,| |$)]
+        linker tool for 'C': C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/link.exe
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:255 (cmake_determine_linker_id)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Running the C compiler's linker: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/link.exe" "-v"
+      Microsoft (R) Incremental Linker Version 14.38.33133.0
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:74 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-d483ms"
+      binary: "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-d483ms"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "52"
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      VCPKG_INSTALLED_DIR: "D:/work/vcpkg/installed"
+      VCPKG_PREFER_SYSTEM_LIBS: "OFF"
+      VCPKG_TARGET_TRIPLET: "x64-windows"
+      Z_VCPKG_ROOT_DIR: "D:/work/vcpkg"
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-d483ms'
+        
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_d2185.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        MSBuild version 17.8.3+195e7f5a3 for .NET Framework
+        Build started 7/27/2024 3:52:51 PM.
+        
+        Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-d483ms\\cmTC_d2185.vcxproj" on node 1 (default targets).
+        PrepareForBuild:
+          Creating directory "cmTC_d2185.dir\\Debug\\".
+          Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+          Creating directory "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-d483ms\\Debug\\".
+          Creating directory "cmTC_d2185.dir\\Debug\\cmTC_d2185.tlog\\".
+        InitializeBuildStatus:
+          Creating "cmTC_d2185.dir\\Debug\\cmTC_d2185.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Touching "cmTC_d2185.dir\\Debug\\cmTC_d2185.tlog\\unsuccessfulbuild".
+        ClCompile:
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_d2185.dir\\Debug\\\\" /Fd"cmTC_d2185.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCXXCompilerABI.cpp"
+          Microsoft (R) C/C++ Optimizing Compiler Version 19.38.33133 for x64
+          Copyright (C) Microsoft Corporation.  All rights reserved.
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_d2185.dir\\Debug\\\\" /Fd"cmTC_d2185.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCXXCompilerABI.cpp"
+          CMakeCXXCompilerABI.cpp
+        Link:
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-d483ms\\Debug\\cmTC_d2185.exe" /INCREMENTAL /ILK:"cmTC_d2185.dir\\Debug\\cmTC_d2185.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-d483ms/Debug/cmTC_d2185.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-d483ms/Debug/cmTC_d2185.lib" /MACHINE:X64  /machine:x64 cmTC_d2185.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_d2185.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-d483ms\\Debug\\cmTC_d2185.exe
+        FinalizeBuildStatus:
+          Deleting file "cmTC_d2185.dir\\Debug\\cmTC_d2185.tlog\\unsuccessfulbuild".
+          Touching "cmTC_d2185.dir\\Debug\\cmTC_d2185.tlog\\cmTC_d2185.lastbuildstate".
+        Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-d483ms\\cmTC_d2185.vcxproj" (default targets).
+        
+        Build succeeded.
+            0 Warning(s)
+            0 Error(s)
+        
+        Time Elapsed 00:00:00.94
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:218 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?))("|,| |$)]
+        linker tool for 'CXX': C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/link.exe
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:255 (cmake_determine_linker_id)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Running the CXX compiler's linker: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/link.exe" "-v"
+      Microsoft (R) Incremental Linker Version 14.38.33133.0
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:74 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCUDACompiler.cmake:19 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    checks:
+      - "Detecting CUDA compiler ABI info"
+    directories:
+      source: "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176"
+      binary: "D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "52"
+      CMAKE_CUDA_FLAGS: "-D_WINDOWS -Xcompiler=\" /GR /EHsc\""
+      CMAKE_CUDA_FLAGS_DEBUG: "-Xcompiler=\" -Zi -Ob0 -Od /RTC1\""
+      CMAKE_CUDA_RUNTIME_LIBRARY: "Static"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+      VCPKG_INSTALLED_DIR: "D:/work/vcpkg/installed"
+      VCPKG_PREFER_SYSTEM_LIBS: "OFF"
+      VCPKG_TARGET_TRIPLET: "x64-windows"
+      Z_VCPKG_ROOT_DIR: "D:/work/vcpkg"
+    buildResult:
+      variable: "CMAKE_CUDA_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176'
+        
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_0ffff.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        MSBuild version 17.8.3+195e7f5a3 for .NET Framework
+        Build started 7/27/2024 3:52:52 PM.
+        
+        Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" on node 1 (default targets).
+        PrepareForBuild:
+          Creating directory "cmTC_0ffff.dir\\Debug\\".
+          Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+          Creating directory "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\Debug\\".
+          Creating directory "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\".
+        InitializeBuildStatus:
+          Creating "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Touching "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\unsuccessfulbuild".
+        AddCudaCompileDeps:
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\cl.exe /E /nologo /showIncludes /TP /D__CUDACC__ /D__CUDACC_VER_MAJOR__=12 /D__CUDACC_VER_MINOR__=3 /D_WINDOWS /DCMAKE_INTDIR="Debug" /D_MBCS /DCMAKE_INTDIR="Debug" /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin" /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /I. /FIcuda_runtime.h /c "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu" 
+        Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (1) is building "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (1:2) on node 1 (CudaBuildCore target(s)).
+        CudaBuildCore:
+          Compiling CUDA source file C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu...
+          cmd.exe /C "C:\\Users\\danie\\AppData\\Local\\Temp\\tmp1706720db30d47f98173404f48e71afa.cmd"
+          "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe"  --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu    -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"     --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static --generate-code=arch=compute_52,code=[compute_52,sm_52] -Xcompiler="/EHsc -Zi -Ob0 -v" -g  -D_WINDOWS -D"CMAKE_INTDIR=\\"Debug\\"" -D_MBCS -D"CMAKE_INTDIR=\\"Debug\\"" -Xcompiler "/EHsc /W1 /nologo /Od /FS /Zi /RTC1 /MDd /GR" -Xcompiler "/FdcmTC_0ffff.dir\\Debug\\vc143.pdb" -o cmTC_0ffff.dir\\Debug\\CMakeCUDACompilerABI.obj "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu"
+          
+          (base) D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176>"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe"  --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu    -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"     --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static --generate-code=arch=compute_52,code=[compute_52,sm_52] -Xcompiler="/EHsc -Zi -Ob0 -v" -g  -D_WINDOWS -D"CMAKE_INTDIR=\\"Debug\\"" -D_MBCS -D"CMAKE_INTDIR=\\"Debug\\"" -Xcompiler "/EHsc /W1 /nologo /Od /FS /Zi /RTC1 /MDd /GR" -Xcompiler "/FdcmTC_0ffff.dir\\Debug\\vc143.pdb" -o cmTC_0ffff.dir\\Debug\\CMakeCUDACompilerABI.obj "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu" 
+        cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          CMakeCUDACompilerABI.cu
+        cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          CMakeCUDACompilerABI.cu
+          CMakeCUDACompilerABI.cu
+        cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          tmpxft_0000b574_00000000-7_CMakeCUDACompilerABI.cudafe1.cpp
+        C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCompilerCUDAArch.h(10): warning C4305: 'return': truncation from 'int' to 'bool' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+        Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (CudaBuildCore target(s)).
+        Link:
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\Debug\\cmTC_0ffff.exe" /INCREMENTAL /ILK:"cmTC_0ffff.dir\\Debug\\cmTC_0ffff.ilk" /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" cudadevrt.lib cudart_static.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.lib" /MACHINE:X64  /machine:x64 -v cmTC_0ffff.dir\\Debug\\CMakeCUDACompilerABI.obj
+        LINK : warning LNK4044: unrecognized option '/v'; ignored [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+             Creating library D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.lib and object D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.exp
+        LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          cmTC_0ffff.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\Debug\\cmTC_0ffff.exe
+        FinalizeBuildStatus:
+          Deleting file "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\unsuccessfulbuild".
+          Touching "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\cmTC_0ffff.lastbuildstate".
+        Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (default targets).
+        
+        Build succeeded.
+        
+        "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (default target) (1) ->
+        "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (CudaBuildCore target) (1:2) ->
+        (CudaBuildCore target) -> 
+          cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCompilerCUDAArch.h(10): warning C4305: 'return': truncation from 'int' to 'bool' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+        
+        
+        "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (default target) (1) ->
+        (Link target) -> 
+          LINK : warning LNK4044: unrecognized option '/v'; ignored [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+          LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]
+        
+            6 Warning(s)
+            0 Error(s)
+        
+        Time Elapsed 00:00:02.23
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:182 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCUDACompiler.cmake:19 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CUDA implicit include dir info: rv=start
+        warn: unable to parse implicit include dirs!
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:218 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCUDACompiler.cmake:19 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CUDA implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?))("|,| |$)]
+        ignore line: [Change Dir: 'D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176']
+        ignore line: []
+        ignore line: [Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_0ffff.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n]
+        ignore line: [MSBuild version 17.8.3+195e7f5a3 for .NET Framework]
+        ignore line: [Build started 7/27/2024 3:52:52 PM.]
+        ignore line: []
+        ignore line: [Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" on node 1 (default targets).]
+        ignore line: [PrepareForBuild:]
+        ignore line: [  Creating directory "cmTC_0ffff.dir\\Debug\\".]
+        ignore line: [  Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.]
+        ignore line: [  Creating directory "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\Debug\\".]
+        ignore line: [  Creating directory "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\".]
+        ignore line: [InitializeBuildStatus:]
+        ignore line: [  Creating "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.]
+        ignore line: [  Touching "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\unsuccessfulbuild".]
+        ignore line: [AddCudaCompileDeps:]
+        ignore line: [  C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\cl.exe /E /nologo /showIncludes /TP /D__CUDACC__ /D__CUDACC_VER_MAJOR__=12 /D__CUDACC_VER_MINOR__=3 /D_WINDOWS /DCMAKE_INTDIR="Debug" /D_MBCS /DCMAKE_INTDIR="Debug" /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin" /I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include" /I. /FIcuda_runtime.h /c "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu" ]
+        ignore line: [Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (1) is building "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (1:2) on node 1 (CudaBuildCore target(s)).]
+        ignore line: [CudaBuildCore:]
+        ignore line: [  Compiling CUDA source file C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu...]
+        ignore line: [  cmd.exe /C "C:\\Users\\danie\\AppData\\Local\\Temp\\tmp1706720db30d47f98173404f48e71afa.cmd"]
+        ignore line: [  "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe"  --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu    -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"     --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static --generate-code=arch=compute_52 code=[compute_52 sm_52] -Xcompiler="/EHsc -Zi -Ob0 -v" -g  -D_WINDOWS -D"CMAKE_INTDIR=\\"Debug\\"" -D_MBCS -D"CMAKE_INTDIR=\\"Debug\\"" -Xcompiler "/EHsc /W1 /nologo /Od /FS /Zi /RTC1 /MDd /GR" -Xcompiler "/FdcmTC_0ffff.dir\\Debug\\vc143.pdb" -o cmTC_0ffff.dir\\Debug\\CMakeCUDACompilerABI.obj "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu"]
+        ignore line: [  ]
+        ignore line: [  (base) D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176>"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\bin\\nvcc.exe"  --use-local-env -ccbin "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64" -x cu    -I"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\include"     --keep-dir x64\\Debug  -maxrregcount=0   --machine 64 --compile -cudart static --generate-code=arch=compute_52 code=[compute_52 sm_52] -Xcompiler="/EHsc -Zi -Ob0 -v" -g  -D_WINDOWS -D"CMAKE_INTDIR=\\"Debug\\"" -D_MBCS -D"CMAKE_INTDIR=\\"Debug\\"" -Xcompiler "/EHsc /W1 /nologo /Od /FS /Zi /RTC1 /MDd /GR" -Xcompiler "/FdcmTC_0ffff.dir\\Debug\\vc143.pdb" -o cmTC_0ffff.dir\\Debug\\CMakeCUDACompilerABI.obj "C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCUDACompilerABI.cu" ]
+        ignore line: [cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  CMakeCUDACompilerABI.cu]
+        ignore line: [cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  CMakeCUDACompilerABI.cu]
+        ignore line: [  CMakeCUDACompilerABI.cu]
+        ignore line: [cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  tmpxft_0000b574_00000000-7_CMakeCUDACompilerABI.cudafe1.cpp]
+        ignore line: [C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCompilerCUDAArch.h(10): warning C4305: 'return': truncation from 'int' to 'bool' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (CudaBuildCore target(s)).]
+        ignore line: [Link:]
+        ignore line: [  C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.38.33130\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\Debug\\cmTC_0ffff.exe" /INCREMENTAL /ILK:"cmTC_0ffff.dir\\Debug\\cmTC_0ffff.ilk" /NOLOGO /LIBPATH:"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.3\\lib\\x64" cudadevrt.lib cudart_static.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.lib" /MACHINE:X64  /machine:x64 -v cmTC_0ffff.dir\\Debug\\CMakeCUDACompilerABI.obj]
+        ignore line: [LINK : warning LNK4044: unrecognized option '/v']
+        ignore line: [ ignored [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [     Creating library D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.lib and object D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/CMakeFiles/CMakeScratch/TryCompile-5km176/Debug/cmTC_0ffff.exp]
+        ignore line: [LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs]
+        ignore line: [ use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  cmTC_0ffff.vcxproj -> D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\Debug\\cmTC_0ffff.exe]
+        ignore line: [FinalizeBuildStatus:]
+        ignore line: [  Deleting file "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\unsuccessfulbuild".]
+        ignore line: [  Touching "cmTC_0ffff.dir\\Debug\\cmTC_0ffff.tlog\\cmTC_0ffff.lastbuildstate".]
+        ignore line: [Done Building Project "D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (default targets).]
+        ignore line: []
+        ignore line: [Build succeeded.]
+        ignore line: []
+        ignore line: ["D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (default target) (1) ->]
+        ignore line: ["D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (CudaBuildCore target) (1:2) ->]
+        ignore line: [(CudaBuildCore target) -> ]
+        ignore line: [  cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  cl : Command line warning D9002: ignoring unknown option '-v' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  C:\\Program Files\\CMake\\share\\cmake-3.30\\Modules\\CMakeCompilerCUDAArch.h(10): warning C4305: 'return': truncation from 'int' to 'bool' [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: []
+        ignore line: []
+        ignore line: ["D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj" (default target) (1) ->]
+        ignore line: [(Link target) -> ]
+        ignore line: [  LINK : warning LNK4044: unrecognized option '/v']
+        ignore line: [ ignored [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: [  LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs]
+        ignore line: [ use /NODEFAULTLIB:library [D:\\work\\Graphics\\VRhand\\Taichi-UnityExample\\UnityPlugin\\build\\CMakeFiles\\CMakeScratch\\TryCompile-5km176\\cmTC_0ffff.vcxproj]]
+        ignore line: []
+        ignore line: [    6 Warning(s)]
+        ignore line: [    0 Error(s)]
+        ignore line: []
+        ignore line: [Time Elapsed 00:00:02.23]
+        ignore line: []
+        ignore line: []
+        linker tool for 'CUDA': C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/link.exe
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake:255 (cmake_determine_linker_id)"
+      - "C:/Program Files/CMake/share/cmake-3.30/Modules/CMakeTestCUDACompiler.cmake:19 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Running the CUDA compiler's linker: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.38.33130/bin/HostX64/x64/link.exe" "-v"
+      Microsoft (R) Incremental Linker Version 14.38.33133.0
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+...

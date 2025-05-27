@@ -1,0 +1,23 @@
+#pragma kernel VolumeDataConverter
+
+uint3 Dims;
+ByteAddressBuffer Source;
+RWStructuredBuffer<float> Voxels;
+
+[numthreads(8, 8, 8)]
+void VolumeDataConverter(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x + Dims.x * (id.y + Dims.y * id.z);
+
+    // Source voxel fetch
+    uint data = Source.Load((index / 2) * 4);
+
+    // ushort -> uint
+    data = (index & 1) ? (data >> 16) : (data & 0xffffu);
+
+    // byte order swap
+    data = ((data & 0xff) << 8) + (data >> 8);
+
+    // uint -> float
+    Voxels[index] = 20.0 * data / 0xffff;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "ai.meshy",
+  "version": "0.1.1",
+  "description": "Meshy-for-unity",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.mathematics": "1.2.6",
+    "com.unity.burst": "1.8.4"
+  },
+  "author": "Meshy <team@meshy.ai> (https://www.meshy.ai/)",
+  "displayName": "Meshy",
+  "licensesUrl": "https://meshy.notion.site/Meshy-Terms-of-Use-1caa05bee952459d9a192614cbf045b1"
+}

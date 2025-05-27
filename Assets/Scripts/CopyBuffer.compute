@@ -1,0 +1,18 @@
+#pragma kernel CopySubBuffer
+
+// Source and destination buffers
+StructuredBuffer<float> sourceBuffer;
+RWStructuredBuffer<float> destinationBuffer;
+
+// Parameters
+int sourceOffset;
+
+[numthreads(1024, 1, 1)]
+void CopySubBuffer(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;  // Since numthreads is [1024, 1, 1], id.x ranges from 0 to 1023
+    uint globalIndex = index + sourceOffset;
+
+    destinationBuffer[index] = sourceBuffer[globalIndex];
+    
+}

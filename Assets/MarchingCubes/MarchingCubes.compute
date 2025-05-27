@@ -1,0 +1,451 @@
+#pragma kernel MeshReconstruction
+#pragma kernel ClearUnusedIndices
+#pragma kernel ClearUnusedTriangles
+#pragma kernel InitVertexMapping
+#pragma kernel LaplacianSmoothing
+#pragma kernel InitNeighborCount
+#pragma kernel MeshReconstructionNoSmoothing
+#pragma kernel ClearUnused
+
+// Workaround for the absence of sizeof operator in HLSL
+#define SIZEOF_UINT 4
+#define SIZEOF_FLOAT3 12
+
+// Parameters
+uint3 Dims;
+uint MaxTriangle;
+uint MaxNeighbors;
+float Scale;
+float Isovalue;
+// 邻接列表缓冲区，假设每个顶点最多有 MaxNeighbors 个邻居
+RWStructuredBuffer<uint> AdjacencyList;
+
+// 记录每个顶点邻接列表当前存储了多少个邻居
+RWStructuredBuffer<uint> NeighborCount;
+
+
+// Grid space to object space transformation
+float3 TransformPoint(float3 p)
+{
+    return (p + 0.5 - Dims / 2) * Scale;
+}
+
+//
+// "Triangle table" that contains triangle lists for each cube configuration
+//
+
+StructuredBuffer<uint2> TriangleTable;
+
+uint EdgeIndexFromTriangleTable(uint2 data, uint index)
+{
+    return 0xfu & (index < 8 ? data.x >> ((index + 0) * 4) :
+                               data.y >> ((index - 8) * 4));
+}
+// 添加顶点映射表，用于存储每条边上的顶点索引
+RWStructuredBuffer<uint> VertexMapping; // 假设每个边都有一个唯一的顶点索引
+
+// 唯一边ID生成函数
+uint vertexId(uint3 id)
+{
+    return  3*(id.z * (Dims.y) * (Dims.x) + id.y * (Dims.x) + id.x);
+}
+uint3 CubeVertex(uint index)
+{
+    bool x = index & 1;
+    bool y = index & 2;
+    bool z = index & 4;
+    return uint3(x ^ y, y, z);
+}
+
+uint2 EdgeVertexPair(uint index)
+{
+    // (0, 1) (1, 2) (2, 3) (3, 0)
+    // (4, 5) (5, 6) (6, 7) (7, 4)
+    // (0, 4) (1, 5) (2, 6) (3, 7)
+    uint v1 = index & 7;
+    uint v2 = index < 8 ? ((index + 1) & 3) | (index & 4) : v1 + 4;
+
+    if (v1==2 && v2==3) return uint2(3, 2);
+    if (v1==6 && v2==7) return uint2(7, 6);
+    if (v1==3 && v2==0) return uint2(0, 3);
+    if (v1==7 && v2==4) return uint2(4, 7);
+    return uint2(v1, v2);
+}
+
+uint EdgeId(uint3 id, uint edgeNumber)
+{
+    // Step 1: Get the vertex pair for the given edgeNumber
+    uint2 pair = EdgeVertexPair(edgeNumber);
+
+
+    // Step 2: Get the vertex coordinates from CubeVertex for both ends of the edge
+    uint3 v1 = CubeVertex(pair.x);
+    uint3 v2 = CubeVertex(pair.y);
+
+    // Step 3: Calculate the base vertex ID using id as a base position
+    uint baseVertexId = vertexId(id + v1);
+
+    // Step 4: Determine the axis of the edge
+    uint3 diff = v2 - v1; // This will indicate the direction of the edge
+
+    // Edge along the x-axis
+    if (diff.x != 0 && diff.y == 0 && diff.z == 0)
+    {
+        return baseVertexId; // x-axis edge corresponds to vertexId(id)
+    }
+    // Edge along the y-axis
+    else if (diff.x == 0 && diff.y != 0 && diff.z == 0)
+    {
+        return baseVertexId + 1; // y-axis edge corresponds to vertexId(id) + 1
+    }
+    // Edge along the z-axis
+    else if (diff.x == 0 && diff.y == 0 && diff.z != 0)
+    {
+        return baseVertexId + 2; // z-axis edge corresponds to vertexId(id) + 2
+    }
+
+    // Default case: If none of the above conditions match, return an invalid edge ID
+    return -1;
+}
+
+//
+// Input voxels
+//
+
+StructuredBuffer<float> Voxels;
+
+float VoxelValue(uint x, uint y, uint z)
+{
+    return Voxels[x + Dims.x * (y + Dims.y * z)];
+}
+
+// Voxel value with calculated gradient
+float4 VoxelValueWithGradient(uint3 i)
+{
+    uint3 i_n = max(i, 1) - 1;
+    uint3 i_p = min(i + 1, Dims - 1);
+    float v = VoxelValue(i.x, i.y, i.z);
+    float v_nx = VoxelValue(i_n.x, i.y, i.z);
+    float v_px = VoxelValue(i_p.x, i.y, i.z);
+    float v_ny = VoxelValue(i.x, i_n.y, i.z);
+    float v_py = VoxelValue(i.x, i_p.y, i.z);
+    float v_nz = VoxelValue(i.x, i.y, i_n.z);
+    float v_pz = VoxelValue(i.x, i.y, i_p.z);
+    return float4(v_px - v_nx, v_py - v_ny, v_pz - v_nz, v);
+}
+
+//
+// Output buffer and counter
+//
+
+RWByteAddressBuffer VertexBuffer;
+RWByteAddressBuffer IndexBuffer;
+// 顶点和三角形计数器
+RWStructuredBuffer<uint> VertexCounter;   // 用于顶点计数
+RWStructuredBuffer<uint> TriangleCounter; // 用于三角形计数
+RWStructuredBuffer<uint> Counter; // used only for counting
+
+// Vertex buffer accessor
+void WriteVertex(uint offset, float3 p, float3 n)
+{
+    uint addr_p = offset * SIZEOF_FLOAT3 * 2;
+    uint addr_n = addr_p + SIZEOF_FLOAT3;
+    VertexBuffer.Store3(addr_p, asuint(p));
+    VertexBuffer.Store3(addr_n, asuint(n));
+}
+void ReadVertex(uint offset, out float3 p, out float3 n)
+{
+    uint addr_p = offset * SIZEOF_FLOAT3 * 2;
+    uint addr_n = addr_p + SIZEOF_FLOAT3;
+
+    // Load the vertex position (p)
+    uint3 p_uint;
+    p_uint=VertexBuffer.Load3(addr_p);
+    p = asfloat(p_uint);
+
+    // Load the normal (n)
+    uint3 n_uint;
+    n_uint=VertexBuffer.Load3(addr_n);
+    n = asfloat(n_uint);
+}
+// Index buffer accessor
+void WriteIndices(uint offset, uint3 indices)
+{
+    IndexBuffer.Store3(offset * SIZEOF_UINT, indices);
+}
+// 将一个邻居追加到顶点的邻接列表中
+void AppendNeighbor(uint vertex, uint neighbor)
+{
+    uint originalCount;
+
+    // 使用原子操作安全地增加 NeighborCount[vertex]
+    InterlockedAdd(NeighborCount[vertex], 1, originalCount);
+
+    // 如果增加后的邻居数量不超过 MaxNeighbors，则写入邻接列表
+    if (originalCount < MaxNeighbors)
+    {
+        // 写入邻接列表
+        AdjacencyList[vertex * MaxNeighbors + originalCount] = neighbor;
+    }
+    else
+    {
+        // 如果超过最大邻居数量，减少 NeighborCount 以保持一致性
+        InterlockedAdd(NeighborCount[vertex], -1);
+    }
+}
+// 追加邻接信息
+void AppendAdjacency(uint v1, uint v2, uint v3)
+{
+    // 对于每个顶点，将另两个顶点追加到邻接列表
+    AppendNeighbor(v1, v2);
+    AppendNeighbor(v1, v3);
+    AppendNeighbor(v2, v1);
+    AppendNeighbor(v2, v3);
+    AppendNeighbor(v3, v1);
+    AppendNeighbor(v3, v2);
+}
+
+
+//
+// Cube geometry/topology
+//
+
+// This must match one defined in Paul Bourke's article:
+// http://paulbourke.net/geometry/polygonise/
+
+
+
+// 修改 MeshReconstruction 函数
+[numthreads(8, 8, 8)]
+void MeshReconstruction(uint3 id : SV_DispatchThreadID)
+{
+    // 边界检查
+    if (any(id + 1 >= Dims.xyz)) return;
+
+    // 采样体素值
+    float4 samples[8];
+    uint i=0;
+    for (i = 0; i < 8; i++)
+        samples[i] = VoxelValueWithGradient(id + CubeVertex(i));
+
+    // Cube 配置选择器
+    uint selector = 0;
+    for (i = 0; i < 8; i++)
+        selector |= (samples[i].w < Isovalue) << i;
+
+    // 空立方体的特殊情况; 如果没有交点，提前退出。
+    if (selector == 0 || selector == 0xff) return;
+
+    // 每条边上的交点及其法线
+    float3 vertices[12];
+    float3 normals[12];
+    uint vertexIndices[12]; // 每条边的顶点索引
+    for (i = 0; i < 12; i++)
+    {
+        uint2 pair = EdgeVertexPair(i);
+        float4 sample1 = samples[pair.x];
+        float4 sample2 = samples[pair.y];
+        float3 vertex1 = id + CubeVertex(pair.x);
+        float3 vertex2 = id + CubeVertex(pair.y);
+        float param = (Isovalue - sample1.w) / (sample2.w - sample1.w);
+        vertices[i] = TransformPoint(lerp(vertex1, vertex2, param));
+        normals[i] = -normalize(lerp(sample1.xyz, sample2.xyz, param));
+
+        // 获取该边的唯一ID
+        uint edgeId = EdgeId(id,i);
+        //检查 VertexMapping 是否已有该顶点的索引
+        uint originalIndex = 0xFFFFFFFF; // 假设未使用的索引为 0xFFFFFFFF
+        InterlockedCompareExchange(VertexMapping[edgeId], 0xFFFFFFFF, 0xFFFFFFFF, originalIndex);
+
+        if (originalIndex == 0xFFFFFFFF) // 该顶点还没有被赋值
+        {
+            // 如果没有该顶点索引，则分配一个新索引
+            uint newVertexIndex = VertexCounter.IncrementCounter(); // 使用顶点计数器
+            if (newVertexIndex >= MaxTriangle * 3) return; // 防止超出最大顶点数
+        
+            // 写入新顶点数据
+            WriteVertex(newVertexIndex, vertices[i], normals[i]);
+        
+            // 尝试将新索引写入 VertexMapping，确保原子操作
+
+            uint expected = 0xFFFFFFFF;
+            InterlockedCompareExchange(VertexMapping[edgeId],  expected, newVertexIndex,originalIndex);
+        
+            // 如果其他线程已经写入了索引，使用其他线程写入的索引
+            vertexIndices[i] = (originalIndex == 0xFFFFFFFF) ? newVertexIndex : originalIndex;
+        }
+        else
+        {
+            // 如果已有索引，直接使用该索引
+            vertexIndices[i] = originalIndex;
+        }
+    }
+
+    // 输出三角形
+    uint2 tri_data = TriangleTable[selector];
+    for (i = 0; i < 15; i += 3)
+    {
+        uint e1 = EdgeIndexFromTriangleTable(tri_data, i);
+        uint e2 = EdgeIndexFromTriangleTable(tri_data, i + 1);
+        uint e3 = EdgeIndexFromTriangleTable(tri_data, i + 2);
+        if (e1 == 15) return;
+
+        // 分配三角形索引
+        uint triangleIndex = TriangleCounter.IncrementCounter(); // 使用三角形计数器
+        if (triangleIndex >= MaxTriangle) return;
+
+        // 写入三角形索引
+        WriteIndices(triangleIndex * 3, uint3(vertexIndices[e1], vertexIndices[e2], vertexIndices[e3]));
+
+        // 追加邻接信息
+        AppendAdjacency(vertexIndices[e1], vertexIndices[e2], vertexIndices[e3]);
+    }
+}
+
+[numthreads(8, 8, 8)]
+void MeshReconstructionNoSmoothing(uint3 id : SV_DispatchThreadID)
+{
+    // Boundary check
+    if (any(id + 1 >= Dims.xyz)) return;
+
+    // Voxel samples at each cube vertex
+    float4 samples[8];
+    for (uint i = 0; i < 8; i++)
+        samples[i] = VoxelValueWithGradient(id + CubeVertex(i));
+
+    // Cube configuration selector
+    // (initialized as a bit field of vertex binary states)
+    uint selector = 0;
+    for (i = 0; i < 8; i++)
+        selector |= (samples[i].w < Isovalue) << i;
+
+    // Special case for empty cubes; Exit ealy if there is no intersection.
+    if (selector == 0 || selector == 0xff) return;
+
+    // Intersection points on each edge
+    // We do this in a GPU-oriented way; Do the calculation on all the edges
+    // including ones without an intersection.
+    float3 vertices[12];
+    float3 normals[12];
+    for (i = 0; i < 12; i++)
+    {
+        uint2 pair = EdgeVertexPair(i);
+        float4 sample1 = samples[pair.x];
+        float4 sample2 = samples[pair.y];
+        float3 vertex1 = id + CubeVertex(pair.x);
+        float3 vertex2 = id + CubeVertex(pair.y);
+        float param = (Isovalue - sample1.w) / (sample2.w - sample1.w);
+        vertices[i] = TransformPoint(lerp(vertex1, vertex2, param));
+        normals[i] = -normalize(lerp(sample1.xyz, sample2.xyz, param));
+    }
+
+    // Output triangles in the selected cube configuration.
+    uint2 tri_data = TriangleTable[selector];
+    for (i = 0; i < 15; i += 3)
+    {
+        uint e1 = EdgeIndexFromTriangleTable(tri_data, i);
+        uint e2 = EdgeIndexFromTriangleTable(tri_data, i + 1);
+        uint e3 = EdgeIndexFromTriangleTable(tri_data, i + 2);
+        if (e1 == 15) return;
+
+        uint count = Counter.IncrementCounter();
+        if (count >= MaxTriangle) return;
+
+        uint vidx = count * 3;
+        WriteVertex(vidx + 0, vertices[e1], normals[e1]);
+        WriteVertex(vidx + 1, vertices[e2], normals[e2]);
+        WriteVertex(vidx + 2, vertices[e3], normals[e3]);
+        WriteIndices(vidx, uint3(vidx, vidx + 1, vidx + 2));
+    }
+}
+
+[numthreads(1024, 1, 1)]
+void LaplacianSmoothing(uint id : SV_DispatchThreadID)
+{
+
+    float3 pos;
+    float3 normal;
+    ReadVertex(id, pos, normal); // 读取顶点位置和法线
+    // 初始化用于计算平均值的向量
+    float3 avgPos = float3(0, 0, 0);
+    float3 avgNormal = float3(0, 0, 0);
+    ReadVertex(id, avgPos, avgNormal);
+    uint neighborCount = NeighborCount[id]; // 获取邻居数量
+
+    // 遍历该顶点的邻居，累加位置和法线
+    for (uint i = 0; i < neighborCount; i++)
+    {
+        uint neighborIdx = AdjacencyList[id * MaxNeighbors + i];
+        float3 neighborPos;
+        float3 neighborNormal;
+
+        // 读取邻居的顶点位置和法线
+        ReadVertex(neighborIdx, neighborPos, neighborNormal);
+
+        // 累加位置和法线
+        avgPos += neighborPos;
+        avgNormal += neighborNormal;
+    }
+    
+    // 如果有邻居，则计算平均位置和法线
+    avgPos /= (neighborCount+1);
+    avgNormal = normalize(avgNormal / (neighborCount+1)); // 平均并归一化法线
+    // 将平滑后的顶点位置和法线写回
+    WriteVertex(id, avgPos, avgNormal);
+
+
+}
+[numthreads(1024, 1, 1)]
+void InitVertexMapping(uint id : SV_DispatchThreadID)
+{
+    if (id >= Dims.x*Dims.y*Dims.z*3) return;
+    VertexMapping[id] = 0xFFFFFFFF;
+}
+
+[numthreads(1024, 1, 1)]
+void InitNeighborCount(uint id : SV_DispatchThreadID)
+{
+    if (id >= MaxTriangle*3) return;
+    NeighborCount[id] = 0;
+}
+//
+// Cleanup kernel that clears the unused area of the buffers
+//
+
+[numthreads(64, 1, 1)]
+void ClearUnusedIndices(uint id : SV_DispatchThreadID)
+{
+    while (true)
+    {
+        uint count = VertexCounter.IncrementCounter();
+        if (count >= MaxTriangle*3) break;
+        WriteVertex(count, 0, 0);
+    }
+}
+
+[numthreads(64, 1, 1)]
+void ClearUnusedTriangles(uint id : SV_DispatchThreadID)
+{
+    while (true)
+    {
+        uint count = TriangleCounter.IncrementCounter();
+        if (count >= MaxTriangle) break;
+        uint vidx = count * 3;
+        WriteIndices(vidx, uint3(0, 0, 0));
+    }
+}
+
+[numthreads(64, 1, 1)]
+void ClearUnused(uint id : SV_DispatchThreadID)
+{
+    while (true)
+    {
+        uint count = Counter.IncrementCounter();
+        if (count >= MaxTriangle) break;
+        uint vidx = count * 3;
+        WriteVertex(vidx + 0, 0, 0);
+        WriteVertex(vidx + 1, 0, 0);
+        WriteVertex(vidx + 2, 0, 0);
+        WriteIndices(vidx, uint3(0, 0, 0));
+    }
+}

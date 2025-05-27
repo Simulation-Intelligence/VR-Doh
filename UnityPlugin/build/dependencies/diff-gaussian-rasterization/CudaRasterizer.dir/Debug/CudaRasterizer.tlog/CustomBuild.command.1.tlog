@@ -1,0 +1,10 @@
+^D:\WORK\GRAPHICS\VRHAND\TAICHI-UNITYEXAMPLE\UNITYPLUGIN\DEPENDENCIES\DIFF-GAUSSIAN-RASTERIZATION\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin -BD:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build --check-stamp-file D:/work/Graphics/VRhand/Taichi-UnityExample/UnityPlugin/build/dependencies/diff-gaussian-rasterization/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

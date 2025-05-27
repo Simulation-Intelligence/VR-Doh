@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="D:\work\Graphics\VRhand\Taichi-UnityExample\UnityPlugin\dependencies\diff-gaussian-rasterization\cuda_rasterizer\backward.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\work\Graphics\VRhand\Taichi-UnityExample\UnityPlugin\dependencies\diff-gaussian-rasterization\cuda_rasterizer\forward.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\work\Graphics\VRhand\Taichi-UnityExample\UnityPlugin\dependencies\diff-gaussian-rasterization\cuda_rasterizer\auxiliary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\work\Graphics\VRhand\Taichi-UnityExample\UnityPlugin\dependencies\diff-gaussian-rasterization\cuda_rasterizer\rasterizer_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\work\Graphics\VRhand\Taichi-UnityExample\UnityPlugin\dependencies\diff-gaussian-rasterization\cuda_rasterizer\rasterizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\..\..\dependencies\diff-gaussian-rasterization\cuda_rasterizer\backward.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\..\..\dependencies\diff-gaussian-rasterization\cuda_rasterizer\forward.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\..\..\dependencies\diff-gaussian-rasterization\cuda_rasterizer\rasterizer_impl.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\work\Graphics\VRhand\Taichi-UnityExample\UnityPlugin\dependencies\diff-gaussian-rasterization\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{99E58C5A-8E60-3063-888A-78D4F26AA64C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{B9D7A653-8427-3699-8C4C-86A9A84B4C5B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

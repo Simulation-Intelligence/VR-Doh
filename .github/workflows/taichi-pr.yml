@@ -1,0 +1,105 @@
+name: Taichi Pull Request
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+
+jobs:
+  check-taichi-pull-request:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Please ensure you created a pull request in `taichi-dev/taichi`.
+      env:
+        PR_NUMBER: ${{ github.event.number }}
+      run: |
+        echo $PR_NUMBER > ./pr_number
+        echo PR_NUMBER=$PR_NUMBER
+
+    - name: Check Taichi pull request mergeability
+      id: check-taichi-pr-mergeable
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          let fs = require('fs');
+          let https = require('https');
+          let pull_number = Number(fs.readFileSync('./pr_number'));
+          let pull = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: pull_number,
+          });
+          console.log("pull =", pull);
+          let taichi_pull_number_match = String(pull.data.body).match("https://github.com/taichi-dev/taichi/pull/(\\d+)");
+          if (taichi_pull_number_match == null || taichi_pull_number_match.length != 2) {
+            return 1;
+          }
+          let taichi_pull_number = taichi_pull_number_match[1];
+
+          console.log("taichi_pull_number =", taichi_pull_number);
+          let taichi_pull = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: 'taichi',
+            pull_number: taichi_pull_number,
+          });
+          console.log("taichi_pull =", taichi_pull);
+          let taichi_back_ref_pull_number_match = String(taichi_pull.data.body).match("https://github.com/taichi-dev/" + context.repo.repo + "/pull/(\\d+)");
+          if (taichi_back_ref_pull_number_match == null || taichi_back_ref_pull_number_match.length != 2 || taichi_back_ref_pull_number_match[1] != pull_number) {
+            return 2;
+          }
+
+          if (taichi_pull.data.mergeable_state == 'blocked') {
+            console.log("merging is blocked, checking whether the taichi checks are passing...");
+            let check_runs = await github.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs?per_page=100', {
+              owner: 'taichi-dev',
+              repo: 'taichi',
+              ref: taichi_pull.data.head.sha,
+            });
+            for (let i = 0; i < check_runs.data["check_runs"].length; ++i) {
+              let check = check_runs.data["check_runs"][i];
+              console.log("check_runs[", i, "] =", check);
+              if (check['conclusion'] == 'success' || check['conclusion'] == 'neutral') {
+                console.log("check '" + check.name + "' passed");
+              } else {
+                console.log("check '" + check.name + "' didn't pass!");
+                return 3;
+              }
+            }
+          } else if ((taichi_pull.data.merged == true) || (taichi_pull.data.mergeable_state == 'clean')) {
+            return 0;
+          } else {
+            return 3;
+          }
+
+    - name: Approve
+      run: |
+        export APPROVAL_ERROR=${{steps.check-taichi-pr-mergeable.outputs.result}}
+        if [ $APPROVAL_ERROR -eq 0 ]; then
+          echo "-> This PR is approved. Thank you for your contribution!"
+
+        elif [ $APPROVAL_ERROR -eq 1 ]; then
+          echo "-- Did you paste the URL to a Taichi PR in your description?"
+          echo "-- Checkout https://github.com/taichi-dev/taichi-aot-demo/pull/97 as an example."
+          echo "-> This PR is not approved."
+
+        elif [ $APPROVAL_ERROR -eq 2 ]; then
+          echo "-- The referenced Taichi PR doesn't reference back to this PR."
+          echo "-- Please ensure the Taichi PR has a link pointing back to this PR in its description."
+          echo "-> This PR is not approved."
+
+        elif [ $APPROVAL_ERROR -eq 3 ]; then
+          echo "-- The referenced Taichi PR is not mergeable."
+          echo "-- Please ensure the Taichi PR passes all checks."
+          echo "-> This PR is not approved."
+
+        fi
+
+        exit $APPROVAL_ERROR

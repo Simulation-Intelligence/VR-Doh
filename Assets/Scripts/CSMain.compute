@@ -1,0 +1,31 @@
+#pragma kernel CSMain
+
+// 输入的 ComputeBuffer
+StructuredBuffer<float> dataBuffer;
+
+// 输出的 3D 纹理
+RWTexture3D<float> Result;
+
+float normalizationFactor;
+
+// 纹理大小
+int textureSize;
+
+[numthreads(8, 8, 8)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= textureSize || id.y >= textureSize || id.z >= textureSize)
+        return;
+
+    // 计算在 1D 数据中的索引
+    int index = id.x* textureSize * textureSize + id.y * textureSize + id.z ;
+
+    // 从 ComputeBuffer 获取数据
+    float value = dataBuffer[index];
+
+    value = value / normalizationFactor;
+
+    int3 textureIndex = int3(id.x, id.y, id.z);
+    // 将数据写入 Texture3D 的 R 通道
+    Result[textureIndex] = value; // 直接写入 float 值
+}
