@@ -112,7 +112,23 @@
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
 
     <title>VR-doh</title>
+      <link rel="stylesheet" href="./css/bootstrap.min.css">
+  <link rel="stylesheet" href="./css/bulma.min.css">
+  <link rel="stylesheet" href="./css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./css/index.css">
+  <link rel="stylesheet" href="./css/app.css">
     <link rel="icon" href="icon.ico">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./js/fontawesome.all.min.js"></script>
+  <script src="./js/bulma-carousel.min.js"></script>
+  <script src="./js/bulma-slider.min.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/video_comparison.js"></script>
+  <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
 </head>
 
 <body>
@@ -165,7 +181,98 @@
 
   <!-- abstract -->
         <!-- <!-- <p class="title is-3 mt-5 has-text-centered"> Abstract </p> -->
+        <img src="images/VR-Doh-Teaser.jpg" alt="Teaser" width="60%" height="600px"> 
 
+        
+  <section class="hero is-light is-small">
+    <div class="hero-body">
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item item-ketchup">
+            <video poster="" id="ketchup" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/pig_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-plane">
+            <video poster="" id="plane" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/roll_compressed.mp4" type="video/mp4">  
+            </video>
+          </div>
+          <div class="item item-fox">
+            <video poster="" id="fox" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/mushRoom_compressed.mp4" type="video/mp4">
+            </video>    
+          </div>
+          <div class="item item-toast">
+            <video poster="" id="toast" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/garden_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+        
+  <section class="hero is-light is-small">
+    <div class="hero-body">
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item item-ketchup">
+            <video poster="" id="ketchup" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/contact1_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-plane">
+            <video poster="" id="plane" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/contact2_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-fox">
+            <video poster="" id="fox" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/contact3_compressed.mp4" type="video/mp4">
+            </video>    
+          </div>
+          <div class="item item-toast">
+            <video poster="" id="toast" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/contact4_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+    <section class="hero is-light is-small">
+    <div class="hero-body">
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item item-ketchup">
+            <video poster="" id="ketchup" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/gesture1_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-plane">
+            <video poster="" id="plane" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/gesture2_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-fox">
+            <video poster="" id="fox" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/gesture3_compressed.mp4" type="video/mp4">
+            </video>    
+          </div>
+          <div class="item item-toast">
+            <video poster="" id="toast" autoplay controls muted loop playsinline height="100%">
+              <source src="./videos/gesture4_compressed.mp4" type="video/mp4">
+            </video>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+        <p class="title is-3 mt-5 has-text-centered"> Abstract</p>
         <p class="content is-size-6 has-text-left">
             We introduce <b>VR-Doh</b>, a hands-on 3D modeling system that enables intuitive creation and manipulation
             of elastoplastic objects in Virtual Reality (VR). By customizing the Material Point Method (MPM) for
@@ -182,11 +289,12 @@
         </p>
 
         <!-- results (videos) -->
-         <p class="title is-3 mt-5 has-text-centered"> Demo Video</p>
 
         <video muted autoplay controls loop>
-            <source src="videos/red-pig-example.mp4" type="video/mp4">
+            <source src="videos\final_compressed.mp4" type="video/mp4">
         </video>
+
+
         <p class="title is-3 mt-5 has-text-centered"> Hands-on 3D Modeling </p>
         <img src="images/Featured_Operations.png" alt="Hands-on Modeling" width="60%" height="600px"> 
         <p class="title is-3 mt-5 has-text-centered"> Modeling from scratch </p>
@@ -344,8 +452,12 @@
                 firstImage.click();  // 模拟点击第一个图片
             });
         </script>
-
+        <p class="title is-3 mt-5 has-text-centered"> UI Walkthrough </p>
+        <video muted autoplay controls loop>
+            <source src="videos\UI_walkthrough_compressed.mp4" type="video/mp4">
+        </video>
     </div>
+    
   <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
       <h2 class="title">BibTeX</h2>
