@@ -120,13 +120,75 @@
     <div class="container has-text-centered">
         <!-- paper title -->
         <p class="title is-1"> VR-Doh: Hands-on 3D Modeling in Virtual Reality </p>
-
+        <!-- publication -->
+        <p class="subtitle is-4"> SIGGRAPH 2025</p>
+        <!-- authors -->
+        <p class="title is-5 mt-2">
+            <a href="https://roushelfy.github.io/" target="_blank">Zhaofeng Luo*</a><sup>1 2</sup>,
+            <a href="https://scholar.google.com/citations?user=4BOa6U4AAAAJ&hl=en" target="_blank">Zhitong
+                Cui*</a><sup>1 3</sup>,
+            <a href="Shijian Luo" target="_blank"> Shijian Luo</a><sup>3</sup>,
+            <a href="https://rachelcmy.github.io/" target="_blank">Mengyu Chu</a><sup>2</sup>,
+            <a href="https://www.cs.cmu.edu/~minchenl/" target="_blank">Minchen Li</a><sup>1</sup>
+        </p>
+        <!-- affiliations -->
+        <p class="subtitle is-5">
+            <sup>1</sup> Carnegie Mellon University &nbsp;
+            <sup>2</sup> Peking University &nbsp;
+            <sup>3</sup> Zhejiang University &nbsp;
+        </p> 
+        <p class="has-text-centered mt-2">* Equal Contribution</p>
+        <!-- other links -->
+        <div class="is-flex is-justify-content-center">
+            <span class="icon-text mx-1">
+                <a class="button is-dark" href="https://arxiv.org/abs/2412.00814" role="button" target="_blank">
+                    <span class="icon"> <ion-icon name="document-text-outline"></ion-icon> </span> <span> Arxiv </span>
+                </a>
+            </span>
+            <span class="icon-text mx-1">
+                <a class="button is-dark" href="https://github.com/Simulation-Intelligence/VR-Doh"
+                    role="button" target="_blank"> <span class="icon"> <ion-icon name="logo-github"></ion-icon>
+                    </span> <span>
+                        Code </span> </a>
+            </span>
+            <span class="icon-text mx-1">
+                <a class="button is-dark" href="./userstudy.html" role="button" target="_blank"> <span class="icon">
+                        <ion-icon name="document-outline"></ion-icon>
+                    </span> <span>
+                        User Study </span> </a>
+            </span>
+        </div>
     </div>
 
     <!-- main container -->
     <div class="container is-max-desktop has-text-centered">
 
+  <!-- abstract -->
+        <!-- <!-- <p class="title is-3 mt-5 has-text-centered"> Abstract </p> -->
 
+        <p class="content is-size-6 has-text-left">
+            We introduce <b>VR-Doh</b>, a hands-on 3D modeling system that enables intuitive creation and manipulation
+            of elastoplastic objects in Virtual Reality (VR). By customizing the Material Point Method (MPM) for
+            real-time simulation of hand-induced large deformations and enhancing 3D Gaussian Splatting for seamless
+            rendering, VR-Doh provides an interactive and immersive 3D modeling experience. Users can naturally sculpt,
+            deform, and edit objects through both contact- and gesture-based hand-object interactions. To achieve
+            real-time performance, our system incorporates localized simulation techniques, particle-level collision
+            handling, and the decoupling of physical and appearance representations, ensuring smooth and responsive
+            interactions. VR-Doh supports both object creation and editing, enabling diverse modeling tasks such as
+            designing food items, characters, and interlocking structures, all resulting in simulation-ready assets. A
+            user study with both novice and experienced participants highlights the system's intuitive design, immersive
+            feedback, and creative potential. Compared to existing geometric modeling tools, VR-Doh offers enhanced
+            accessibility and natural interaction, making it a powerful tool for creative exploration in VR.
+        </p>
+
+        <!-- results (videos) -->
+         <p class="title is-3 mt-5 has-text-centered"> Demo Video</p>
+
+        <video muted autoplay controls loop>
+            <source src="videos/red-pig-example.mp4" type="video/mp4">
+        </video>
+        <p class="title is-3 mt-5 has-text-centered"> Hands-on 3D Modeling </p>
+        <img src="images/Featured_Operations.png" alt="Hands-on Modeling" width="60%" height="600px"> 
         <p class="title is-3 mt-5 has-text-centered"> Modeling from scratch </p>
 
         <!-- 3D 模型展示区域 -->
@@ -284,7 +346,17 @@
         </script>
 
     </div>
-
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>@article{luo2025vrdoh,
+      title={VR-Doh: Hands-on 3D Modeling in Virtual Reality},
+      author={Luo, Zhaofeng and Cui, Zhitong and Luo, Shijian and Chu, Mengyu and Li, Minchen},
+      journal={arXiv preprint arXiv:2412.00814},
+      year={2025},
+}</code></pre>
+    </div>
+  </section>
 
     </section>
 </body>
