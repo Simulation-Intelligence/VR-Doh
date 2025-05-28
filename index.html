@@ -18,15 +18,18 @@
             align-items: center;
         }
 
-        #modelContainer {
-            width: 80%;
-            height: 400px;
-            background: #f0f0f0;
-            margin-top: 20px;
-            margin-left: 10%;
-            /* 将元素向右偏移 10% */
-        }
-
+#modelContainer {
+    width: 100%;
+    max-width: 800px;
+    height: 400px;
+    background: #f0f0f0;
+    margin: 30px auto 0 auto; /* 上方适当间距 + 居中 */
+}
+.main-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
         #imageButtons {
             display: flex;
             justify-content: center;
@@ -93,6 +96,19 @@
             color: #555;
             margin-top: 10px;
         }
+
+        .title {
+        margin-top: 2rem !important; /* 主标题和副标题间距 */
+      }
+
+      .title.is-3 {
+          margin-top: 3rem !important; /* 各个 section 的标题上方间距 */
+      }
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
     </style>
     <!-- Use importmap to define the module paths (must be before module scripts) -->
     <script type="importmap">
@@ -137,7 +153,7 @@
         <!-- paper title -->
         <p class="title is-1"> VR-Doh: Hands-on 3D Modeling in Virtual Reality </p>
         <!-- publication -->
-        <p class="subtitle is-4"> SIGGRAPH 2025</p>
+        <p class="subtitle is-4"> ACM Transactions on Graphics (SIGGRAPH), 2025</p>
         <!-- authors -->
         <p class="title is-5 mt-2">
             <a href="https://roushelfy.github.io/" target="_blank">Zhaofeng Luo*</a><sup>1 2</sup>,
@@ -158,7 +174,7 @@
         <div class="is-flex is-justify-content-center">
             <span class="icon-text mx-1">
                 <a class="button is-dark" href="https://arxiv.org/abs/2412.00814" role="button" target="_blank">
-                    <span class="icon"> <ion-icon name="document-text-outline"></ion-icon> </span> <span> Arxiv </span>
+                    <span class="icon"> <ion-icon name="document-text-outline"></ion-icon> </span> <span> Preprint </span>
                 </a>
             </span>
             <span class="icon-text mx-1">
@@ -181,7 +197,8 @@
 
   <!-- abstract -->
         <!-- <!-- <p class="title is-3 mt-5 has-text-centered"> Abstract </p> -->
-        <img src="images/VR-Doh-Teaser.jpg" alt="Teaser" width="60%" height="600px"> 
+        <img src="images/VR-Doh-Teaser.jpg" alt="Teaser" style="width: 100%; max-width: 1000px; height: auto; margin-top: 2rem;">
+
 
         
   <section class="hero is-light is-small">
@@ -294,9 +311,7 @@
             <source src="videos\final_compressed.mp4" type="video/mp4">
         </video>
 
-
-        <p class="title is-3 mt-5 has-text-centered"> Hands-on 3D Modeling </p>
-        <img src="images/Featured_Operations.png" alt="Hands-on Modeling" width="60%" height="600px"> 
+<div class="main-container">
         <p class="title is-3 mt-5 has-text-centered"> Modeling from scratch </p>
 
         <!-- 3D 模型展示区域 -->
@@ -306,21 +321,20 @@
         <div id="modelContainer"></div>
 
         <!-- 按钮区域，包含四个图片按钮 -->
-        <div id="imageButtons">
-            <img src="images/baozi.png" alt="Model 1" data-model="baozi_cage_full.obj"
-                data-material="baozi_cage_full.mtl">
-            <img src="images/pig_baozi.png" alt="Model 2" data-model="pig_cage_full.obj"
-                data-material="pig_cage_full.mtl">
-            <img src="images/cake.png" alt="Model 3" data-model="cake1_3.obj" data-material="cake1_3.mtl">
-            <img src="images/panda.png" alt="Model 4" data-model="panda.obj" data-material="panda.mtl">
-            <img src="images/snowman.png" alt="Model 5" data-model="snowman_full2.obj"
-                data-material="snowman_full2.mtl">
-            <img src="images/burger.png" alt="Model 6" data-model="burger_new.obj" data-material="burger_new.mtl">
-            <img src="images/grape.png" alt="Model 7" data-model="full_grape.obj" data-material="full_grape.mtl">
-            <img src="images/frog.png" alt="Model 8" data-model="frog.obj" data-material="frog.mtl">
-            <img src="images/cup.png" alt="Model 9" data-model="cup3.obj" data-material="cup3.mtl">
+        <div class="container" style="max-width:1000px; margin:0 auto; padding:0;">
+            <div id="imageButtons">
+                <!-- 所有图片放在同一行 -->
+                <img src="images/baozi.png" alt="Model 1" data-model="baozi_cage_full.obj" data-material="baozi_cage_full.mtl">
+                <img src="images/pig_baozi.png" alt="Model 2" data-model="pig_cage_full.obj" data-material="pig_cage_full.mtl">
+                <img src="images/cake.png" alt="Model 3" data-model="cake1_3.obj" data-material="cake1_3.mtl">
+                <img src="images/panda.png" alt="Model 4" data-model="panda.obj" data-material="panda.mtl">
+                <img src="images/snowman.png" alt="Model 5" data-model="snowman_full2.obj" data-material="snowman_full2.mtl">
+                <img src="images/burger.png" alt="Model 6" data-model="burger_new.obj" data-material="burger_new.mtl">
+                <img src="images/grape.png" alt="Model 7" data-model="full_grape.obj" data-material="full_grape.mtl">
+                <img src="images/frog.png" alt="Model 8" data-model="frog.obj" data-material="frog.mtl">
+                <img src="images/cup.png" alt="Model 9" data-model="cup3.obj" data-material="cup3.mtl">
+            </div>
         </div>
-
         <!-- 引入 modelViewer.js 文件 -->
         <script type="module">
             import { initModelViewer } from './js/modelViewer.js';
@@ -377,6 +391,86 @@
                 border: 3px solid #00A7E1;
                 box-shadow: 0 0 10px rgba(0, 167, 225, 0.7);
             }
+
+            #imageButtons {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20px;
+                max-width: 1000px;
+                margin-left: auto;
+                margin-right: auto;
+                flex-wrap: unwrap; /* 不自动换行 */
+            }
+            #imageButtons img {
+                width: 100px;
+                height: 100px;
+                margin: 0 6px;
+                cursor: pointer;
+                transition: transform 0.3s;
+            }
+
+            #imageButtonsGS {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20px;
+                max-width: 1000px;
+                margin-left: auto;
+                margin-right: auto;
+                flex-wrap: unwrap; /* 不自动换行 */
+            }
+
+            #imageButtonsGS img {
+                width: 120px;
+                height: 90px;
+                margin: 0 10px;
+                cursor: pointer;
+                transition: transform 0.3s;
+            }
+
+            #imageButtonsGS img:hover {
+                transform: scale(1.1);
+            }
+
+            /* 使用 flexbox 将 iframe 和文字横向排列 */
+            .iframe-container {
+                display: flex;
+                justify-content: center;
+                /* 居中显示 */
+                gap: 20px;
+                /* iframe 之间的间距 */
+                margin-top: 20px;
+                /* 上间距 */
+            }
+
+            /* 每个 iframe 和文字的容器 */
+            .iframe-item {
+                text-align: center;
+                /* 让文字居中 */
+            }
+
+            /* 每个 iframe 设置固定宽度和高度 */
+            iframe {
+                width: 500px;
+                height: 500px;
+                border: none;
+            }
+
+            /* 提示文本样式 */
+            .hint-text {
+                font-size: 24px;
+                color: #555;
+                margin-top: 10px;
+            }
+
+            .title {
+            margin-top: 2rem !important; /* 主标题和副标题间距 */
+          }
+
+          .title.is-3 {
+              margin-top: 3rem !important; /* 各个 section 的标题上方间距 */
+          }
         </style>
         <!-- <img src="images/mc_examples_compressed.png" alt="Modeling from scratch example" width="60%" height="600px"> -->
 
@@ -386,42 +480,43 @@
         <p id="hintText" class="has-text-centered" style="font-size: 24px; color: #555; margin-top: 10px;">Click on an
             image to explore the 3D GS in the viewer</p>
         <!-- 3D GS 展示区域 -->
-        <div class="iframe-container">
-            <!-- 第一个 iframe 和提示文本 -->
-            <div class="iframe-item">
-                <iframe id="splatIframe1" src="splat/?url=2_red_pig.splat"></iframe>
-                <p id="hintText" class="hint-text">Input 3D GS</p>
+
+            <div class="iframe-container">
+                <!-- 第一个 iframe 和提示文本 -->
+                <div class="iframe-item">
+                    <iframe id="splatIframe1" src="splat/?url=2_red_pig.splat"></iframe>
+                    <p id="hintText" class="hint-text">Input 3D GS</p>
+                </div>
+                <!-- 第二个 iframe 和提示文本 -->
+                <div class="iframe-item">
+                    <iframe id="splatIframe2" src="splat/?url=3_taoyong.splat"></iframe>
+                    <p id="hintText" class="hint-text">Edited 3D GS</p>
+                </div>
             </div>
-            <!-- 第二个 iframe 和提示文本 -->
-            <div class="iframe-item">
-                <iframe id="splatIframe2" src="splat/?url=3_taoyong.splat"></iframe>
-                <p id="hintText" class="hint-text">Edited 3D GS</p>
-            </div>
-        </div>
+        
 
 
 
 
-        <!-- 3D GS 按钮区域 -->
-        <div id="imageButtonsGS">
-            <img src="images/1.png" alt="Model 1" data-splat1="1_unedited_translate.splat"
-                data-splat2="1_translate.splat">
-            <img src="images/2.png" alt="Model 2" data-splat1="2_unedited_translate.splat"
-                data-splat2="2_translate.splat">
-            <img src="images/3.png" alt="Model 3" data-splat1="3_unedited_translate.splat"
-                data-splat2="3_translate.splat">
-            <img src="images/4.png" alt="Model 4" data-splat1="4_unedited_translate.splat"
-                data-splat2="4_translate.splat">
-            <img src="images/5.png" alt="Model 5" data-splat1="5_unedited_translate.splat"
-                data-splat2="5_translate.splat">
-            <img src="images/6.png" alt="Model 6" data-splat1="6_unedited_translate.splat"
-                data-splat2="6_translate.splat">
-            <img src="images/7.png" alt="Model 7" data-splat1="7_unedited_translate.splat"
-                data-splat2="7_translate.splat">
-            <img src="images/8.png" alt="Model 8" data-splat1="8_unedited_translate.splat"
-                data-splat2="8_translate.splat">
-        </div>
-
+          <!-- 3D GS 按钮区域 -->
+          <div id="imageButtonsGS">
+              <img src="images/1.png" alt="Model 1" data-splat1="1_unedited_translate.splat"
+                  data-splat2="1_translate.splat">
+              <img src="images/2.png" alt="Model 2" data-splat1="2_unedited_translate.splat"
+                  data-splat2="2_translate.splat">
+              <img src="images/3.png" alt="Model 3" data-splat1="3_unedited_translate.splat"
+                  data-splat2="3_translate.splat">
+              <img src="images/4.png" alt="Model 4" data-splat1="4_unedited_translate.splat"
+                  data-splat2="4_translate.splat">
+              <img src="images/5.png" alt="Model 5" data-splat1="5_unedited_translate.splat"
+                  data-splat2="5_translate.splat">
+              <img src="images/6.png" alt="Model 6" data-splat1="6_unedited_translate.splat"
+                  data-splat2="6_translate.splat">
+              <img src="images/7.png" alt="Model 7" data-splat1="7_unedited_translate.splat"
+                  data-splat2="7_translate.splat">
+              <img src="images/8.png" alt="Model 8" data-splat1="8_unedited_translate.splat"
+                  data-splat2="8_translate.splat">
+          </div>
         <script type="module">
 
             // 3D GS 展示部分
@@ -452,6 +547,7 @@
                 firstImage.click();  // 模拟点击第一个图片
             });
         </script>
+      </div>
         <p class="title is-3 mt-5 has-text-centered"> UI Walkthrough </p>
         <video muted autoplay controls loop>
             <source src="videos\UI_walkthrough_compressed.mp4" type="video/mp4">
@@ -462,11 +558,23 @@
     <div class="container is-max-desktop content">
       <h2 class="title">BibTeX</h2>
       <pre><code>@article{luo2025vrdoh,
-      title={VR-Doh: Hands-on 3D Modeling in Virtual Reality},
-      author={Luo, Zhaofeng and Cui, Zhitong and Luo, Shijian and Chu, Mengyu and Li, Minchen},
-      journal={arXiv preprint arXiv:2412.00814},
-      year={2025},
-}</code></pre>
+author = {Zhaofeng Luo and Zhitong Cui and Shijian Luo and Mengyu Chu and Minchen Li},
+title = {VR-Doh: Hands-on 3D Modeling in Virtual Reality},
+year = {2025},
+issue_date = {July 2025},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {44},
+number = {4},
+issn = {0730-0301},
+url = {https://doi.org/10.1145/3731154},
+doi = {10.1145/3731154},
+journal = {ACM Trans. Graph.},
+month = july,
+numpages = {12},
+keywords = {Virtual Reality, 3D Modeling, Elastoplasticity Simulation, Material Point Method, Human-Computer Interaction}
+}
+</code></pre>
     </div>
   </section>
 
