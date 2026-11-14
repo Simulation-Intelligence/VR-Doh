@@ -17346,8 +17346,11 @@ MonoBehaviour:
   density: 1150
   shearModulus: 2500
   waveSpeed: 4
-  yieldStress: 300
-  relaxTime: 0.3
+  yieldStress: 80
+  relaxTime: 0.05
+  centering: 80
+  flowExponent: 1
+  thinningStress: 3000
   maxShearStress: 20000
   crowdStiffness: 20000
   strayDensity: 0.3
@@ -17361,7 +17364,7 @@ MonoBehaviour:
   tackBandCells: 1.5
   pullSpeed: 0.2
   pullReach: 0.08
-  pullShape: 1.5
+  pullShape: 1
   pullGain: 0.8
   gripReach: 0.045
   floorHold: 20000

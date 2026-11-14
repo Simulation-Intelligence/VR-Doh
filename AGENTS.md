@@ -64,9 +64,9 @@ Targets, with current native-solver status as of 2026-11-14:
 | Target | Status |
 |---|---|
 | Kine sinks to about half the lump height on a 4 m/s strike | Sink depth is set by the driver; looks right |
-| On lift the dough follows the kine into a tent about as tall as the lump, then lets go after about 0.15 s | Working, tent about 1.6x lump height, clean release, no crumbs |
-| After release the tent falls back to a round mound in 0.3-0.4 s | Falls back quickly; a slight wobble remains |
-| Dents round off instead of staying as permanent prints | **Not working.** Palm prints and lumps stay. A cohesion (fake surface tension) term was tried and collapsed the lump; it was removed |
+| On lift the dough follows the kine into a tent about as tall as the lump, then lets go after about 0.15 s | Working: a connected column up to about 2.3x lump height, released with a pointed peak, repeatable strike after strike. Needs `pullShape` 1 (an uneven stretch tears a cap off under the kine) and the shoulder plate in `KineTool` (dough caught in the groove behind the face rode up with the kine) |
+| After release the tent falls back to a round mound in 0.3-0.4 s | Drops within about 0.3 s, then takes about 1.5 s to finish rounding |
+| Dents round off instead of staying as permanent prints | Working in the Editor. The dough is soft (`yieldStress` 80 Pa, `relaxTime` 0.05 s) and pulled toward the usu axis (`centering`), so it flows back into a dome: a hand cut that splits the lump refills in a couple of seconds, and repeated strikes start from the same mound. A cohesion (fake surface tension) term was tried first and collapsed the lump; do not bring it back |
 | Open (wet) hands slide off; a fist grips and lifts | Hands push only. **Grip is switched off** (`fistTack` 0 in the scene): with real hands a half-closed kneading hand kept triggering it and it ripped the lump off the floor in pieces |
 | Dough stays in one piece under real fingers | Working in the Editor with a rigid copy of the tracked-hand collider (recorder `handShape`): stray bits squeezed out between fingers are braked (`strayDensity`, `strayDrag`) and dough speed is capped (`maxDoughSpeed`). Not yet confirmed on the headset |
 | Real hands stay visible in passthrough | `MochiHandCutout` draws the hand collider spheres with `Mochi/PassthroughCutout`, which leaves a hole for passthrough. Verified in the Editor only |

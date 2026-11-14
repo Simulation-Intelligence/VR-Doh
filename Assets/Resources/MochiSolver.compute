@@ -91,6 +91,8 @@ float FloorHold;     // tensile strength of the floor bond, Pa
 uint FloorCells;     // nodes below this are solid floor
 float VMax;
 float PushOut;
+float Centering;      // pull toward the usu axis, 1/s2 (acceleration = Centering * distance from the axis)
+float3 LumpCentre;  // rough centre of the lump: a tool moving away from it is pulling, toward it is pressing
 float4 Usu0;         // centre x, floor y, centre z, inner radius at the floor
 float4 Usu1;         // inner radius at the rim, depth, enabled, wall friction scale
 
@@ -312,12 +314,18 @@ void Nodes(uint3 id : SV_DispatchThreadID)
 
     float3 vel = mv / m;
     vel.y += Dt * Gravity;
+    // The dough behaves as if it sat in a shallow invisible bowl: with a low yield stress it flows
+    // back into a smooth dome around the usu axis instead of keeping every dent, crater and lump.
+    vel.xz -= (Dt * Centering) * ((float3)id * Dx - LumpCentre).xz;
     vel *= exp(-Damping * Dt);
 
     float toolSpeed = length(tb.xyz);
     bool grip = tb.w > GRIP_TACK;
     // A tool pulls when it moves away from or along the dough; a gripping hand does so at any speed.
-    bool pulling = toolSpeed > (grip ? 0.1 * PullSpeed : PullSpeed) && dot(tb.xyz, ta.xyz) < 0.3 * toolSpeed;
+    // Judged by the tool's motion relative to the lump, not to the local surface normal: every part
+    // of a lifting kine is pulling, including ledges and sides that happen to face upward.
+    float3 toLump = LumpCentre - (float3)id * Dx;
+    bool pulling = toolSpeed > (grip ? 0.1 * PullSpeed : PullSpeed) && dot(tb.xyz, toLump) < 0.3 * toolSpeed * length(toLump);
     float carried = 0.0;
     if (bond > 0.0 && pulling && d < PullReach)
     {
@@ -428,7 +436,13 @@ void Particles(uint3 id : SV_DispatchThreadID)
 
     // Bits squeezed out between fingers have almost no dough around them. Brake them hard, so
     // they fall back onto the lump instead of shooting across the room as droplets.
-    if (densP < StrayDensity * RestNodeMass) nv *= exp(-StrayDrag * Dt);
+    // Not dough a tool is holding (the stretched neck of a tent is thin too), and never their fall.
+    if (densP < StrayDensity * RestNodeMass && P.x.w <= 0.0)
+    {
+        float keep = exp(-StrayDrag * Dt);
+        nv.xz *= keep;
+        if (nv.y > 0.0) nv.y *= keep;
+    }
 
     // Tool state at the particle, and the bond: dough bonded to a pulling or gripping tool's
     // surface moves exactly with it, so the skin never creeps off.
@@ -438,14 +452,15 @@ void Particles(uint3 id : SV_DispatchThreadID)
     float tack = P.x.w;
     float speed = length(tb.xyz);
     bool grip = tb.w > GRIP_TACK;
-    bool pulling = speed > (grip ? 0.1 * PullSpeed : PullSpeed) && dot(tb.xyz, ta.xyz) < 0.3 * speed;
+    float3 toLump = LumpCentre - P.x.xyz;
+    bool pulling = speed > (grip ? 0.1 * PullSpeed : PullSpeed) && dot(tb.xyz, toLump) < 0.3 * speed * length(toLump);
     if (tack > 0.0 && dP < Band && pulling) nv = tb.xyz;
 
     float3 xn = P.x.xyz + Dt * nv;
     if (dP < 0.0)
     {
         float gn = length(grad);
-        if (gn > 1e-12) xn += (grad / gn) * min(-dP * PushOut, 0.15 * Dx);
+        if (gn > 1e-12) xn += (grad / gn) * min(-dP * PushOut, 0.5 * Dx);
     }
     float3 hi = ((float3)Dims - 2.0) * Dx;
     xn = clamp(xn, float3(2.0 * Dx, (FloorCells + 0.05) * Dx, 2.0 * Dx), hi);
