@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14e3da7719f00460faa7caa56b619d4b, type: 3}
+  m_Name: MR_EnvironmentSettings
+  m_EditorClassIdentifier: MoonRabbit.World.Editor::MoonRabbit.WorldEditor.MoonRabbitEnvironmentSettings
+  seed: 2026
+  navySky: {r: 0.11764706, g: 0.16470589, b: 0.2901961, a: 1}
+  moonlight: {r: 0.8666667, g: 0.9019608, b: 0.9411765, a: 1}
+  bambooLight: {r: 0.30980393, g: 0.47843137, b: 0.33333334, a: 1}
+  bambooDark: {r: 0.18431373, g: 0.2901961, b: 0.22745098, a: 1}
+  cassiaGold: {r: 0.9098039, g: 0.76862746, b: 0.41568628, a: 1}
+  lantern: {r: 0.9490196, g: 0.6509804, b: 0.3529412, a: 1}
+  mochi: {r: 0.98039216, g: 0.96862745, b: 0.9411765, a: 1}
+  rabbitPink: {r: 0.9490196, g: 0.72156864, b: 0.7764706, a: 1}
+  darkGround: {r: 0.18039216, g: 0.1882353, b: 0.14901961, a: 1}
+  horizonFog: {r: 0.10980392, g: 0.13333334, b: 0.1882353, a: 1}
+  stone: {r: 0.5568628, g: 0.5921569, b: 0.6509804, a: 1}
+  wood: {r: 0.627451, g: 0.49411765, b: 0.36862746, a: 1}
+  lightWood: {r: 0.7882353, g: 0.654902, b: 0.4862745, a: 1}
+  trunk: {r: 0.24313726, g: 0.19607843, b: 0.1882353, a: 1}
+  earthOcean: {r: 0.23529412, g: 0.42745098, b: 0.7058824, a: 1}
+  earthLand: {r: 0.43137255, g: 0.62352943, b: 0.3529412, a: 1}
+  clearingRadius: 4
+  clearingSides: 28
+  groundRadius: 40
+  bambooCount: 300
+  bambooVariants: 4
+  bambooInnerRadius: 4.8
+  bambooInnerBias: 1.15
+  bambooSink: 0.12
+  bambooOuterRadius: 15
+  bambooHeight: {x: 5.5, y: 9.5}
+  bambooStalkRadius: {x: 0.045, y: 0.075}
+  bambooSegmentLength: 0.75
+  leavesPerStalk: 12
+  openingDirection: 0
+  openingWidth: 55
+  outwardLean: 5
+  useGpuInstancing: 1
+  treePosition: {x: 2.4, y: 0, z: 2.8}
+  treeHeight: 3.6
+  canopyRadius: 1.6
+  canopyBlobs: 7
+  blossomCount: 28
+  lanternPositions:
+  - {x: -2.4, y: 0, z: 1.5}
+  - {x: 2.6, y: 0, z: 1.2}
+  lanternLightRange: 4
+  lanternLightIntensity: 1
+  stoneCount: 8
+  stonePathDirection: -12
+  stonePathStart: 4.4
+  stonePathEnd: 11
+  moonAzimuth: 0
+  moonElevation: 24
+  moonDistance: 140
+  moonRadius: 16
+  earthAzimuth: -38
+  earthElevation: 40
+  earthDistance: 130
+  earthRadius: 4.5
+  starCount: 1400
+  skyTextureWidth: 2048
+  skyZenith: {r: 0.06666667, g: 0.09803922, b: 0.1882353, a: 1}
+  moonlightColor: {r: 0.6627451, g: 0.75686276, b: 0.9098039, a: 1}
+  moonlightIntensity: 0.9
+  moonlightPitch: 35
+  fogMode: 3
+  fogDensity: 0.04
+  fogStart: 6
+  fogEnd: 40
+  ambientSky: {r: 0.36, g: 0.42, b: 0.6, a: 1}
+  ambientEquator: {r: 0.26, g: 0.3, b: 0.44, a: 1}
+  ambientGround: {r: 0.1, g: 0.11, b: 0.16, a: 1}
+  mortarPosition: {x: 0, y: 0, z: 0}
+  mortarOuterDiameter: 0.6
+  mortarHeight: 0.65
+  hollowDiameter: 0.3
+  hollowDepth: 0.3
+  doughPlaceholder: 1
+  pedestal: 1
+  pedestalHeight: 0.8
+  pedestalTopRadius: 0.44
+  pestleRestPosition: {x: 0.5, y: 0, z: -0.2}
+  handleLength: 1
+  handleDiameter: 0.05
+  headDiameter: 0.14
+  headLength: 0.22
+  pestleMass: 2.5
+  playerPosition: {x: 0, y: 0, z: -0.8}
