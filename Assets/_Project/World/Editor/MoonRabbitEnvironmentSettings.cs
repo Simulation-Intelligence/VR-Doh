@@ -22,8 +22,10 @@ namespace MoonRabbit.WorldEditor
         public Color lantern = Hex(0xF2A65A);
         public Color mochi = Hex(0xFAF7F0);
         public Color rabbitPink = Hex(0xF2B8C6);
-        [Tooltip("Ground outside the clearing.")]
-        public Color darkGround = Hex(0x253047);
+        [Tooltip("Forest floor outside the clearing: dark moss/earth, so it does not read as water.")]
+        public Color darkGround = Hex(0x2E3026);
+        [Tooltip("Fog and the sky below the horizon. Darker and greyer than navySky, so the far ground reads as land.")]
+        public Color horizonFog = Hex(0x1C2230);
         public Color stone = Hex(0x8E97A6);
         public Color wood = Hex(0xA07E5E);
         public Color lightWood = Hex(0xC9A77C);
@@ -39,9 +41,13 @@ namespace MoonRabbit.WorldEditor
         public float groundRadius = 40f;
 
         [Header("Bamboo ring")]
-        public int bambooCount = 160;
+        public int bambooCount = 300;
         [Range(1, 8)] public int bambooVariants = 4;
-        public float bambooInnerRadius = 5f;
+        public float bambooInnerRadius = 4.8f;
+        [Tooltip("Radial distribution of clumps: 1 = even in radius (denser near the clearing than area-uniform), higher = denser still.")]
+        public float bambooInnerBias = 1.15f;
+        [Tooltip("How deep the stalk bases sit in the ground / earth mound (m).")]
+        public float bambooSink = 0.12f;
         public float bambooOuterRadius = 15f;
         public Vector2 bambooHeight = new Vector2(5.5f, 9.5f);
         public Vector2 bambooStalkRadius = new Vector2(0.045f, 0.075f);
@@ -57,7 +63,8 @@ namespace MoonRabbit.WorldEditor
         public bool useGpuInstancing = true;
 
         [Header("Cassia tree")]
-        public Vector3 treePosition = new Vector3(0.4f, 0f, 3.2f);
+        [Tooltip("Front-right of the player, so the canopy does not hide the Moon (azimuth 0) from the usu.")]
+        public Vector3 treePosition = new Vector3(2.4f, 0f, 2.8f);
         public float treeHeight = 3.6f;
         public float canopyRadius = 1.6f;
         public int canopyBlobs = 7;
@@ -112,6 +119,18 @@ namespace MoonRabbit.WorldEditor
         public float hollowDepth = 0.3f;
         [Tooltip("Show a mochi blob in the bowl until the real VR-Doh dough is in.")]
         public bool doughPlaceholder = true;
+
+        [Header("Usu pedestal (team repo: stand for the team's usu)")]
+        [Tooltip("Wooden stump on a stone slab at mortarPosition, part of MR_Environment. The team's usu (MochiStation) stands on its top. " +
+                 "Skipped when the XR folder's floor-standing mortar is built (practice project).")]
+        public bool pedestal = true;
+        [Tooltip("Top of the stump above the ground = height of the usu's base (m). 0.80 puts the dough floor at about 0.83 m and the rim at " +
+                 "about 0.98 m: belly height for one-handed strikes while standing, and with the player 0.85 m back, a 1.6 m eye sees " +
+                 "the dough about 40 degrees below straight ahead, inside Quest 3's view without tilting the head.")]
+        public float pedestalHeight = 0.80f;
+        [Tooltip("Radius of the stump top (m). Holds the team's usu (outer radius about 0.21 m) and the kine resting " +
+                 "beside it (KineDriver.restPosition x = 0.32 m, head radius 0.06 m).")]
+        public float pedestalTopRadius = 0.44f;
 
         [Header("Pestle")]
         public Vector3 pestleRestPosition = new Vector3(0.5f, 0f, -0.2f);

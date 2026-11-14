@@ -93,6 +93,53 @@ namespace MoonRabbit.WorldEditor
         }
 
         /// <summary>
+        /// One continuous tube along a polyline: every ring is shared by the segments on both sides of it and the
+        /// ring frame is carried along the curve (parallel transport), so bends have no gaps or twisted facets.
+        /// </summary>
+        public void Tube(IList<Vector3> points, IList<float> radii, int sides, int sub = 0,
+                         bool capBottom = true, bool capTop = true, float angleOffset = 0f)
+        {
+            int n = points.Count;
+            if (n < 2) return;
+            var rings = new Vector3[n][];
+            Vector3 prevTan = (points[1] - points[0]).normalized;
+            Vector3 side = Vector3.Cross(prevTan, Mathf.Abs(prevTan.y) < 0.95f ? Vector3.up : Vector3.right).normalized;
+            for (int k = 0; k < n; k++)
+            {
+                Vector3 tan = k == 0 ? points[1] - points[0]
+                            : k == n - 1 ? points[n - 1] - points[n - 2]
+                            : (points[k + 1] - points[k]).normalized + (points[k] - points[k - 1]).normalized;
+                tan = tan.sqrMagnitude < 1e-10f ? prevTan : tan.normalized;
+                side = Quaternion.FromToRotation(prevTan, tan) * side;         // parallel transport
+                side = Vector3.ProjectOnPlane(side, tan).normalized;
+                var fwd = Vector3.Cross(side, tan);
+                prevTan = tan;
+                rings[k] = new Vector3[sides];
+                for (int i = 0; i < sides; i++)
+                {
+                    float a = angleOffset + i * Mathf.PI * 2f / sides;
+                    rings[k][i] = points[k] + (side * Mathf.Cos(a) + fwd * Mathf.Sin(a)) * radii[k];
+                }
+            }
+            for (int k = 0; k < n - 1; k++)
+            {
+                var axisMid = (points[k] + points[k + 1]) * 0.5f;
+                for (int i = 0; i < sides; i++)
+                {
+                    int j = (i + 1) % sides;
+                    var outward = (rings[k][i] + rings[k][j] + rings[k + 1][i] + rings[k + 1][j]) * 0.25f - axisMid;
+                    Quad(rings[k][i], rings[k + 1][i], rings[k + 1][j], rings[k][j], outward, sub);
+                }
+            }
+            for (int i = 0; i < sides; i++)
+            {
+                int j = (i + 1) % sides;
+                if (capBottom && radii[0] > 0) Tri(points[0], rings[0][i], rings[0][j], points[0] - points[1], sub);
+                if (capTop && radii[n - 1] > 0) Tri(points[n - 1], rings[n - 1][i], rings[n - 1][j], points[n - 1] - points[n - 2], sub);
+            }
+        }
+
+        /// <summary>
         /// Surface of revolution around local Y. Profile is (radius, height) points walked so that
         /// the visible side is on the right: outer wall upward, rim inward, inner wall downward.
         /// </summary>

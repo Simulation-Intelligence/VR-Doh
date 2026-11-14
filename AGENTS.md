@@ -69,7 +69,7 @@ Targets, with current native-solver status as of 2026-11-14:
 | Dents round off instead of staying as permanent prints | **Not working.** Palm prints and lumps stay. A cohesion (fake surface tension) term was tried and collapsed the lump; it was removed |
 | Open (wet) hands slide off; a fist grips and lifts | Working with a scripted palm. A gripped handful tears away from the dough left on the floor instead of stretching |
 | Real tracked hands (`MatHand`) knead correctly | **Untested.** Only the scripted `PalmTool` has been run |
-| Real time at 72 Hz on Quest 3 | **Unmeasured on device.** In the Editor with the XR Simulator it reaches about 0.4-0.5x real time at the 12-substep cap, on a GPU shared with another Editor |
+| Real time at 72 Hz on Quest 3 | Holds 72 fps with the lump at rest and nobody touching it: app GPU time about 9.4 ms, GPU about 91% busy (2026-11-14, first run). Not yet measured during strikes or kneading, where the 12-substep cap will put the dough in slow motion. There is almost no headroom |
 
 Update this table when you change any of it.
 
@@ -136,7 +136,9 @@ metavr app install Builds/MochiStandalone.apk
 - The first Android build switches the platform and re-imports every asset. Expect well over 40 minutes, with the Editor unreachable meanwhile. Later builds reuse the cache.
 - If a dialog loops on "SDK Platform Tools version 0.0 < 37.0.1", Unity is pointed at an external Android SDK. In Preferences > External Tools, tick "Android SDK Tools Installed with Unity". That is a per-user Unity preference, not a project setting.
 - The Taichi `.so` files under `Assets/Plugins/Android` ship in the APK but are not used by `MochiStandalone`.
-- As of 2026-11-14 the standalone build has not yet been run on a headset. On-device frame time is the first thing to measure; the knobs are `cellSize`, `gridCells`, `particlesPerCell`, `maxSubsteps`, `waveSpeed` and `renderScale` on `MochiSolver`.
+- The standalone build installs and runs on Quest 3 with passthrough (first run 2026-11-14). The performance knobs are `cellSize`, `gridCells`, `particlesPerCell`, `maxSubsteps`, `waveSpeed` and `renderScale` on `MochiSolver`. Frame statistics are in `metavr log` on the `VrApi` lines (`FPS=`, `App=` is app GPU time).
+- `Assets/Plugins/Android/AndroidManifest.xml` is generated from the Meta project config. If hand tracking or passthrough entries are missing, or the build fails on a `com.oculus.supportedDevices` manifest merge conflict, regenerate it with `OVRManifestPreprocessor.GenerateOrUpdateAndroidManifest(true)` (or Window > Meta > Tools > Android Manifest Tool).
+- `metavr app install` needs a path the calling shell can read (a WSL path from WSL, not `D:\...`). The package id is `com.TaichiGraphics.TaichiUnityExample`.
 
 ## Boundaries
 

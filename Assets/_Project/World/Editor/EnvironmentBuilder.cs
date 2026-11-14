@@ -31,6 +31,7 @@ namespace MoonRabbit.WorldEditor
             BuildTree(s, t, mats, rng);
             BuildLanterns(s, t, mats, rng);
             BuildStones(s, t, mats, rng);
+            if (s.pedestal && MoonRabbitMenu.PropBuilder == null) BuildPedestal(s, t, mats, rng);
             var moonlight = BuildMoonlight(s, t);
             var sky = BuildSky(s, rng);
             BuildCelestial(s, t);
@@ -40,7 +41,7 @@ namespace MoonRabbit.WorldEditor
             atm.moonlight = moonlight;
             atm.fog = true;
             atm.fogMode = s.fogMode;
-            atm.fogColor = s.navySky;
+            atm.fogColor = s.horizonFog;
             atm.fogDensity = s.fogDensity;
             atm.fogStart = s.fogStart;
             atm.fogEnd = s.fogEnd;
@@ -58,7 +59,7 @@ namespace MoonRabbit.WorldEditor
         class Mats
         {
             public readonly Material clearing, ground, stalkNear, stalkFar, leafNear, leafFar,
-                trunk, canopy, canopyGold, stone, lanternGlow;
+                trunk, canopy, canopyGold, stone, lanternGlow, bark, woodCut, earth, litter;
 
             public Mats(MoonRabbitEnvironmentSettings s)
             {
@@ -73,34 +74,66 @@ namespace MoonRabbit.WorldEditor
                 canopyGold = MRAssets.Lit(G, "MR_CassiaGold", s.cassiaGold, 0.2f, Mul(s.cassiaGold, 0.45f));
                 stone = MRAssets.Lit(G, "MR_Stone", s.stone, 0.1f);
                 lanternGlow = MRAssets.Lit(G, "MR_LanternGlow", s.lantern, 0f, Mul(s.lantern, 2.2f));
+                earth = MRAssets.Lit(G, "MR_ForestEarth", Mul(s.darkGround, 0.85f), 0.04f);
+                litter = MRAssets.Lit(G, "MR_LeafLitter", Mul(Color.Lerp(s.lightWood, s.bambooDark, 0.5f), 0.75f), 0.05f);
+                if (s.pedestal && MoonRabbitMenu.PropBuilder == null)
+                {
+                    bark = MRAssets.Lit(G, "MR_PedestalBark", Color.Lerp(s.wood, s.trunk, 0.45f), 0.08f);
+                    woodCut = MRAssets.Lit(G, "MR_PedestalTop", s.lightWood, 0.15f);
+                }
             }
         }
 
         // ------------------------------------------------------------------ ground
 
+        // Ground profile by distance from the centre: the clearing stays nearly flat (player, pedestal), the forest floor
+        // outside rolls more and more so it reads as earth rather than a calm water surface. Bamboo uses the same height.
+        static readonly float[] GroundRadiiOffsets = { 0f, 0.6f, 1.5f, 3f, 5f, 8f, 12f, 16f, 22f };
+        static readonly float[] GroundLift = { 0f, -0.01f, 0.01f, 0.05f, 0.09f, 0.12f, 0.16f, 0.22f, 0.28f };
+        static readonly float[] GroundBump = { 0.004f, 0.04f, 0.09f, 0.16f, 0.22f, 0.3f, 0.4f, 0.5f, 0.55f };
+
+        public static float GroundHeight(MoonRabbitEnvironmentSettings s, float x, float z)
+        {
+            float R = s.clearingRadius;
+            float r = Mathf.Sqrt(x * x + z * z);
+            if (r <= R) return Mathf.Lerp(0.015f, 0f, r / R) + (Noise3(new Vector3(x, 0f, z), 0.9f, 3f) - 0.5f) * 0.008f;
+            float d = r - R;
+            int k = 0;
+            while (k < GroundRadiiOffsets.Length - 2 && d > GroundRadiiOffsets[k + 1]) k++;
+            float t = Mathf.Clamp01(Mathf.InverseLerp(GroundRadiiOffsets[k], GroundRadiiOffsets[k + 1], d));
+            float lift = Mathf.Lerp(GroundLift[k], GroundLift[k + 1], t);
+            float bump = Mathf.Lerp(GroundBump[k], GroundBump[k + 1], t);
+            float noise = (Noise3(new Vector3(x, 0f, z), 0.22f, 11f) - 0.5f) * 2f + (Noise3(new Vector3(x, 0f, z), 0.8f, 5f) - 0.5f) * 0.6f;
+            float h = lift + noise * bump;
+            if (r > s.groundRadius - 6f) h = Mathf.Lerp(h, -0.3f, Mathf.InverseLerp(s.groundRadius - 6f, s.groundRadius, r)); // rim sinks into the fog
+            return h;
+        }
+
         static void BuildGround(MoonRabbitEnvironmentSettings s, Transform root, Mats m, Rng rng)
         {
             var mb = new MeshBuilder(2);
-            int n = Mathf.Max(8, s.clearingSides);
+            int n = Mathf.Max(36, s.clearingSides);
             float R = s.clearingRadius;
-            float[] radii = { 0f, R * 0.5f, R, R + 1.2f, R + 4f, Mathf.Max(R + 6f, 14f), Mathf.Max(R + 10f, 24f), Mathf.Max(R + 14f, s.groundRadius) };
-            float[] lift = { 0.015f, 0.012f, 0f, -0.02f, -0.04f, 0f, 0f, -0.3f };
-            float[] bump = { 0f, 0.008f, 0.004f, 0.03f, 0.08f, 0.15f, 0.25f, 0.1f };
+            var radii = new List<float> { 0f, R * 0.5f, R };
+            foreach (var o in GroundRadiiOffsets) if (o > 0f) radii.Add(R + o);
+            float last = radii[radii.Count - 1];
+            for (float rr = last + 4f; rr < s.groundRadius; rr += 5f) radii.Add(rr);
+            radii.Add(Mathf.Max(last + 1f, s.groundRadius));
 
-            var rings = new Vector3[radii.Length][];
-            for (int k = 0; k < radii.Length; k++)
+            var rings = new Vector3[radii.Count][];
+            for (int k = 0; k < radii.Count; k++)
             {
                 rings[k] = new Vector3[n];
                 float offset = (k % 2) * 0.5f;
                 for (int i = 0; i < n; i++)
                 {
                     float a = (i + offset) / n * Mathf.PI * 2f;
-                    float y = lift[k] + rng.Range(-bump[k], bump[k]);
-                    rings[k][i] = new Vector3(Mathf.Sin(a) * radii[k], y, Mathf.Cos(a) * radii[k]);
+                    float x = Mathf.Sin(a) * radii[k], z = Mathf.Cos(a) * radii[k];
+                    rings[k][i] = new Vector3(x, GroundHeight(s, x, z), z);
                 }
             }
 
-            for (int k = 0; k < radii.Length - 1; k++)
+            for (int k = 0; k < radii.Count - 1; k++)
             {
                 int sub = radii[k + 1] <= R + 0.001f ? 0 : 1;
                 var a = rings[k];
@@ -110,7 +143,7 @@ namespace MoonRabbit.WorldEditor
                     int j = (i + 1) % n;
                     if (k == 0)
                     {
-                        mb.Tri(Vector3.up * lift[0], b[i], b[j], Vector3.up, sub);
+                        mb.Tri(new Vector3(0f, GroundHeight(s, 0f, 0f), 0f), b[i], b[j], Vector3.up, sub);
                         continue;
                     }
                     // rings are offset by half a step: zig-zag triangles
@@ -208,6 +241,7 @@ namespace MoonRabbit.WorldEditor
             float inner = s.bambooInnerRadius, outer = Mathf.Max(inner + 0.5f, s.bambooOuterRadius);
             float midR = (inner + outer) * 0.5f;
             var placed = new List<Vector3>();
+            var clumps = new List<List<Vector3>>();
             int made = 0, guard = 0;
 
             bool InOpening(float azDeg) => Mathf.Abs(Mathf.DeltaAngle(azDeg, s.openingDirection)) < s.openingWidth * 0.5f;
@@ -216,9 +250,10 @@ namespace MoonRabbit.WorldEditor
             {
                 float az = rng.Range(0f, 360f);
                 if (InOpening(az)) continue;
-                float rr = Mathf.Sqrt(Mathf.Lerp(inner * inner, outer * outer, rng.Value));
+                float rr = Mathf.Lerp(inner, outer, Mathf.Pow(rng.Value, s.bambooInnerBias)); // >1: denser toward the clearing
                 var clump = MoonRabbitEnvironmentSettings.Azimuth(az) * rr;
                 int inClump = rng.Int(2, 6);
+                var clumpStalks = new List<Vector3>();
                 for (int j = 0; j < inClump && made < s.bambooCount; j++)
                 {
                     var p = clump + new Vector3(rng.Range(-0.6f, 0.6f), 0f, rng.Range(-0.6f, 0.6f));
@@ -235,12 +270,16 @@ namespace MoonRabbit.WorldEditor
                     var tilt = Quaternion.FromToRotation(Vector3.up, (Vector3.up + radial * Mathf.Tan(lean)).normalized);
                     var rot = tilt * Quaternion.Euler(0f, rng.Range(0f, 360f), 0f);
                     float sc = rng.Range(0.85f, 1.15f);
-                    var mtx = Matrix4x4.TRS(p + Vector3.down * 0.05f, rot, Vector3.one * sc);
+                    p.y = GroundHeight(s, p.x, p.z);
+                    clumpStalks.Add(p);
+                    var mtx = Matrix4x4.TRS(p + Vector3.down * s.bambooSink, rot, Vector3.one * sc);
                     int vi = rng.Int(0, V);
                     (pr < midR ? near : far)[vi].Add(mtx);
                     made++;
                 }
+                if (clumpStalks.Count > 0) clumps.Add(clumpStalks);
             }
+            BuildBambooBases(s, root, m, rng, clumps);
 
             var grove = new GameObject("MR_Bamboo");
             grove.transform.SetParent(root, false);
@@ -278,6 +317,50 @@ namespace MoonRabbit.WorldEditor
             }
         }
 
+        /// <summary>Grounds the bamboo: a low earth mound under every clump (the stalks are sunk into it), dry leaf litter
+        /// and a few pebbles around it. One static mesh, no shadows.</summary>
+        static void BuildBambooBases(MoonRabbitEnvironmentSettings s, Transform root, Mats m, Rng rng, List<List<Vector3>> clumps)
+        {
+            var mb = new MeshBuilder(3); // 0 earth, 1 litter, 2 stone
+            foreach (var clump in clumps)
+            {
+                var c = Vector3.zero;
+                foreach (var p in clump) c += p;
+                c /= clump.Count;
+                float spread = 0f;
+                foreach (var p in clump) spread = Mathf.Max(spread, new Vector2(p.x - c.x, p.z - c.z).magnitude);
+                float rad = spread + rng.Range(0.3f, 0.45f);
+                float gy = GroundHeight(s, c.x, c.z);
+                mb.Blob(new Vector3(c.x, gy - 0.05f, c.z), new Vector3(rad, rng.Range(0.13f, 0.18f), rad * rng.Range(0.8f, 1f)), 1, 0.25f, rng.Raw, 0);
+
+                int leaves = clump.Count * 5;
+                for (int i = 0; i < leaves; i++)
+                {
+                    float a = rng.Range(0f, Mathf.PI * 2f);
+                    float d = rad * rng.Range(0.75f, 1.6f);
+                    float x = c.x + Mathf.Cos(a) * d, z = c.z + Mathf.Sin(a) * d;
+                    var q = new Vector3(x, GroundHeight(s, x, z) + 0.012f, z);
+                    float yaw = rng.Range(0f, 360f), len = rng.Range(0.14f, 0.24f);
+                    var dir = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
+                    var side = Vector3.Cross(Vector3.up, dir) * len * 0.18f;
+                    mb.TwoSided(q - dir * len * 0.5f, q + side + Vector3.up * 0.01f, q + dir * len * 0.5f, 1);
+                    mb.TwoSided(q - dir * len * 0.5f, q + dir * len * 0.5f, q - side + Vector3.up * 0.01f, 1);
+                }
+                int pebbles = rng.Int(1, 4);
+                for (int i = 0; i < pebbles; i++)
+                {
+                    float a = rng.Range(0f, Mathf.PI * 2f);
+                    float d = rad * rng.Range(0.85f, 1.25f);
+                    float x = c.x + Mathf.Cos(a) * d, z = c.z + Mathf.Sin(a) * d;
+                    float sz = rng.Range(0.05f, 0.12f);
+                    mb.Blob(new Vector3(x, GroundHeight(s, x, z) + sz * 0.15f, z), new Vector3(sz, sz * 0.55f, sz * rng.Range(0.7f, 1f)), 0, 0.2f, rng.Raw, 2);
+                }
+            }
+            var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_BambooBases"), $"{G}/Meshes/MR_BambooBases.asset");
+            var go = MeshObject("MR_BambooBases", root, mesh, new[] { m.earth, m.litter, m.stone }, ShadowCastingMode.Off);
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+        }
+
         // ------------------------------------------------------------------ cassia tree
 
         static void BuildTree(MoonRabbitEnvironmentSettings s, Transform root, Mats m, Rng rng)
@@ -288,23 +371,34 @@ namespace MoonRabbit.WorldEditor
 
             Vector3 T(float t) => new Vector3(Mathf.Sin(t * 2.2f) * 0.18f, H * 0.62f * t, Mathf.Sin(t * 1.3f) * 0.08f);
 
-            for (int k = 0; k < 4; k++)
+            // trunk: one continuous tube (separate frustums left visible gaps at every bend)
+            const int trunkRings = 9;
+            var tp = new List<Vector3>(); var tr = new List<float>();
+            for (int k = 0; k < trunkRings; k++)
             {
-                float t0 = k / 4f, t1 = (k + 1) / 4f;
-                mb.Frustum(T(t0), T(t1), Mathf.Lerp(0.2f, 0.09f, t0), Mathf.Lerp(0.2f, 0.09f, t1), 7, 0, k == 0, false, k * 0.4f);
+                float t = k / (trunkRings - 1f);
+                tp.Add(T(t)); tr.Add(Mathf.Lerp(0.2f, 0.09f, t));
             }
-            for (int i = 0; i < 5; i++) // root flare
+            tp.Add(T(1f) + (T(1f) - T(0.9f)).normalized * 0.35f); tr.Add(0.07f); // runs on into the canopy
+            mb.Tube(tp, tr, 8, 0, true, false);
+
+            for (int i = 0; i < 5; i++) // root flare: starts inside the trunk, ends below the ground line
             {
                 var d = MoonRabbitEnvironmentSettings.Azimuth(i * 72f + rng.Range(-15f, 15f));
-                mb.Frustum(d * 0.05f + Vector3.up * 0.3f, d * 0.45f, 0.08f, 0.03f, 5, 0, false, true);
+                mb.Tube(new[] { d * 0.02f + Vector3.up * 0.38f, d * 0.2f + Vector3.up * 0.14f, d * 0.48f + Vector3.down * 0.03f },
+                        new[] { 0.09f, 0.06f, 0.025f }, 5, 0, false, true);
             }
 
             var c = T(1f) + Vector3.up * R * 0.55f;
-            for (int i = 0; i < 3; i++) // branches into the canopy
+            for (int i = 0; i < 3; i++) // branches: start inside the trunk axis, curve up into the canopy
             {
-                var start = T(rng.Range(0.6f, 0.95f));
+                float tb = rng.Range(0.6f, 0.95f);
+                var start = T(tb);
                 var dir = (MoonRabbitEnvironmentSettings.Azimuth(i * 120f + rng.Range(-30f, 30f)) * 0.8f + Vector3.up).normalized;
-                mb.Frustum(start, start + dir * R * 0.75f, 0.07f, 0.035f, 5, 0, false, true);
+                var end = start + dir * R * 0.75f;
+                var mid = Vector3.Lerp(start, end, 0.5f) + Vector3.down * 0.06f;
+                float r0 = Mathf.Lerp(0.2f, 0.09f, tb) * 0.75f;
+                mb.Tube(new[] { start - dir * 0.04f, mid, end }, new[] { r0, Mathf.Lerp(r0, 0.035f, 0.5f), 0.035f }, 6, 0, false, true);
             }
 
             // round canopy: one big blob plus smaller ones around it
@@ -393,10 +487,50 @@ namespace MoonRabbit.WorldEditor
                 float az = s.stonePathDirection + Mathf.Sin(t * Mathf.PI * 2f) * 10f;
                 var p = MoonRabbitEnvironmentSettings.Azimuth(az) * r + new Vector3(rng.Range(-0.1f, 0.1f), 0f, rng.Range(-0.1f, 0.1f));
                 float size = rng.Range(0.3f, 0.45f) * Mathf.Lerp(1f, 0.8f, t);
+                p.y = GroundHeight(s, p.x, p.z);
                 mb.Blob(p, new Vector3(size, size * 0.22f, size * rng.Range(0.75f, 1f)), 1, 0.15f, rng.Raw, 0);
             }
             var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_SteppingStones"), $"{G}/Meshes/MR_SteppingStones.asset");
             var go = MeshObject("MR_SteppingStones", root, mesh, new[] { m.stone }, ShadowCastingMode.Off);
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+        }
+
+        // ------------------------------------------------------------------ usu pedestal
+
+        /// <summary>Tree stump on a stone slab at the mortar position. Its top (pedestalHeight) is where the
+        /// team's usu (MochiStation) stands, since full VR has no real table.</summary>
+        static void BuildPedestal(MoonRabbitEnvironmentSettings s, Transform root, Mats m, Rng rng)
+        {
+            var mb = new MeshBuilder(3); // 0 bark, 1 cut top, 2 stone
+            var up = Vector3.up;
+            float H = Mathf.Max(0.2f, s.pedestalHeight);
+            float R = Mathf.Max(0.15f, s.pedestalTopRadius);
+            const float slab = 0.07f;
+
+            // stone slab, slightly sunk into the ground, plus a few loose stones
+            mb.Frustum(up * -0.02f, up * slab, R + 0.26f, R + 0.2f, 7, 2, false, true, rng.Range(0f, 1f));
+            for (int i = 0; i < 3; i++)
+            {
+                var d = MoonRabbitEnvironmentSettings.Azimuth(60f + i * 110f + rng.Range(-20f, 20f));
+                float size = rng.Range(0.07f, 0.11f);
+                mb.Blob(d * (R + rng.Range(0.33f, 0.42f)) + up * 0.01f, new Vector3(size, size * 0.5f, size), 1, 0.15f, rng.Raw, 2);
+            }
+
+            // stump: slightly wider at the bottom, cut top in light wood
+            mb.Frustum(up * (slab - 0.01f), up * (H - 0.015f), R * 1.08f, R, 11, 0, false, false);
+            mb.Frustum(up * (H - 0.015f), up * H, R, R * 0.97f, 11, 1, false, true);
+            for (int i = 0; i < 4; i++) // root flare over the slab
+            {
+                var d = MoonRabbitEnvironmentSettings.Azimuth(i * 90f + 30f + rng.Range(-15f, 15f));
+                mb.Frustum(d * R * 0.85f + up * Mathf.Min(0.28f, H * 0.4f), d * (R + 0.17f) + up * (slab + 0.005f), 0.08f, 0.03f, 5, 0, false, true);
+            }
+
+            var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_UsuPedestal"), $"{G}/Meshes/MR_UsuPedestal.asset");
+            var go = MeshObject("MR_UsuPedestal", root, mesh, new[] { m.bark, m.woodCut, m.stone }, ShadowCastingMode.On);
+            go.transform.localPosition = new Vector3(s.mortarPosition.x, 0f, s.mortarPosition.z);
+            var col = go.AddComponent<BoxCollider>();
+            col.center = new Vector3(0f, H * 0.5f, 0f);
+            col.size = new Vector3(R * 2f, H, R * 2f);
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
         }
 
@@ -429,7 +563,8 @@ namespace MoonRabbit.WorldEditor
             for (int y = 0; y < H; y++)
             {
                 float elev = ((y + 0.5f) / H - 0.5f) * 180f;
-                Color c = elev <= 0f ? s.navySky : Color.Lerp(s.navySky, s.skyZenith, Mathf.Pow(elev / 90f, 0.7f));
+                Color c = elev <= 0f ? s.horizonFog : Color.Lerp(s.navySky, s.skyZenith, Mathf.Pow(elev / 90f, 0.7f));
+                if (elev > 0f && elev < 4f) c = Color.Lerp(s.horizonFog, c, elev / 4f); // dark forest-floor haze meets the sky
                 float mist = Mathf.Exp(-Mathf.Pow((elev - 5f) / 6f, 2f)) * 0.07f; // pale ink-wash band above the horizon
                 c = Color.Lerp(c, s.moonlight, mist);
                 for (int x = 0; x < W; x++) px[y * W + x] = c;

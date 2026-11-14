@@ -77,7 +77,9 @@ namespace MoonRabbit.WorldEditor
             foreach (var p in props) paths.Add(AssetDatabase.GetAssetPath(p.prefab));
             Debug.Log("[Moon Rabbit] Environment built (" + (MRAssets.IsBuiltInPipeline ? "Built-in" : "URP") + " pipeline). Prefabs: " +
                       string.Join(", ", paths) +
-                      (PropBuilder == null ? ". World-only: no XR folder, so no mortar/pestle." : "."));
+                      (PropBuilder == null ? ". World-only: no XR folder, so no mortar/pestle." : ".") +
+                      (PropBuilder == null && GetSettings().pedestal
+                          ? $" Usu pedestal top at y = {GetSettings().pedestalHeight:0.00} m: stand the usu (MochiStation) there." : ""));
         }
 
         // ------------------------------------------------------------------

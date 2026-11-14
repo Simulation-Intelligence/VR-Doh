@@ -21,7 +21,8 @@ MonoBehaviour:
   lantern: {r: 0.9490196, g: 0.6509804, b: 0.3529412, a: 1}
   mochi: {r: 0.98039216, g: 0.96862745, b: 0.9411765, a: 1}
   rabbitPink: {r: 0.9490196, g: 0.72156864, b: 0.7764706, a: 1}
-  darkGround: {r: 0.14509805, g: 0.1882353, b: 0.2784314, a: 1}
+  darkGround: {r: 0.18039216, g: 0.1882353, b: 0.14901961, a: 1}
+  horizonFog: {r: 0.10980392, g: 0.13333334, b: 0.1882353, a: 1}
   stone: {r: 0.5568628, g: 0.5921569, b: 0.6509804, a: 1}
   wood: {r: 0.627451, g: 0.49411765, b: 0.36862746, a: 1}
   lightWood: {r: 0.7882353, g: 0.654902, b: 0.4862745, a: 1}
@@ -31,9 +32,11 @@ MonoBehaviour:
   clearingRadius: 4
   clearingSides: 28
   groundRadius: 40
-  bambooCount: 160
+  bambooCount: 300
   bambooVariants: 4
-  bambooInnerRadius: 5
+  bambooInnerRadius: 4.8
+  bambooInnerBias: 1.15
+  bambooSink: 0.12
   bambooOuterRadius: 15
   bambooHeight: {x: 5.5, y: 9.5}
   bambooStalkRadius: {x: 0.045, y: 0.075}
@@ -43,7 +46,7 @@ MonoBehaviour:
   openingWidth: 55
   outwardLean: 5
   useGpuInstancing: 1
-  treePosition: {x: 0.4, y: 0, z: 3.2}
+  treePosition: {x: 2.4, y: 0, z: 2.8}
   treeHeight: 3.6
   canopyRadius: 1.6
   canopyBlobs: 7
@@ -84,6 +87,9 @@ MonoBehaviour:
   hollowDiameter: 0.3
   hollowDepth: 0.3
   doughPlaceholder: 1
+  pedestal: 1
+  pedestalHeight: 0.8
+  pedestalTopRadius: 0.44
   pestleRestPosition: {x: 0.5, y: 0, z: -0.2}
   handleLength: 1
   handleDiameter: 0.05
