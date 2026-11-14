@@ -28,7 +28,7 @@
 #pragma kernel ClearCounts
 #pragma kernel Density
 
-#define SLOTS 16
+#define SLOTS 24
 #define GRIP_TACK 5.0
 
 struct Particle
@@ -74,6 +74,7 @@ float Dt;
 float TimeLeft;      // tool time still to run after this substep (the SDF is the end-of-frame pose)
 float PVol, PMass;
 float Mu, Kappa, YieldStress, RelaxRate, MaxShear;
+float FlowExp, ThinStress;   // shear thinning: above ThinStress over yield the dough relaxes faster (FlowExp < 1)
 float Gravity, Damping, Friction;
 float Band;          // tack reach from a tool surface, m
 float Cutoff;        // SDF values are clamped to this
@@ -83,6 +84,9 @@ float PullShape;     // exponent of the falloff across that reach
 float PullGain;      // how firmly the prescribed stretch is imposed per substep, 0..1
 float GripReach;     // a gripping tool (tack > GRIP_TACK) carries the dough within this distance rigidly, m
 float RestNodeMass;  // node mass inside undeformed dough
+float StrayDensity;   // dough thinner than this fraction of rest density counts as a stray bit
+float StrayDrag;      // velocity decay of stray bits, 1/s: squeezed-out specks drop instead of flying
+float CrowdStiffness; // pressure against particles packed denser than rest, Pa per unit of excess density
 float FloorHold;     // tensile strength of the floor bond, Pa
 uint FloorCells;     // nodes below this are solid floor
 float VMax;
@@ -399,6 +403,7 @@ void Particles(uint3 id : SV_DispatchThreadID)
     float3x3 C = 0;
     float dP = 0;
     float bondP = 0;
+    float densP = 0;
     float3 grad = 0;
 
     for (int i = 0; i < 3; i++)
@@ -409,7 +414,9 @@ void Particles(uint3 id : SV_DispatchThreadID)
         float weight = wt[i].x * wt[j].y * wt[k].z;
         uint ni = NodeIndex((uint3)(base + int3(i, j, k)));
         float4 g = GridV[ni];
-        bondP += weight * GridM[ni].y;
+        float2 gm = GridM[ni];
+        bondP += weight * gm.y;
+        densP += weight * gm.x;
         nv += weight * g.xyz;
         float3 wd = (4.0 * invDx * invDx * weight) * dpos;
         C[0] += g.x * wd;
@@ -418,6 +425,10 @@ void Particles(uint3 id : SV_DispatchThreadID)
         dP += weight * g.w;
         grad += weight * g.w * dpos;
     }
+
+    // Bits squeezed out between fingers have almost no dough around them. Brake them hard, so
+    // they fall back onto the lump instead of shooting across the room as droplets.
+    if (densP < StrayDensity * RestNodeMass) nv *= exp(-StrayDrag * Dt);
 
     // Tool state at the particle, and the bond: dough bonded to a pulling or gripping tool's
     // surface moves exactly with it, so the skin never creeps off.
@@ -434,7 +445,7 @@ void Particles(uint3 id : SV_DispatchThreadID)
     if (dP < 0.0)
     {
         float gn = length(grad);
-        if (gn > 1e-12) xn += (grad / gn) * min(-dP * PushOut, 0.5 * Dx);
+        if (gn > 1e-12) xn += (grad / gn) * min(-dP * PushOut, 0.15 * Dx);
     }
     float3 hi = ((float3)Dims - 2.0) * Dx;
     xn = clamp(xn, float3(2.0 * Dx, (FloorCells + 0.05) * Dx, 2.0 * Dx), hi);
@@ -462,7 +473,10 @@ void Particles(uint3 id : SV_DispatchThreadID)
     float sNorm = Mu * sqrt(dot(dev[0], dev[0]) + dot(dev[1], dev[1]) + dot(dev[2], dev[2]));
     if (sNorm > YieldStress)
     {
-        float kk = Ibar * Dt * RelaxRate;
+        // Shear thinning (Herschel-Bulkley-like): firm at hand stresses, runny under the kine.
+        float rate = RelaxRate;
+        if (FlowExp < 0.999) rate *= pow(1.0 + (sNorm - YieldStress) / ThinStress, 1.0 / FlowExp - 1.0);
+        float kk = Ibar * Dt * rate;
         float sNew = min((sNorm + kk * YieldStress) / (1.0 + kk), MaxShear);
         dev *= sNew / sNorm;
         bbar = dev;
@@ -475,6 +489,12 @@ void Particles(uint3 id : SV_DispatchThreadID)
     b = bbar * pow(J2, 1.0 / 3.0);
     float3x3 tau = Mu * dev;
     float pr = 0.5 * Kappa * (J2 - 1.0);
+    // The tracked volume ratio J drifts away from where the particles really are: kneading can
+    // pack them into fewer and fewer cells while J still reads 1, and the lump visibly shrinks.
+    // So also push back on the density actually measured on the grid, with a response that
+    // stiffens quickly, which is also what makes the dough feel incompressible under a palm.
+    float crowd = min(max(densP / RestNodeMass - 1.15, 0.0), 1.0);
+    pr -= CrowdStiffness * crowd * (1.0 + 4.0 * crowd);
     tau[0][0] += pr; tau[1][1] += pr; tau[2][2] += pr;
     float3x3 A = (-Dt * PVol * 4.0 * invDx * invDx) * tau + PMass * C;
 

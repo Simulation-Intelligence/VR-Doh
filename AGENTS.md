@@ -67,7 +67,10 @@ Targets, with current native-solver status as of 2026-11-14:
 | On lift the dough follows the kine into a tent about as tall as the lump, then lets go after about 0.15 s | Working, tent about 1.6x lump height, clean release, no crumbs |
 | After release the tent falls back to a round mound in 0.3-0.4 s | Falls back quickly; a slight wobble remains |
 | Dents round off instead of staying as permanent prints | **Not working.** Palm prints and lumps stay. A cohesion (fake surface tension) term was tried and collapsed the lump; it was removed |
-| Open (wet) hands slide off; a fist grips and lifts | Working with a scripted palm. A gripped handful tears away from the dough left on the floor instead of stretching |
+| Open (wet) hands slide off; a fist grips and lifts | Hands push only. **Grip is switched off** (`fistTack` 0 in the scene): with real hands a half-closed kneading hand kept triggering it and it ripped the lump off the floor in pieces |
+| Dough stays in one piece under real fingers | Working in the Editor with a rigid copy of the tracked-hand collider (recorder `handShape`): stray bits squeezed out between fingers are braked (`strayDensity`, `strayDrag`) and dough speed is capped (`maxDoughSpeed`). Not yet confirmed on the headset |
+| Real hands stay visible in passthrough | `MochiHandCutout` draws the hand collider spheres with `Mochi/PassthroughCutout`, which leaves a hole for passthrough. Verified in the Editor only |
+| The lump keeps its volume through repeated kneading | Working since `crowdStiffness` was added. Before it, particles packed into fewer cells each cycle (the tracked volume ratio J still read 1), overflowed the per-cell lists and vanished from the picture. After repeated grips the lump is still lumpy and can shed specks |
 | Real tracked hands (`MatHand`) knead correctly | **Untested.** Only the scripted `PalmTool` has been run |
 | Real time at 72 Hz on Quest 3 | Holds 72 fps with the lump at rest and nobody touching it: app GPU time about 9.4 ms, GPU about 91% busy (2026-11-14, first run). Not yet measured during strikes or kneading, where the 12-substep cap will put the dough in slow motion. There is almost no headroom |
 
@@ -123,6 +126,12 @@ g.SetActive(true);
 
 Solver fields on `MochiSolver` can be changed live in play mode before starting a recording, which is the fastest way to tune.
 
+**Values saved in the scene override the defaults in `MochiSolver.cs`.** Changing a default in code does nothing for a field the scene already stores; set the value on the component in `MochiStandalone.unity` and save the scene. This silently kept grip on and damping low on the headset for several builds.
+
+For anything involving fingers, test with the real hand collider, not the flat palm: `r.handShape = true; r.jitter = 0.0015f;` uses a rigid copy of the 95-primitive tracked hand. Thin fingers behave very differently from the palm (they squeeze dough out between them).
+
+On the headset the solver logs a `MochiStats` line per second (`metavr log -t Unity`): frame rate, substeps, fastest particle, how many are above the rim, whether each hand counts as a fist.
+
 ## Building for Quest (standalone)
 
 ```bash
@@ -138,7 +147,7 @@ metavr app install Builds/MochiStandalone.apk
 - The Taichi `.so` files under `Assets/Plugins/Android` ship in the APK but are not used by `MochiStandalone`.
 - The standalone build installs and runs on Quest 3 with passthrough (first run 2026-11-14). The performance knobs are `cellSize`, `gridCells`, `particlesPerCell`, `maxSubsteps`, `waveSpeed` and `renderScale` on `MochiSolver`. Frame statistics are in `metavr log` on the `VrApi` lines (`FPS=`, `App=` is app GPU time).
 - `Assets/Plugins/Android/AndroidManifest.xml` is generated from the Meta project config. If hand tracking or passthrough entries are missing, or the build fails on a `com.oculus.supportedDevices` manifest merge conflict, regenerate it with `OVRManifestPreprocessor.GenerateOrUpdateAndroidManifest(true)` (or Window > Meta > Tools > Android Manifest Tool).
-- `metavr app install` needs a path the calling shell can read (a WSL path from WSL, not `D:\...`). The package id is `com.TaichiGraphics.TaichiUnityExample`.
+- `metavr app install` needs a path the calling shell can read (a WSL path from WSL, not `D:\...`). The package id is `com.immersethebay.mochipound` and the app shows as "MochiPound" on the headset.
 
 ## Boundaries
 

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Lets tracked hands (index pinch) and Touch controllers (grip) pick up GrabZones:
+/// Lets tracked hands (closing the hand around it, or an index pinch) and Touch controllers (grip) pick up GrabZones:
 /// the usu rim moves the whole station, the kine handle lets you swing the mallet.
 /// Runs before the kine/tools/simulation so they all see this frame's poses.
 /// </summary>
@@ -14,6 +14,10 @@ public class MochiGrabber : MonoBehaviour
     public float grabReach = 0.03f;
     [Tooltip("Pinch strength to start / keep a hand grab (hysteresis avoids flicker).")]
     public float pinchOn = 0.8f, pinchOff = 0.5f;
+    [Tooltip("How closed the hand must be (0 open, 1 fist) to start / keep a grab by wrapping the hand around a zone.")]
+    public float fistOn = 0.6f, fistOff = 0.3f;
+    [Tooltip("How close (m) the palm must be to a zone to grab it with a closed hand. A hand wrapped around a handle has its palm a few cm from the axis.")]
+    public float palmReach = 0.05f;
     public float gripOn = 0.6f, gripOff = 0.35f;
     public Transform leftControllerAnchor, rightControllerAnchor;
 
@@ -23,6 +27,8 @@ public class MochiGrabber : MonoBehaviour
         public OVRHand hand; public OVRSkeleton skeleton;
         public Transform controller; public OVRInput.Controller controllerId;
         public bool active; public Vector3 pos; public Quaternion rot; public float strength;
+        // Hands only: the pinch point, the palm centre, how closed the hand is, and which of the two grabs is in use.
+        public Vector3 pinchPos, palmPos; public float pinch, fist; public bool byPalm;
         public GrabZone held; public Vector3 offsetPos; public Quaternion offsetRot;
     }
     readonly List<Grabber> grabbers = new();
@@ -47,19 +53,29 @@ public class MochiGrabber : MonoBehaviour
 
         foreach (var g in grabbers)
         {
-            bool pressing = g.held != null ? g.strength > (g.hand != null ? pinchOff : gripOff)
-                                           : g.strength > (g.hand != null ? pinchOn : gripOn);
+            bool pressing;
+            if (g.hand != null)
+            {
+                // A hand holds on with whichever gesture it grabbed with; it can start a grab with either.
+                bool pinching = g.pinch > (g.held != null && !g.byPalm ? pinchOff : pinchOn);
+                bool fisting = g.fist > (g.held != null && g.byPalm ? fistOff : fistOn);
+                pressing = g.held != null ? (g.byPalm ? fisting : pinching) : (pinching || fisting);
+                if (g.held == null && pressing)
+                {
+                    // Prefer the closed-hand grab when both gestures are made and the palm is on a zone.
+                    g.byPalm = fisting && NearestZone(g.palmPos, palmReach, true) != null;
+                    if (!g.byPalm && !pinching) pressing = false;
+                }
+                g.pos = g.byPalm ? g.palmPos : g.pinchPos;
+            }
+            else
+                pressing = g.strength > (g.held != null ? gripOff : gripOn);
             if (!g.active) pressing = false;
 
             if (g.held == null && pressing)
             {
-                GrabZone best = null; float bestD = grabReach;
-                foreach (var z in zones)
-                {
-                    if (z == null || z.Held || z.moveTarget == null) continue;
-                    float d = z.Distance(g.pos);
-                    if (d < bestD) { bestD = d; best = z; }
-                }
+                bool palmGrab = g.hand != null && g.byPalm;
+                GrabZone best = NearestZone(g.pos, palmGrab ? palmReach : grabReach, palmGrab);
                 if (best != null)
                 {
                     g.held = best;
@@ -115,8 +131,28 @@ public class MochiGrabber : MonoBehaviour
 
     bool Nearest(GrabZone z)
     {
-        foreach (var g in grabbers) if (g.active && g.held == null && z.Distance(g.pos) < grabReach) return true;
+        foreach (var g in grabbers)
+        {
+            if (!g.active || g.held != null) continue;
+            if (g.hand != null ? z.Distance(g.pinchPos) < grabReach || (z.shape == GrabZone.Shape.Segment && z.Distance(g.palmPos) < palmReach)
+                               : z.Distance(g.pos) < grabReach) return true;
+        }
         return false;
+    }
+
+    /// <summary>The free zone nearest to a point, within reach. A closed hand only takes handles (segments),
+    /// so a fist kneading near the rim does not drag the usu away; the rim still needs a pinch.</summary>
+    GrabZone NearestZone(Vector3 point, float reach, bool handlesOnly = false)
+    {
+        GrabZone best = null; float bestD = reach;
+        foreach (var z in zones)
+        {
+            if (z == null || z.Held || z.moveTarget == null) continue;
+            if (handlesOnly && z.shape != GrabZone.Shape.Segment) continue;
+            float d = z.Distance(point);
+            if (d < bestD) { bestD = d; best = z; }
+        }
+        return best;
     }
 
     void Sample(Grabber g)
@@ -129,9 +165,15 @@ public class MochiGrabber : MonoBehaviour
             var index = HandBoneCompat.Find(g.skeleton, OVRSkeleton.BoneId.Hand_IndexTip);
             var wrist = HandBoneCompat.Find(g.skeleton, OVRSkeleton.BoneId.Hand_WristRoot);
             if (thumb == null || index == null || wrist == null) { g.active = false; return; }
-            g.pos = (thumb.position + index.position) * 0.5f;
+            g.pinchPos = (thumb.position + index.position) * 0.5f;
             g.rot = wrist.rotation;
-            g.strength = g.hand.GetFingerPinchStrength(OVRHand.HandFinger.Index);
+            g.pinch = g.hand.GetFingerPinchStrength(OVRHand.HandFinger.Index);
+            g.fist = MochiSolver.FistAmount(g.skeleton);
+            // Palm centre: partway from the wrist to the middle knuckle. A held handle runs through here.
+            var knuckle = HandBoneCompat.Find(g.skeleton, OVRSkeleton.BoneId.Hand_Middle1);
+            g.palmPos = knuckle != null ? Vector3.Lerp(wrist.position, knuckle.position, 0.7f) : wrist.position;
+            if (g.held == null) g.pos = g.pinchPos;
+            g.strength = Mathf.Max(g.pinch, g.fist);
         }
         else
         {
