@@ -16,6 +16,10 @@ public class MochiStrikeRecorder : MonoBehaviour
     public bool hideUsu = true;
     [Tooltip("strike: auto-pounding kine. knead: a scripted palm presses, pushes sideways, then grips and lifts like a fist.")]
     public string mode = "strike";
+    [Tooltip("knead mode: use a rigid copy of the tracked-hand collider (95 thin primitives) instead of the flat palm.")]
+    public bool handShape = false;
+    [Tooltip("Random per-frame offset of the kneading tool, m, like hand-tracking noise.")]
+    public float jitter = 0f;
     public string tag = "run";
     public bool Finished { get; private set; }
     public string Summary { get; private set; } = "";
@@ -28,17 +32,35 @@ public class MochiStrikeRecorder : MonoBehaviour
         drv.period = period; drv.impactSpeed = impactSpeed; drv.liftSpeed = liftSpeed;
         drv.bottomHeight = bottomHeight; drv.dwell = dwell; drv.raisedHeight = raisedHeight;
         drv.mode = KineDriver.Mode.AutoPound;
-        PalmTool palm = null;
+        MatTool palm = null;
         if (mode == "knead")
         {
             drv.mode = KineDriver.Mode.External; drv.Rest();
             foreach (var r in drv.GetComponentsInChildren<Renderer>()) r.enabled = false;
-            palm = station.GetComponentsInChildren<PalmTool>(true)[0];
+            if (handShape)
+            {
+                // The real hand collider in its rest pose (open hand, fingers along -X), moved rigidly.
+                var src = FindAnyObjectByType<MatHand>(FindObjectsInactive.Include);
+                var hgo = new GameObject("RecorderHand"); hgo.SetActive(false);
+                palm = hgo.AddComponent<MatTool>();
+                palm.init_primitives = (MatTool.Primitive[])src.init_primitives.Clone();
+                palm.numPrimitives = palm.init_primitives.Length;
+                // Centre the hand on its own origin so the keys place the palm, not the wrist.
+                Vector3 c = Vector3.zero;
+                foreach (var pr in palm.init_primitives) c += pr.sphere1;
+                c /= palm.numPrimitives;
+                for (int i = 0; i < palm.numPrimitives; i++)
+                { palm.init_primitives[i].sphere1 -= c; palm.init_primitives[i].sphere2 -= c; palm.init_primitives[i].sphere3 -= c; }
+                palm.primitives = (MatTool.Primitive[])palm.init_primitives.Clone();
+            }
+            else palm = station.GetComponentsInChildren<PalmTool>(true)[0];
             palm.transform.SetParent(station.transform, false);
+            var cut = FindAnyObjectByType<MochiHandCutout>();
+            if (cut != null) cut.includeOtherTools = true;
             palm.transform.localPosition = new Vector3(0f, station.FloorY + 0.25f, 0f);
             palm.gameObject.SetActive(true);
             if (station.solver != null && !station.solver.tools.Contains(palm)) station.solver.tools.Add(palm);
-            recordSeconds = 6.2f;
+            if (recordSeconds < 6.2f) recordSeconds = 6.2f;
         }
 
         Renderer usuRenderer = null;
@@ -73,7 +95,7 @@ public class MochiStrikeRecorder : MonoBehaviour
         int frame = 0, shots = 0; long substeps = 0;
         while (sim.SimTime - sim0 < recordSeconds)
         {
-            if (palm != null) Knead(station, palm, (float)(sim.SimTime - sim0));
+            if (palm != null) Knead(station, palm, (float)(sim.SimTime - sim0) % 5.6f);
             yield return new WaitForEndOfFrame();
             substeps += sim.LastSubstepCount;
             if (station.solver != null)
@@ -113,7 +135,7 @@ public class MochiStrikeRecorder : MonoBehaviour
         new Key(4.5f, 0f, 0.20f, 0f, 0f, true), new Key(5.2f, 0f, 0.20f, 0f, 0f, true), new Key(5.25f, 0f, 0.20f, 0f), new Key(9f, 0f, 0.20f, 0f),
     };
 
-    void Knead(MochiStation station, PalmTool palm, float t)
+    void Knead(MochiStation station, MatTool palm, float t)
     {
         int i = 0;
         while (i < KneadKeys.Length - 2 && KneadKeys[i + 1].t <= t) i++;
@@ -121,7 +143,7 @@ public class MochiStrikeRecorder : MonoBehaviour
         float u = Mathf.Clamp01((t - a.t) / Mathf.Max(b.t - a.t, 1e-4f));
         Vector3 p = Vector3.Lerp(a.p, b.p, u);
         p.y += station.FloorY;
-        palm.transform.localPosition = p;
+        palm.transform.localPosition = p + Random.insideUnitSphere * jitter;
         palm.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Lerp(a.zAngle, b.zAngle, u));
         if (station.solver != null) station.solver.otherTack = a.grip ? station.solver.fistTack : 0f;
     }

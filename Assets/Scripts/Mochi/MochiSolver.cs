@@ -35,8 +35,17 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     public float yieldStress = 300f;
     [Tooltip("Seconds for stress above the yield to relax. Short = runny, long = rubbery.")]
     public float relaxTime = 0.3f;
+    [Tooltip("Flow exponent: 1 = no thinning. Below 1 the dough relaxes faster once the stress above yield passes thinningStress, so it stays firm under hands and runs under the kine.")]
+    [Range(0.3f, 1f)] public float flowExponent = 1f;
+    [Tooltip("Stress above yield where thinning sets in, Pa. Hands stay below it; a strike is far above it.")]
+    public float thinningStress = 3000f;
     [Tooltip("Hard cap on shear stress, Pa. Keeps extreme strikes from storing explosive elastic energy.")]
     public float maxShearStress = 20000f;
+    [Tooltip("Pressure (Pa per unit of excess density) that keeps particles from packing denser than rest. Too low and the lump shrinks as it is kneaded.")]
+    public float crowdStiffness = 20000f;
+    [Tooltip("Dough with less than this fraction of rest density around it is a stray bit and is braked by strayDrag (1/s).")]
+    [Range(0f, 0.6f)] public float strayDensity = 0.3f;
+    public float strayDrag = 40f;
     [Tooltip("Velocity decay, 1/s.")]
     public float damping = 3f;
     public float toolFriction = 0.5f;
@@ -46,8 +55,8 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     public float kineTack = 0.15f;
     [Tooltip("Open hands are wet: 0 slides off.")]
     public float handTack = 0f;
-    [Tooltip("A closed fist grips the dough for as long as this.")]
-    public float fistTack = 30f;
+    [Tooltip("A closed fist grips the dough for as long as this. 0 = fists only push. Gripping with real hands rips the lump into pieces, so it is off until that is solved.")]
+    public float fistTack = 0f;
     [Tooltip("Other tools (test-bench palms).")]
     public float otherTack = 0f;
     [Tooltip("Reach of the bond from a tool surface, in cells.")]
@@ -70,6 +79,10 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     public int maxSubsteps = 12;
     [Range(0.2f, 0.9f)] public float cfl = 0.5f;
     public float timeScale = 1f;
+    [Tooltip("Dough never moves faster than this, m/s. Stops bits being shot out by fast or jittery fingers.")]
+    public float maxDoughSpeed = 2.5f;
+    [Tooltip("Log one line of solver statistics per second (readable with `metavr log`).")]
+    public bool logStats = true;
     [Tooltip("Tool speeds above this are treated as tracking glitches, m/s.")]
     public float maxToolSpeed = 8f;
 
@@ -88,6 +101,9 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     [Range(0.1f, 1f)] public float temporalBlend = 0.6f;
     public int triangleBudget = 40000;
 
+    /// <summary>The tools that took part in the latest frame (tracked hands, the kine, test tools).</summary>
+    public readonly List<MatTool> activeTools = new();
+
     // ---- IMochiSim ----
     public int ParticleCount { get; private set; }
     public float GridDx => cellSize;
@@ -100,7 +116,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     /// <summary>Height of the dough floor above the bottom of the box, m.</summary>
     public float FloorOffset => floorCells * cellSize;
 
-    const int Slots = 16;           // must match SLOTS in the compute shader
+    const int Slots = 24;           // must match SLOTS in the compute shader
     const int ParticleStride = 112; // 7 float4
     const int MaxPrims = 512, MaxTools = 16;
 
@@ -246,6 +262,8 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetFloat("YieldStress", yieldStress);
         cs.SetFloat("RelaxRate", 1f / Mathf.Max(relaxTime, 1e-3f));
         cs.SetFloat("MaxShear", maxShearStress);
+        cs.SetFloat("FlowExp", flowExponent);
+        cs.SetFloat("ThinStress", Mathf.Max(thinningStress, 1f));
         cs.SetFloat("Gravity", -9.81f);
         cs.SetFloat("Damping", damping);
         cs.SetFloat("Friction", toolFriction);
@@ -256,10 +274,13 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetFloat("PullShape", pullShape);
         cs.SetFloat("PullGain", pullGain);
         cs.SetFloat("GripReach", gripReach);
+        cs.SetFloat("CrowdStiffness", crowdStiffness);
+        cs.SetFloat("StrayDensity", strayDensity);
+        cs.SetFloat("StrayDrag", strayDrag);
         cs.SetFloat("RestNodeMass", pVol * density * particlesPerCell);
         cs.SetFloat("FloorHold", floorHold);
         cs.SetInt("FloorCells", floorCells);
-        cs.SetFloat("VMax", 0.8f * dx / dt);
+        cs.SetFloat("VMax", Mathf.Min(0.8f * dx / dt, maxDoughSpeed));
         cs.SetFloat("PushOut", 1f);
         Vector3 fc = FloorCentre;
         if (usu != null)
@@ -316,6 +337,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
             cs.DispatchThreads(kParticles, ParticleCount, 1, 1);
             cur = 1 - cur;
         }
+        if (logStats && Time.unscaledTime >= nextStats) { nextStats = Time.unscaledTime + 1f; LogStats(primCount, maxMove / Mathf.Max(frame, 1e-4f)); }
         LastSubstepCount = n;
         LastFrameSimTime = n * dt;
         SimTime += LastFrameSimTime;
@@ -353,6 +375,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     /// Returns the primitive count; maxMove is the largest displacement of a primitive near the domain.</summary>
     int GatherTools(out float maxMove)
     {
+        activeTools.Clear();
         int np = 0, nt = 0;
         float vMax = 0f;
         Vector3 size = DomainSize;
@@ -365,6 +388,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
             if (tack < 0f) continue;   // an untracked hand
             int count = Mathf.Min(tool.numPrimitives, tool.primitives.Length);
             if (count == 0 || np + count > MaxPrims || nt >= MaxTools) continue;
+            activeTools.Add(tool);
             if (st.prev == null || st.prev.Length != count * 3) { st.prev = new Vector3[count * 3]; st.lastFrame = -10; }
             bool hasPrev = st.lastFrame == Time.frameCount - 1;
             st.lastFrame = Time.frameCount;
@@ -425,7 +449,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
             if (st.hand == null) return handTack;
             if (!st.hand.IsTracked) { st.fist = false; return -1f; }
             float curl = FistAmount(st.skeleton);
-            st.fist = st.fist ? curl > 0.4f : curl > 0.7f;
+            st.fist = st.fist ? curl > 0.6f : curl > 0.85f;
             return st.fist ? fistTack : handTack;
         }
         return otherTack;
@@ -438,7 +462,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     };
 
     /// <summary>0 for an open hand, 1 for a closed fist, from how close the fingertips are to the wrist.</summary>
-    static float FistAmount(OVRSkeleton skeleton)
+    public static float FistAmount(OVRSkeleton skeleton)
     {
         if (skeleton == null) return 0f;
         var wrist = HandBoneCompat.Find(skeleton, OVRSkeleton.BoneId.Hand_WristRoot);
@@ -452,6 +476,35 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         }
         if (n == 0) return 0f;
         return Mathf.InverseLerp(0.14f, 0.09f, sum / n);
+    }
+
+    float nextStats;
+
+    /// <summary>One line per second for tuning on the headset: frame rate, substeps, tool load, and how wild the dough is.</summary>
+    void LogStats(int primCount, float toolSpeed)
+    {
+        int count = ParticleCount; int sub = LastSubstepCount; float fps = 1f / Mathf.Max(Time.unscaledDeltaTime, 1e-4f);
+        float floor = FloorOffset, rim = FloorOffset + (usu != null ? usu.depth : 0.13f);
+        string fists = "";
+        foreach (var kv in toolStates) if (kv.Key is MatHand) fists += (kv.Key.handType == MatTool.HandType.LeftHand ? "L" : "R") + (kv.Value.fist ? "fist " : "open ");
+        AsyncGPUReadback.Request(parts, req =>
+        {
+            if (req.hasError || this == null || count != ParticleCount) return;
+            NativeArray<float> d = req.GetData<float>();
+            int fast = 0, air = 0, bonded = 0, bad = 0; float vmax = 0f, top = 0f;
+            for (int i = 0; i < count; i++)
+            {
+                int o = i * 28;
+                float y = d[o + 1];
+                if (float.IsNaN(y)) { bad++; continue; }
+                float v = new Vector3(d[o + 4], d[o + 5], d[o + 6]).magnitude;
+                if (v > 1.5f) fast++;
+                if (y > rim) air++;
+                if (d[o + 3] > 0f) bonded++;
+                vmax = Mathf.Max(vmax, v); top = Mathf.Max(top, y - floor);
+            }
+            Debug.Log($"MochiStats fps={fps:F0} sub={sub} prims={primCount} toolSpeed={toolSpeed:F2} {fists}vmax={vmax:F2} fast={fast} aboveRim={air} bonded={bonded} top={top * 100f:F0}cm nan={bad}");
+        });
     }
 
     // ---- particle readback (gameplay, tests) ----
@@ -489,10 +542,19 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         if (parts == null) return "no particles";
         var data = new float[ParticleCount * 28];
         parts.GetData(data);
-        int bonded = 0; float top = 0f, vmax = 0f; double j = 0;
+        int bonded = 0, bad = 0, dropped = 0, atEdge = 0; float top = 0f, vmax = 0f; double j = 0;
+        var perCell = new Dictionary<int, int>();
+        Vector3 size = DomainSize;
         for (int i = 0; i < ParticleCount; i++)
         {
             int o = i * 28;
+            if (float.IsNaN(data[o]) || float.IsNaN(data[o + 1]) || float.IsNaN(data[o + 2]) || float.IsInfinity(data[o] + data[o + 1] + data[o + 2])) { bad++; continue; }
+            // Same binning as the shader: particles beyond the slots of their cell are left out of the grid (and of the picture).
+            int cx = (int)(data[o] / cellSize - 0.5f), cy = (int)(data[o + 1] / cellSize - 0.5f), cz = (int)(data[o + 2] / cellSize - 0.5f);
+            int key = cx + gridCells.x * (cy + gridCells.y * cz);
+            perCell.TryGetValue(key, out int c); perCell[key] = c + 1;
+            if (c >= Slots) dropped++;
+            if (data[o] < 2.5f * cellSize || data[o + 2] < 2.5f * cellSize || data[o] > size.x - 2.5f * cellSize || data[o + 2] > size.z - 2.5f * cellSize || data[o + 1] > size.y - 2.5f * cellSize) atEdge++;
             if (data[o + 3] > 0f) bonded++;
             top = Mathf.Max(top, data[o + 1] - FloorOffset);
             vmax = Mathf.Max(vmax, new Vector3(data[o + 4], data[o + 5], data[o + 6]).magnitude);
@@ -500,7 +562,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
             float det = bxx * (byy * bzz - byz * byz) - bxy * (bxy * bzz - byz * bxz) + bxz * (bxy * byz - byy * bxz);
             j += Mathf.Sqrt(Mathf.Max(det, 0f));
         }
-        return $"bonded={bonded} top={top * 100f:F1}cm vmax={vmax:F2} J={j / ParticleCount:F3} sub={LastSubstepCount}";
+        return $"bonded={bonded} top={top * 100f:F1}cm vmax={vmax:F2} J={j / ParticleCount:F3} sub={LastSubstepCount} nan={bad} dropped={dropped} cells={perCell.Count} edge={atEdge}";
     }
 
     void OnDestroy()

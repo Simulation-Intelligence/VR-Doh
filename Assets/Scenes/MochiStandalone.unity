@@ -17348,12 +17348,17 @@ MonoBehaviour:
   waveSpeed: 4
   yieldStress: 300
   relaxTime: 0.3
+  flowExponent: 1
+  thinningStress: 3000
   maxShearStress: 20000
-  damping: 1.5
+  crowdStiffness: 20000
+  strayDensity: 0.3
+  strayDrag: 40
+  damping: 3
   toolFriction: 0.5
   kineTack: 0.15
   handTack: 0
-  fistTack: 30
+  fistTack: 0
   otherTack: 0
   tackBandCells: 1.5
   pullSpeed: 0.2
@@ -17365,6 +17370,8 @@ MonoBehaviour:
   maxSubsteps: 12
   cfl: 0.5
   timeScale: 1
+  maxDoughSpeed: 2.5
+  logStats: 1
   maxToolSpeed: 8
   tools: []
   usu: {fileID: 0}
@@ -52746,6 +52753,7 @@ GameObject:
   - component: {fileID: 726005674}
   - component: {fileID: 726005673}
   - component: {fileID: 726005676}
+  - component: {fileID: 726005677}
   m_Layer: 0
   m_Name: MochiStation
   m_TagString: Untagged
@@ -52858,10 +52866,30 @@ MonoBehaviour:
   grabReach: 0.03
   pinchOn: 0.8
   pinchOff: 0.5
+  fistOn: 0.6
+  fistOff: 0.3
+  palmReach: 0.05
   gripOn: 0.6
   gripOff: 0.35
   leftControllerAnchor: {fileID: 1138274929}
   rightControllerAnchor: {fileID: 1377979813}
+--- !u!114 &726005677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 726005672}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9acd135b4429d6d4bbada689c780c0d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MochiHandCutout
+  solver: {fileID: 238909441}
+  cutout: {fileID: 2100000, guid: ce2e07f694035ff438842825e12d8a4a, type: 2}
+  fill: 2
+  radiusScale: 0.95
+  includeOtherTools: 0
 --- !u!1 &726259096
 GameObject:
   m_ObjectHideFlags: 0
