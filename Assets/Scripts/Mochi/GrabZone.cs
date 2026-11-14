@@ -55,21 +55,27 @@ public class GrabZone : MonoBehaviour
         return Mathf.Sqrt(dr * dr + dy * dy) - 0.0001f;
     }
 
-    public void SetHover(bool on)
+    [Tooltip("Set by safety checks (e.g. KineSafety): overrides the hover tint while true.")]
+    public bool warning;
+    public Color warningTint = new Color(1.6f, 0.35f, 0.3f, 1f);
+    int appliedState = -1;
+
+    public void SetHover(bool on) { hovered = on; }
+
+    void LateUpdate()
     {
-        if (on == hovered || highlight == null) return;
-        hovered = on;
+        int state = warning ? 2 : (hovered ? 1 : 0);
+        if (state == appliedState || highlight == null) return;
+        appliedState = state;
         mpb ??= new MaterialPropertyBlock();
+        Color tint = state == 2 ? warningTint : hoverTint;
         foreach (var r in highlight)
         {
             if (r == null) continue;
-            if (on)
-            {
-                var c = r.sharedMaterial != null && r.sharedMaterial.HasProperty("_Color") ? r.sharedMaterial.color : Color.white;
-                mpb.SetColor("_Color", new Color(c.r * hoverTint.r, c.g * hoverTint.g, c.b * hoverTint.b, c.a));
-                r.SetPropertyBlock(mpb);
-            }
-            else r.SetPropertyBlock(null);
+            if (state == 0) { r.SetPropertyBlock(null); continue; }
+            var c = r.sharedMaterial != null && r.sharedMaterial.HasProperty("_Color") ? r.sharedMaterial.color : Color.white;
+            mpb.SetColor("_Color", new Color(c.r * tint.r, c.g * tint.g, c.b * tint.b, c.a));
+            r.SetPropertyBlock(mpb);
         }
     }
 

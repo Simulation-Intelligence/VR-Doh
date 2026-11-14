@@ -93,6 +93,26 @@ public class MochiGrabber : MonoBehaviour
         }
     }
 
+    /// <summary>Points on tracked hands that are not holding anything (pinch point and wrist), for safety checks.</summary>
+    public void GetFreeHandPoints(List<Vector3> points)
+    {
+        points.Clear();
+        foreach (var g in grabbers)
+        {
+            if (g.hand == null || !g.active || g.held != null) continue;
+            points.Add(g.pos);
+            var wrist = HandBoneCompat.Find(g.skeleton, OVRSkeleton.BoneId.Hand_WristRoot);
+            if (wrist != null) points.Add(wrist.position);
+        }
+    }
+
+    /// <summary>The controller holding the given zone, or None (hands or not held).</summary>
+    public OVRInput.Controller ControllerHolding(GrabZone z)
+    {
+        foreach (var g in grabbers) if (g.held == z && g.hand == null) return g.controllerId;
+        return OVRInput.Controller.None;
+    }
+
     bool Nearest(GrabZone z)
     {
         foreach (var g in grabbers) if (g.active && g.held == null && z.Distance(g.pos) < grabReach) return true;

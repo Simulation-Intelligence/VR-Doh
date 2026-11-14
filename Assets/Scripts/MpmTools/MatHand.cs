@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using Oculus.Interaction;
 using Oculus.Interaction.Input;
 
+// After SmoothHand (50) has filtered this frame's joints, before the MPM sim (100) reads the primitives.
+[DefaultExecutionOrder(60)]
 public class MatHand : MatTool
 {
     private HandJoint handJoint;
