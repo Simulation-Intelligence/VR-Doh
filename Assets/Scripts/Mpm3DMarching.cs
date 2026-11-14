@@ -15,7 +15,7 @@ using System.Xml;
 using Unity.Mathematics;
 using Oculus.Interaction.GrabAPI;
 
-public class Mpm3DMarching : MonoBehaviour
+public class Mpm3DMarching : MonoBehaviour, IMochiSim
 {
     public bool isInitialized = false;
     private Mesh _Mesh;

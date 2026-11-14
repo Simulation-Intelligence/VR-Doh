@@ -22,6 +22,10 @@ public class MochiStation : MonoBehaviour
 
     [Header("Simulation object")]
     public Mpm3DMarching mochi;
+    [Tooltip("Native compute-shader solver (standalone Quest). When set, it is used instead of the Taichi solver above.")]
+    public MochiSolver solver;
+    /// <summary>The active simulation, whichever solver drives it.</summary>
+    public IMochiSim Sim => solver != null ? solver : mochi;
     public ToolSet toolSet = ToolSet.TrackedHands;
     [Tooltip("Hand tools used when toolSet is TrackedHands (VR-Doh's MatHand per hand).")]
     public List<MatTool> handTools = new();
@@ -84,8 +88,10 @@ public class MochiStation : MonoBehaviour
 
     void Awake()
     {
+        if (solver == null) solver = GetComponentInChildren<MochiSolver>(true);
+        if (solver != null) { ConfigureSolver(); return; }
         if (mochi == null) mochi = GetComponentInChildren<Mpm3DMarching>(true);
-        if (mochi == null) { Debug.LogError("MochiStation: no Mpm3DMarching assigned."); return; }
+        if (mochi == null) { Debug.LogError("MochiStation: no Mpm3DMarching or MochiSolver assigned."); return; }
         Configure();
     }
 
@@ -131,6 +137,27 @@ public class MochiStation : MonoBehaviour
         fwd.Normalize();
         transform.SetPositionAndRotation(viewer.position + fwd * forwardDistance + Vector3.down * eyeAboveTable,
                                          Quaternion.LookRotation(fwd, Vector3.up));
+    }
+
+    /// <summary>Places the native solver so its floor is the usu floor and hands it the tools, before its Start().</summary>
+    public void ConfigureSolver()
+    {
+        var t = solver.transform;
+        t.SetParent(transform, false);
+        t.localRotation = Quaternion.identity;
+        t.localScale = Vector3.one;
+        Vector3 size = solver.DomainSize;
+        t.localPosition = new Vector3(-0.5f * size.x, floorHeight - solver.FloorOffset, -0.5f * size.z);
+
+        solver.tools.Clear();
+        foreach (var tool in toolSet == ToolSet.TrackedHands ? handTools : benchTools)
+            if (tool != null) solver.tools.Add(tool);
+        foreach (var tool in sharedTools)
+            if (tool != null) solver.tools.Add(tool);
+        if (solver.usu == null) solver.usu = sharedTools.OfType<UsuTool>().FirstOrDefault();
+        if (solver.surfaceMaterial == null) solver.surfaceMaterial = surfaceMaterial;
+        solver.maxSubsteps = maxSubstepsPerFrame;
+        Debug.Log($"MochiStation: native solver, {solver.massKg:F2} kg lump in a {size.x * 100f:F0}x{size.y * 100f:F0}x{size.z * 100f:F0} cm box, dx={solver.cellSize * 1000f:F1} mm");
     }
 
     /// <summary>Applies everything to the Mpm3DMarching before its Start() allocates buffers.</summary>
@@ -216,7 +243,7 @@ public class MochiStation : MonoBehaviour
     public float FloorY => floorHeight;
 
     /// <summary>Converts a solver-space position (unit cube) to world space.</summary>
-    public Vector3 SimToWorld(Vector3 sim) => mochi.transform.TransformPoint(sim);
+    public Vector3 SimToWorld(Vector3 sim) => Sim.transform.TransformPoint(sim);
     /// <summary>Converts a solver-space position to station space (metres, origin at the usu bottom centre).</summary>
-    public Vector3 SimToStation(Vector3 sim) => transform.InverseTransformPoint(mochi.transform.TransformPoint(sim));
+    public Vector3 SimToStation(Vector3 sim) => transform.InverseTransformPoint(Sim.transform.TransformPoint(sim));
 }

@@ -1,0 +1,537 @@
+// Mochi dough solver: MLS-MPM in plain compute shaders (no Taichi), sized for a standalone Quest.
+//
+// Space and units: the solver's local space in metres, SI throughout. The domain is the box
+// [0, Dims * Dx]; grid node I sits at I * Dx.
+//
+// Material: elastic left Cauchy-Green tensor b per particle (identity = rest).
+//   tau = mu * dev(b_bar) + kappa/2 * (J^2 - 1) * I
+//   above the yield stress the deviatoric part relaxes with time constant RelaxTime (Bingham-like),
+//   so a strike is elastic, anything held longer flows, and gravity slowly rounds the lump.
+//
+// A substep is two dispatches:
+//   Nodes     - P2G as a gather over per-cell particle lists (no float atomics), then the grid
+//               update: gravity, tool contact, tack, floor and walls.
+//   Particles - G2P, advection, strain update, and binning into the cell lists of the next substep.
+//
+// Tack (the part that sells the illusion, not physics): a particle resting on or pressed by a
+// tool with tack > 0 becomes bonded, and the bond spreads through touching dough up to PullReach
+// from the tool. While the tool rests, bonded dough at its surface sticks to it. While the tool
+// pulls away, bonded dough is given the velocity  tool velocity * falloff(distance to the tool),
+// a prescribed stretch that draws the lump up into a tent instead of tearing a skin off it.
+// A bond only ages while the tool pulls, so after the tool's tack time every bond made in the
+// same press lets go together and the tent springs and slumps back.
+
+#pragma kernel ToolSdf
+#pragma kernel Nodes
+#pragma kernel Particles
+#pragma kernel Bin
+#pragma kernel ClearCounts
+#pragma kernel Density
+
+#define SLOTS 16
+#define GRIP_TACK 5.0
+
+struct Particle
+{
+    float4 x;    // xyz position, w = tack seconds left
+    float4 v;    // xyz velocity
+    float4 a0;   // rows of the affine momentum matrix (stress + APIC) used by the next gather
+    float4 a1;
+    float4 a2;
+    float4 bd;   // b diagonal: xx, yy, zz
+    float4 bo;   // b off-diagonal: xy, xz, yz
+};
+
+struct Prim
+{
+    float4 s0, s1, s2;   // medial spheres: xyz centre, w radius (s2.w == 0: cone, else slab)
+    float4 v0, v1, v2;   // sphere velocities; v0.w = tack seconds of the owning tool
+};
+
+struct Tool
+{
+    float4 mn;   // xyz AABB min, w = first primitive
+    float4 mx;   // xyz AABB max, w = primitive count
+};
+
+RWStructuredBuffer<Particle> Parts;
+RWStructuredBuffer<uint> CountA;     // particles per cell, this substep
+RWStructuredBuffer<uint> CountB;     // particles per cell, next substep
+RWStructuredBuffer<uint> Ids;        // SLOTS particle ids per cell
+RWStructuredBuffer<float4> GridV;    // xyz node velocity, w = tool distance at this substep
+RWStructuredBuffer<float2> GridM;    // node mass, bonded fraction of that mass
+RWStructuredBuffer<float4> ToolA;    // xyz outward tool normal, w = signed distance (end-of-frame pose)
+RWStructuredBuffer<float4> ToolB;    // xyz tool surface velocity, w = tack seconds
+StructuredBuffer<Prim> Prims;
+StructuredBuffer<Tool> Tools;
+RWStructuredBuffer<float> Voxels;    // render density field
+
+uint3 Dims;
+uint ParticleCount;
+uint ToolCount;
+float Dx;
+float Dt;
+float TimeLeft;      // tool time still to run after this substep (the SDF is the end-of-frame pose)
+float PVol, PMass;
+float Mu, Kappa, YieldStress, RelaxRate, MaxShear;
+float Gravity, Damping, Friction;
+float Band;          // tack reach from a tool surface, m
+float Cutoff;        // SDF values are clamped to this
+float PullSpeed;     // tool speed above which bonds age, m/s
+float PullReach;     // how far into the dough a pulling tool reaches, m
+float PullShape;     // exponent of the falloff across that reach
+float PullGain;      // how firmly the prescribed stretch is imposed per substep, 0..1
+float GripReach;     // a gripping tool (tack > GRIP_TACK) carries the dough within this distance rigidly, m
+float RestNodeMass;  // node mass inside undeformed dough
+float FloorHold;     // tensile strength of the floor bond, Pa
+uint FloorCells;     // nodes below this are solid floor
+float VMax;
+float PushOut;
+float4 Usu0;         // centre x, floor y, centre z, inner radius at the floor
+float4 Usu1;         // inner radius at the rim, depth, enabled, wall friction scale
+
+uint3 VoxDims;
+float VoxDx;
+float VoxBlend;
+
+uint NodeIndex(uint3 I) { return I.x + Dims.x * (I.y + Dims.y * I.z); }
+
+// ---------------------------------------------------------------------------------------------
+// Tool distance field
+// ---------------------------------------------------------------------------------------------
+
+// Medial cone (two spheres and their tangent hull): signed distance, outward normal, weight of sphere 0.
+void ConeClosest(float3 c0, float r0, float3 c1, float r1, float3 p, out float dist, out float3 n, out float alpha)
+{
+    float3 e = c0 - c1;
+    float3 q = c1 - p;
+    float dr = r0 - r1;
+    float A = dot(e, e) - dr * dr;
+    float D = 2.0 * (dot(e, q) - dr * r1);
+    float F = dot(q, q) - r1 * r1;
+    alpha = 0.0;
+    float best = F;
+    float f1 = A + D + F;
+    if (f1 < best) { best = f1; alpha = 1.0; }
+    if (A > 1e-12)
+    {
+        float t = -D / (2.0 * A);
+        if (t > 0.0 && t < 1.0)
+        {
+            float ft = (A * t + D) * t + F;
+            if (ft < best) alpha = t;
+        }
+    }
+    float3 cp = alpha * c0 + (1.0 - alpha) * c1;
+    float rp = alpha * r0 + (1.0 - alpha) * r1;
+    float3 d = p - cp;
+    float dn = length(d);
+    n = dn > 1e-9 ? d / dn : float3(0, 1, 0);
+    dist = dn - rp;
+}
+
+// Medial slab (three spheres and their tangent hull).
+void SlabClosest(float3 c0, float r0, float3 c1, float r1, float3 c2, float r2, float3 p,
+                 out float dist, out float3 n, out float alpha, out float beta)
+{
+    float3 e1 = c0 - c2;
+    float3 e2 = c1 - c2;
+    float3 q = c2 - p;
+    float dr1 = r0 - r2;
+    float dr2 = r1 - r2;
+    float A = dot(e1, e1) - dr1 * dr1;
+    float B = 2.0 * (dot(e1, e2) - dr1 * dr2);
+    float C = dot(e2, e2) - dr2 * dr2;
+    float D = 2.0 * (dot(e1, q) - dr1 * r2);
+    float E = 2.0 * (dot(e2, q) - dr2 * r2);
+    float F = dot(q, q) - r2 * r2;
+    alpha = 0.0; beta = 0.0;
+    float best = F;
+    float f = A + D + F;
+    if (f < best) { best = f; alpha = 1.0; beta = 0.0; }
+    f = C + E + F;
+    if (f < best) { best = f; alpha = 0.0; beta = 1.0; }
+    float t, s;
+    if (C > 1e-12)
+    {
+        t = -E / (2.0 * C);
+        if (t > 0.0 && t < 1.0)
+        {
+            f = (C * t + E) * t + F;
+            if (f < best) { best = f; alpha = 0.0; beta = t; }
+        }
+    }
+    if (A > 1e-12)
+    {
+        t = -D / (2.0 * A);
+        if (t > 0.0 && t < 1.0)
+        {
+            f = (A * t + D) * t + F;
+            if (f < best) { best = f; alpha = t; beta = 0.0; }
+        }
+    }
+    float den = A - B + C;
+    if (den > 1e-12)
+    {
+        t = 0.5 * (2.0 * C + E - B - D) / den;
+        if (t > 0.0 && t < 1.0)
+        {
+            s = 1.0 - t;
+            f = A * t * t + B * t * s + C * s * s + D * t + E * s + F;
+            if (f < best) { best = f; alpha = t; beta = s; }
+        }
+    }
+    float delta = 4.0 * A * C - B * B;
+    if (delta > 1e-12)
+    {
+        t = (B * E - 2.0 * C * D) / delta;
+        s = (B * D - 2.0 * A * E) / delta;
+        if (t > 0.0 && s > 0.0 && t + s < 1.0)
+        {
+            f = A * t * t + B * t * s + C * s * s + D * t + E * s + F;
+            if (f < best) { best = f; alpha = t; beta = s; }
+        }
+    }
+    float g = 1.0 - alpha - beta;
+    float3 cp = alpha * c0 + beta * c1 + g * c2;
+    float rp = alpha * r0 + beta * r1 + g * r2;
+    float3 d = p - cp;
+    float dn = length(d);
+    n = dn > 1e-9 ? d / dn : float3(0, 1, 0);
+    dist = dn - rp;
+}
+
+[numthreads(4, 4, 4)]
+void ToolSdf(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    float3 pos = (float3)id * Dx;
+    float best = Cutoff;
+    float3 norm = float3(0, 1, 0);
+    float3 vel = 0;
+    float tack = 0;
+
+    // The usu bowl wall, analytic: solid where r > inner radius(y) below the rim.
+    if (Usu1.z > 0.5)
+    {
+        float2 rv = pos.xz - Usu0.xz;
+        float r = length(rv);
+        float h = saturate((pos.y - Usu0.y) / max(Usu1.y, 1e-4));
+        float rin = lerp(Usu0.w, Usu1.x, h);
+        float dWall = rin - r;
+        float dTop = pos.y - (Usu0.y + Usu1.y);
+        float d = max(dWall, dTop);
+        if (d < best)
+        {
+            best = d;
+            norm = dWall > dTop ? float3(-rv.x, 0, -rv.y) / max(r, 1e-6) : float3(0, 1, 0);
+        }
+    }
+
+    for (uint t = 0; t < ToolCount; t++)
+    {
+        Tool tool = Tools[t];
+        if (any(pos < tool.mn.xyz - best) || any(pos > tool.mx.xyz + best)) continue;
+        uint first = (uint)tool.mn.w, count = (uint)tool.mx.w;
+        for (uint k = 0; k < count; k++)
+        {
+            Prim pr = Prims[first + k];
+            float dist; float3 n; float a, b;
+            if (pr.s2.w == 0.0)
+            {
+                ConeClosest(pr.s0.xyz, pr.s0.w, pr.s1.xyz, pr.s1.w, pos, dist, n, a);
+                if (dist < best)
+                {
+                    best = dist; norm = n; tack = pr.v0.w;
+                    vel = pr.v0.xyz * a + pr.v1.xyz * (1.0 - a);
+                }
+            }
+            else
+            {
+                SlabClosest(pr.s0.xyz, pr.s0.w, pr.s1.xyz, pr.s1.w, pr.s2.xyz, pr.s2.w, pos, dist, n, a, b);
+                if (dist < best)
+                {
+                    best = dist; norm = n; tack = pr.v0.w;
+                    vel = pr.v0.xyz * a + pr.v1.xyz * b + pr.v2.xyz * (1.0 - a - b);
+                }
+            }
+        }
+    }
+    uint i = NodeIndex(id);
+    ToolA[i] = float4(norm, best);
+    ToolB[i] = float4(vel, tack);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Substep
+// ---------------------------------------------------------------------------------------------
+
+[numthreads(4, 4, 4)]
+void Nodes(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    uint node = NodeIndex(id);
+    CountB[node] = 0;
+
+    float invDx = 1.0 / Dx;
+    float w = 0.0, wb = 0.0;
+    float3 mv = 0;
+    for (int a = 0; a < 3; a++)
+    for (int b = 0; b < 3; b++)
+    for (int c = 0; c < 3; c++)
+    {
+        int3 cell = (int3)id - int3(a, b, c);
+        if (any(cell < 0)) continue;
+        uint ci = NodeIndex((uint3)cell);
+        uint n = min(CountA[ci], (uint)SLOTS);
+        for (uint s = 0; s < n; s++)
+        {
+            Particle P = Parts[Ids[ci * SLOTS + s]];
+            float3 d = P.x.xyz * invDx - (float3)id;      // in cells, each component in (-1.5, 1.5)
+            float3 ad = abs(d);
+            float3 wv = ad < 0.5 ? 0.75 - d * d : 0.5 * (1.5 - ad) * (1.5 - ad);
+            float wt = wv.x * wv.y * wv.z;
+            float3 dp = d * Dx;
+            mv += wt * (PMass * P.v.xyz - float3(dot(P.a0.xyz, dp), dot(P.a1.xyz, dp), dot(P.a2.xyz, dp)));
+            w += wt;
+            if (P.x.w > 0.0) wb += wt;
+        }
+    }
+    float m = w * PMass;
+    float bond = w > 0.0 ? wb / w : 0.0;
+    GridM[node] = float2(m, bond);
+
+    float4 ta = ToolA[node];
+    float4 tb = ToolB[node];
+    float d = ta.w + TimeLeft * dot(tb.xyz, ta.xyz);
+    if (m <= 0.0) { GridV[node] = float4(0, 0, 0, d); return; }
+
+    float3 vel = mv / m;
+    vel.y += Dt * Gravity;
+    vel *= exp(-Damping * Dt);
+
+    float toolSpeed = length(tb.xyz);
+    bool grip = tb.w > GRIP_TACK;
+    // A tool pulls when it moves away from or along the dough; a gripping hand does so at any speed.
+    bool pulling = toolSpeed > (grip ? 0.1 * PullSpeed : PullSpeed) && dot(tb.xyz, ta.xyz) < 0.3 * toolSpeed;
+    float carried = 0.0;
+    if (bond > 0.0 && pulling && d < PullReach)
+    {
+        // Prescribed motion: full tool velocity out to a core distance, fading to nothing at the
+        // reach, which stretches the dough in between instead of tearing it. Tack: the core is the
+        // surface layer, so the lump is drawn into a tent. Grip: the core is a handful, imposed
+        // completely, so elastic recoil cannot strip it off the hand layer by layer.
+        float core = grip ? GripReach : Band;
+        float phi = pow(saturate(1.0 - max(d - core, 0.0) / max(PullReach - core, 1e-4)), PullShape);
+        float gain = grip && d < core ? 1.0 : saturate(2.0 * bond) * PullGain;
+        vel = lerp(vel, phi * tb.xyz, gain);
+        if (grip) carried = phi;
+    }
+    if (d < Band)
+    {
+        float3 n = ta.xyz;
+        float3 rel = vel - tb.xyz;
+        float vn = dot(rel, n);
+        if (d < 0.0 && vn < 0.0)
+        {
+            // Pressing into the tool: no penetration, Coulomb friction.
+            float3 vt = rel - vn * n;
+            float vtn = length(vt);
+            float keep = vtn > 1e-9 ? max(0.0, 1.0 + Friction * vn / vtn) : 0.0;
+            rel = vt * keep;
+        }
+        if (bond > 0.0 && !pulling)
+        {
+            // Bonded dough sticks to a resting tool, fully at the surface, fading out across the band.
+            rel *= 1.0 - saturate(2.0 * bond) * saturate(1.0 - max(d, 0.0) / Band);
+        }
+        vel = tb.xyz + rel;
+    }
+
+    // Floor: solid below FloorCells, and the layer resting on it is held down up to FloorHold.
+    if (id.y < FloorCells)
+    {
+        vel = 0;
+    }
+    else if (id.y == FloorCells)
+    {
+        if (vel.y < 0.0) vel = 0;
+        else if (carried < 0.5)   // a gripped handful comes off the floor
+        {
+            float cap = FloorHold * Dx * Dx * Dt / m;
+            float dv = min(vel.y, cap);
+            float held = vel.y > 1e-9 ? dv / vel.y : 1.0;
+            vel.y -= dv;
+            vel.xz *= 1.0 - held;
+        }
+    }
+    // Domain walls and ceiling.
+    if ((id.x < 2 && vel.x < 0.0) || (id.x > Dims.x - 3 && vel.x > 0.0)) vel.x = 0;
+    if ((id.z < 2 && vel.z < 0.0) || (id.z > Dims.z - 3 && vel.z > 0.0)) vel.z = 0;
+    if (id.y > Dims.y - 3 && vel.y > 0.0) vel.y = 0;
+
+    GridV[node] = float4(clamp(vel, -VMax, VMax), d);
+}
+
+void BinParticle(uint p, float3 x)
+{
+    uint3 base = (uint3)(x / Dx - 0.5);
+    uint ci = NodeIndex(base);
+    uint slot;
+    InterlockedAdd(CountB[ci], 1, slot);
+    // A cell that is over-full drops the extra particles from the next gather; they still move.
+    if (slot < SLOTS) Ids[ci * SLOTS + slot] = p;
+}
+
+[numthreads(64, 1, 1)]
+void Particles(uint3 id : SV_DispatchThreadID)
+{
+    uint p = id.x;
+    if (p >= ParticleCount) return;
+    Particle P = Parts[p];
+    float invDx = 1.0 / Dx;
+    float3 Xp = P.x.xyz * invDx;
+    int3 base = (int3)(Xp - 0.5);
+    float3 fx = Xp - base;
+    float3 wt[3] = { 0.5 * (1.5 - fx) * (1.5 - fx), 0.75 - (fx - 1.0) * (fx - 1.0), 0.5 * (fx - 0.5) * (fx - 0.5) };
+
+    float3 nv = 0;
+    float3x3 C = 0;
+    float dP = 0;
+    float bondP = 0;
+    float3 grad = 0;
+
+    for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+    for (int k = 0; k < 3; k++)
+    {
+        float3 dpos = (float3(i, j, k) - fx) * Dx;
+        float weight = wt[i].x * wt[j].y * wt[k].z;
+        uint ni = NodeIndex((uint3)(base + int3(i, j, k)));
+        float4 g = GridV[ni];
+        bondP += weight * GridM[ni].y;
+        nv += weight * g.xyz;
+        float3 wd = (4.0 * invDx * invDx * weight) * dpos;
+        C[0] += g.x * wd;
+        C[1] += g.y * wd;
+        C[2] += g.z * wd;
+        dP += weight * g.w;
+        grad += weight * g.w * dpos;
+    }
+
+    // Tool state at the particle, and the bond: dough bonded to a pulling or gripping tool's
+    // surface moves exactly with it, so the skin never creeps off.
+    uint near = NodeIndex((uint3)(Xp + 0.5));
+    float4 ta = ToolA[near];
+    float4 tb = ToolB[near];
+    float tack = P.x.w;
+    float speed = length(tb.xyz);
+    bool grip = tb.w > GRIP_TACK;
+    bool pulling = speed > (grip ? 0.1 * PullSpeed : PullSpeed) && dot(tb.xyz, ta.xyz) < 0.3 * speed;
+    if (tack > 0.0 && dP < Band && pulling) nv = tb.xyz;
+
+    float3 xn = P.x.xyz + Dt * nv;
+    if (dP < 0.0)
+    {
+        float gn = length(grad);
+        if (gn > 1e-12) xn += (grad / gn) * min(-dP * PushOut, 0.5 * Dx);
+    }
+    float3 hi = ((float3)Dims - 2.0) * Dx;
+    xn = clamp(xn, float3(2.0 * Dx, (FloorCells + 0.05) * Dx, 2.0 * Dx), hi);
+
+    // Tack: bond while resting on or pressed by a sticky tool, age while it pulls away or slides.
+    if (dP < PullReach && tb.w > 0.0)
+    {
+        if (pulling) tack = grip ? tack : max(min(tack, tb.w) - Dt, 0.0);   // a grip does not tire
+        // Bond on contact, and through dough that is already bonded (one cell per substep).
+        else if (dP < 0.5 * Dx || bondP > 0.25) tack = tb.w;
+    }
+    else tack = 0.0;
+
+    // Elastic strain update with the viscoplastic return fused in (no SVD).
+    float3x3 b = float3x3(P.bd.x, P.bo.x, P.bo.y,
+                          P.bo.x, P.bd.y, P.bo.z,
+                          P.bo.y, P.bo.z, P.bd.z);
+    float3x3 f = float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1) + Dt * C;
+    b = mul(f, mul(b, transpose(f)));
+    float J2 = clamp(determinant(b), 0.05, 20.0);
+    float3x3 bbar = b * pow(J2, -1.0 / 3.0);
+    float Ibar = (bbar[0][0] + bbar[1][1] + bbar[2][2]) / 3.0;
+    float3x3 dev = bbar;
+    dev[0][0] -= Ibar; dev[1][1] -= Ibar; dev[2][2] -= Ibar;
+    float sNorm = Mu * sqrt(dot(dev[0], dev[0]) + dot(dev[1], dev[1]) + dot(dev[2], dev[2]));
+    if (sNorm > YieldStress)
+    {
+        float kk = Ibar * Dt * RelaxRate;
+        float sNew = min((sNorm + kk * YieldStress) / (1.0 + kk), MaxShear);
+        dev *= sNew / sNorm;
+        bbar = dev;
+        bbar[0][0] += Ibar; bbar[1][1] += Ibar; bbar[2][2] += Ibar;
+        bbar *= pow(max(determinant(bbar), 1e-6), -1.0 / 3.0);
+        float tr = (bbar[0][0] + bbar[1][1] + bbar[2][2]) / 3.0;
+        dev = bbar;
+        dev[0][0] -= tr; dev[1][1] -= tr; dev[2][2] -= tr;
+    }
+    b = bbar * pow(J2, 1.0 / 3.0);
+    float3x3 tau = Mu * dev;
+    float pr = 0.5 * Kappa * (J2 - 1.0);
+    tau[0][0] += pr; tau[1][1] += pr; tau[2][2] += pr;
+    float3x3 A = (-Dt * PVol * 4.0 * invDx * invDx) * tau + PMass * C;
+
+    P.x = float4(xn, tack);
+    P.v = float4(nv, 0);
+    P.a0 = float4(A[0], 0);
+    P.a1 = float4(A[1], 0);
+    P.a2 = float4(A[2], 0);
+    P.bd = float4(b[0][0], b[1][1], b[2][2], 0);
+    P.bo = float4(b[0][1], b[0][2], b[1][2], 0);
+    Parts[p] = P;
+    BinParticle(p, xn);
+}
+
+// First binning after the particles are created or reset (CountB must be clear).
+[numthreads(64, 1, 1)]
+void Bin(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= ParticleCount) return;
+    BinParticle(id.x, Parts[id.x].x.xyz);
+}
+
+[numthreads(4, 4, 4)]
+void ClearCounts(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    uint node = NodeIndex(id);
+    CountA[node] = 0;
+    CountB[node] = 0;
+    GridV[node] = 0;
+    GridM[node] = 0;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Render field: node mass resampled with the same quadratic B-spline, blended over time.
+// Voxel v sits at (v + 0.5) * VoxDx.
+// ---------------------------------------------------------------------------------------------
+
+[numthreads(4, 4, 4)]
+void Density(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= VoxDims)) return;
+    float3 Xq = ((float3)id + 0.5) * VoxDx / Dx;
+    int3 base = (int3)(Xq - 0.5);
+    float3 fx = Xq - base;
+    float3 wt[3] = { 0.5 * (1.5 - fx) * (1.5 - fx), 0.75 - (fx - 1.0) * (fx - 1.0), 0.5 * (fx - 0.5) * (fx - 0.5) };
+    float sum = 0;
+    for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+    for (int k = 0; k < 3; k++)
+    {
+        int3 I = clamp(base + int3(i, j, k), 0, (int3)Dims - 1);
+        sum += wt[i].x * wt[j].y * wt[k].z * GridM[NodeIndex((uint3)I)].x;
+    }
+    uint vi = id.x + VoxDims.x * (id.y + VoxDims.y * id.z);
+    float v = sum / RestNodeMass;
+    // Keep the outermost voxels empty so the surface always closes.
+    if (any(id == 0) || any(id + 1 >= VoxDims)) v = 0;
+    Voxels[vi] = lerp(Voxels[vi], v, VoxBlend);
+}

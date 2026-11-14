@@ -28,7 +28,7 @@ public class MochiTestBench : MonoBehaviour
     public bool Finished { get; private set; }
     public string Phase { get; private set; } = "idle";
 
-    Mpm3DMarching sim;
+    IMochiSim sim;
     float[] xs;
     readonly List<Dictionary<string, object>> checkpoints = new();
     readonly List<string> notes = new();
@@ -40,7 +40,7 @@ public class MochiTestBench : MonoBehaviour
 
     void Start()
     {
-        sim = station.mochi;
+        sim = station.Sim;
         outDir = Path.Combine(Application.dataPath, "..", "Temp", "mochi_bench");
         Directory.CreateDirectory(outDir);
         parkKine = new Vector3(0.0f, 0.45f, 0.0f);

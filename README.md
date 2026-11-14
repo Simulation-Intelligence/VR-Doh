@@ -1,3 +1,45 @@
+# MochiPound
+
+A mixed-reality mochi-pounding game for Meta Quest 3. One player kneads virtual mochi with tracked hands while another swings a virtual kine (mallet) into the usu (mortar). The dough is a real-time particle simulation tuned to look like high-speed mochitsuki: it dents under a strike, follows the kine up into a tent, lets go, and falls back into a mound.
+
+This is a fork of [VR-Doh](https://github.com/Simulation-Intelligence/VR-Doh). The original VR-Doh README is kept below.
+
+## Status
+
+Work in progress on the `unity6-upgrade` branch. There are two ways to run it:
+
+| | Standalone (current direction) | Quest Link (legacy) |
+|---|---|---|
+| Scene | `Assets/Scenes/MochiStandalone.unity` | `Assets/Scenes/MochiPounding.unity` |
+| Dough solver | Unity compute shaders, no native plugins | Taichi AOT module on the PC GPU |
+| Runs on | Quest 3 by itself, or the Unity Editor | PC, with the headset over Link |
+
+The standalone solver works in the Editor. The Quest build has not been run on a headset yet, so on-device performance is unknown. The table of what works and what does not is in [AGENTS.md](AGENTS.md#target-behaviour).
+
+## Requirements
+
+- Unity 6000.6.9f1 with Android Build Support (for the standalone build)
+- Meta Quest 3
+- For the Editor: the Meta XR Simulator, or Quest Link
+- Optional command-line tools used throughout the docs: the Unity CLI (`unity`) and Meta's `metavr` (`npx -y metavr@latest`)
+
+## Quick start
+
+1. Clone and open the folder in Unity 6000.6.9f1. Ignore the "Problem detected while opening the Scene file" and missing `OVRVirtualKeyboard` messages; they come from the original project.
+2. Open `Assets/Scenes/MochiStandalone.unity`.
+3. Activate the simulator (`Window > Meta > Meta XR Simulator > Activate`) or connect over Link, then press Play. The usu appears in front of you with the mochi in it.
+4. Pinch the kine handle to pick it up and swing; pinch the usu rim to move the whole station. Open hands push the dough; a closed fist grips it.
+
+To build for the headset, see "Building for Quest" in [AGENTS.md](AGENTS.md#building-for-quest-standalone).
+
+## Working on it
+
+[AGENTS.md](AGENTS.md) is the developer guide: architecture, how the solver fakes the sticky-tent look, the test recorder, build steps and known problems. It is written so an AI coding agent can work from it directly; `CLAUDE.md` points Claude Code at the same file.
+
+---
+
+# Original project
+
 # VR-Doh: Hands-on 3D Modeling in Virtual Reality
 
 **ACM Transactions on Graphics (SIGGRAPH), 2025**
@@ -124,3 +166,4 @@ If you use VR-Doh in your research, please cite our paper:
   numpages = {12},
   keywords = {Virtual Reality, 3D Modeling, Elastoplasticity Simulation, Material Point Method, Human-Computer Interaction}
 }
+```

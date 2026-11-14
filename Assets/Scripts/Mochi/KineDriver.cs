@@ -72,7 +72,7 @@ public class KineDriver : MonoBehaviour
                 break;
             case Mode.AutoPound:
                 if (station == null) break;
-                float dt = station.mochi != null && station.mochi.LastFrameSimTime > 0f ? station.mochi.LastFrameSimTime : Time.deltaTime;
+                float dt = station.Sim != null && station.Sim.LastFrameSimTime > 0f ? station.Sim.LastFrameSimTime : Time.deltaTime;
                 phaseTime = (phaseTime + dt) % Mathf.Max(period, 0.5f);
                 float y = AutoPoundHeight(phaseTime);
                 Vector3 local = new Vector3(strikeOffset.x, station.FloorY + y, strikeOffset.y);
