@@ -14,7 +14,7 @@ Work in progress on the `unity6-upgrade` branch. There are two ways to run it:
 | Dough solver | Unity compute shaders, no native plugins | Taichi AOT module on the PC GPU |
 | Runs on | Quest 3 by itself, or the Unity Editor | PC, with the headset over Link |
 
-The standalone solver works in the Editor. The Quest build has not been run on a headset yet, so on-device performance is unknown. The table of what works and what does not is in [AGENTS.md](AGENTS.md#target-behaviour).
+The standalone build runs on a Quest 3 with passthrough and holds 72 fps with the dough at rest; performance during strikes and kneading has not been measured yet. The table of what works and what does not is in [AGENTS.md](AGENTS.md#target-behaviour).
 
 ## Requirements
 

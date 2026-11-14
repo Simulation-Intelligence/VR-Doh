@@ -89,3 +89,5 @@ Assets/GaussianAssets/
 Assets/NeRFImages/
 
 Exported3DModels/
+# Android native build scratch written by Unity
+/.utmp/
