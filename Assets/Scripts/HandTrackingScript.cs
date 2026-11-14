@@ -42,7 +42,7 @@ public class HandTrackingScript : MonoBehaviour
                 pinchCube();
                 foreach (var b in skeleton.Bones)
                 {
-                    if (b.Id == OVRSkeleton.BoneId.Hand_IndexTip)
+                    if (b.Id == HandBoneCompat.Map(skeleton, OVRSkeleton.BoneId.Hand_IndexTip))
                     {
                         handIndexTipTransform = b.Transform;
                         break;

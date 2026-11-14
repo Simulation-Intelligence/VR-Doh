@@ -36,6 +36,56 @@ public class Mpm3DMarching : MonoBehaviour
         _Kernel_copy_array_1dim1, _Kernel_copy_array_1dim3, _Kernel_copy_array_3dim1, _Kernel_copy_array_3dim3, _Kernel_copy_array_1dim1I, _Kernel_init_sample_gaussian_data, _Kernel_substep_update_dg,
         _Kernel_set_zero_1dim1, _Kernel_set_zero_1dim3,
         _Kernel_substep_squeeze_particles_circle, _Kernel_substep_squeeze_particles_square, _Kernel_substep_squeeze_particles_star;
+    // mochi-opt kernels (null when running an older .tcm; the original path is used then)
+    private Kernel _Kernel_substep_p2g_fused, _Kernel_substep_reset_grid_only, _Kernel_reset_marching, _Kernel_substep_apply_adhesion;
+
+    [Header("Performance / Mochi (mochi-opt)")]
+    [Tooltip("Use fused P2G+plasticity (1 SVD instead of 2 per particle per substep) and once-per-frame render-volume clear, when the AOT module provides them.")]
+    public bool use_optimized_kernels = true;
+    [Tooltip("Advance simulated time by the real frame time instead of a fixed frame_time, so the dough moves at real speed. dt is derived from the elastic wave speed.")]
+    public bool realtime_stepping = false;
+    [Tooltip("Simulated seconds per real second when realtime_stepping is on (1 = real time).")]
+    public float time_scale = 1.0f;
+    [Tooltip("Upper bound on substeps per frame in realtime mode; beyond this the sim falls back to slow motion instead of dropping frames.")]
+    public int max_substeps = 24;
+    [Tooltip("Mochi stickiness: fraction of the dough's separating velocity removed near the hand surface each substep (0 = off).")]
+    [Range(0f, 1f)]
+    public float adhesion = 0.0f;
+    [Tooltip("Thickness of the sticky band outside the hand surface, in grid cells.")]
+    public float adhesion_band_cells = 1.5f;
+    private int last_substep_count;
+    public int LastSubstepCount => last_substep_count;
+
+    // Starting point for a soft, plastic, slightly sticky dough that moves in real time.
+    // Apply in edit mode (component context menu) before pressing Play; tune on device.
+    // With these values dt ~7e-4 s, i.e. ~16 substeps/frame at 90 Hz and ~20 at 72 Hz on a 32^3 grid.
+    [ContextMenu("Apply Mochi Preset")]
+    public void ApplyMochiPreset()
+    {
+        renderType = RenderType.MarchingCubes;
+        render_n_grid = 96;
+        use_gaussian_acceleration = false;
+        use_unified_material = true;
+        plasticityType = PlasticityType.Von_Mises;
+        stressType = StressType.Kirchhoff;
+        _E = 3e5f;
+        _nu = 0.35f;
+        _SigY = 6e3f;      // yield at ~2.6% deviatoric strain: dents stay, small bounce-back
+        damping = 60f;
+        friction_k = 0.4f;
+        use_sticky_boundary = true;
+        use_optimized_kernels = true;
+        realtime_stepping = true;
+        time_scale = 1f;
+        max_dt = 2e-3f;
+        allowed_cfl = 0.5f;
+        max_substeps = 24;
+        adhesion = 0.6f;
+        adhesion_band_cells = 1.5f;
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
+    }
 
     public enum RenderType
     {
@@ -337,6 +387,13 @@ public class Mpm3DMarching : MonoBehaviour
             _Kernel_substep_squeeze_particles_circle = kernels["substep_squeeze_particles_circle"];
             _Kernel_substep_squeeze_particles_square = kernels["substep_squeeze_particles_square"];
             _Kernel_substep_squeeze_particles_star = kernels["substep_squeeze_particles_star"];
+
+            kernels.TryGetValue("substep_p2g_fused", out _Kernel_substep_p2g_fused);
+            kernels.TryGetValue("substep_reset_grid_only", out _Kernel_substep_reset_grid_only);
+            kernels.TryGetValue("reset_marching", out _Kernel_reset_marching);
+            kernels.TryGetValue("substep_apply_adhesion", out _Kernel_substep_apply_adhesion);
+            if (_Kernel_substep_p2g_fused == null)
+                UnityEngine.Debug.LogWarning("Mpm3DMarching: AOT module has no mochi-opt kernels; using the original kernel path.");
         }
 
         var cgraphs = Mpm3DModule.GetAllComputeGrpahs().ToDictionary(x => x.Name);
@@ -413,10 +470,45 @@ public class Mpm3DMarching : MonoBehaviour
 
     public void Init_Particle_Data()
     {
-        x = new NdArrayBuilder<float>().Shape(NParticles).ElemShape(3).HostWrite(true).Build();
+        // Keep particle state in device-local memory: HostRead/HostWrite allocations land in
+        // CPU-visible memory and every substep then crosses PCIe (measured ~14 ms per substep at 34k
+        // particles on an RTX 3080 Laptop). This path initialises particles with GPU kernels, so no
+        // host access is needed; ReadParticles goes through a separate staging copy.
+        x = new NdArrayBuilder<float>().Shape(NParticles).ElemShape(3).Build();
         v = new NdArrayBuilder<float>().Shape(NParticles).ElemShape(3).Build();
         C = new NdArrayBuilder<float>().Shape(NParticles).ElemShape(3, 3).Build();
         dg = new NdArrayBuilder<float>().Shape(NParticles).ElemShape(3, 3).Build();
+    }
+
+    private NdArray<float> x_readback;
+
+    public int ParticleCount => NParticles;
+    public float GridDx => dx;
+    /// <summary>Simulated seconds advanced since Start (sum of frame_time). Drive scripted tools with this so they stay in step with the physics.</summary>
+    public double SimTime { get; private set; }
+    /// <summary>Simulated seconds advanced by the most recent Update.</summary>
+    public float LastFrameSimTime { get; private set; }
+
+    /// <summary>
+    /// Snapshot particle positions for gameplay or tests.
+    /// Readback is two-phase because Taichi launches run on Unity's render thread:
+    /// call RequestParticleReadback(), let a frame pass, then ReadParticles() returns the snapshot.
+    /// </summary>
+    public bool RequestParticleReadback()
+    {
+        if (x == null || _Kernel_copy_array_1dim3 == null) return false;
+        x_readback ??= new NdArrayBuilder<float>().Shape(NParticles).ElemShape(3).HostRead(true).Build();
+        _Kernel_copy_array_1dim3.LaunchAsync(x, x_readback);
+        Runtime.Submit();
+        return true;
+    }
+
+    /// <summary>Copies the last requested snapshot (local unit-cube coordinates, xyz interleaved). Length must be ParticleCount*3.</summary>
+    public bool ReadParticles(float[] positions)
+    {
+        if (x_readback == null || positions == null || positions.Length != NParticles * 3) return false;
+        x_readback.CopyToArray(positions);
+        return true;
     }
 
     public void Init_Particle_Data_Gaussian()
@@ -631,6 +723,7 @@ public class Mpm3DMarching : MonoBehaviour
     }
     private void Dispose_particles()
     {
+        x_readback?.Dispose(); x_readback = null;
         x.Dispose();
         v.Dispose();
         C.Dispose();
@@ -754,7 +847,21 @@ public class Mpm3DMarching : MonoBehaviour
         else
         {
             // Simulation loop
-            float dt = max_dt, time_left = frame_time;
+            bool fused = use_optimized_kernels && _Kernel_substep_p2g_fused != null && _Kernel_substep_reset_grid_only != null;
+            float dt = max_dt;
+            if (realtime_stepping)
+            {
+                // Largest stable dt from the P-wave speed sqrt((lambda + 2 mu) / rho), capped by max_dt.
+                float wave_speed = Mathf.Sqrt(Mathf.Max(lambda + 2 * mu, 1e-6f) / Mathf.Max(p_rho, 1e-6f));
+                dt = Mathf.Min(max_dt, allowed_cfl * dx / wave_speed);
+                v_allowed = allowed_cfl * dx / dt;
+                frame_time = Mathf.Min(Time.deltaTime * time_scale, dt * Mathf.Max(1, max_substeps));
+                frame_time = Mathf.Max(frame_time, dt);
+            }
+            float time_left = frame_time;
+            last_substep_count = 0;
+            SimTime += frame_time;
+            LastFrameSimTime = frame_time;
 
             if (tools.Count > 0)
                 UpdateCapsules();
@@ -788,11 +895,24 @@ public class Mpm3DMarching : MonoBehaviour
             while (time_left > 0)
             {
                 time_left -= dt;
+                last_substep_count++;
 
-                _Kernel_subsetep_reset_grid.LaunchAsync(grid_v, grid_m, marching_m, boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
+                if (fused)
+                {
+                    // Grid-only clear; the render volume is cleared once per frame before substep_p2marching.
+                    _Kernel_substep_reset_grid_only.LaunchAsync(grid_v, grid_m);
+                    // P2G with plasticity folded in (replaces p2g_multi + apply_plasticity for the sim particles).
+                    _Kernel_substep_p2g_fused.LaunchAsync(x, v, C, dg, grid_v, grid_m, E, nu, material, p_vol, p_mass, SigY, alpha, min_clamp, max_clamp,
+                    dx, dt, use_unified_material == true ? 1 : 0,
+                    boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
+                }
+                else
+                {
+                    _Kernel_subsetep_reset_grid.LaunchAsync(grid_v, grid_m, marching_m, boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
 
-                _Kernel_substep_p2g_multi.LaunchAsync(x, v, C, dg, grid_v, grid_m, E, nu, material, p_vol, p_mass, dx, dt, use_unified_material == true ? 1 : 0,
-                boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
+                    _Kernel_substep_p2g_multi.LaunchAsync(x, v, C, dg, grid_v, grid_m, E, nu, material, p_vol, p_mass, dx, dt, use_unified_material == true ? 1 : 0,
+                    boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
+                }
                 if (renderType == RenderType.GaussianSplat && use_gaussian_acceleration)
                     _Kernel_substep_update_dg.LaunchAsync(x_gaussian, C_gaussian, dg_gaussian, dt, boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
 
@@ -808,6 +928,13 @@ public class Mpm3DMarching : MonoBehaviour
                      v_allowed, dt, n_grid, dx, bound, use_sticky_boundary == true ? 1 : 0, use_grid_force == true ? 1 : 0, use_standard_mpm_boundary == true ? 1 : 0, lerp_tool == true ? 1 : 0,
                      boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
                 }
+                if (adhesion > 0 && (tools.Count > 0 || matTools.Count > 0) && _Kernel_substep_apply_adhesion != null)
+                {
+                    // Sticky mochi: damp dough velocity that separates from the hand surface.
+                    _Kernel_substep_apply_adhesion.LaunchAsync(grid_v, grid_m, hand_sdf, obstacle_normals, obstacle_velocities,
+                     hand_sdf_last, obstacle_normals_last, obstacle_velocities_last, 1 - time_left / frame_time, adhesion, adhesion_band_cells * dx,
+                     boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
+                }
                 // else
                 //     _Kernel_substep_update_grid_v.LaunchAsync(grid_v, hand_sdf, obstacle_normals, obstacle_velocities,
                 //     g.x, g.y, g.z, colide_factor, damping, friction_k, v_allowed, dt, n_grid, dx, bound, use_sticky_boundary == true ? 1 : 0, use_grid_force == true ? 1 : 0, use_standard_mpm_boundary == true ? 1 : 0,
@@ -815,8 +942,9 @@ public class Mpm3DMarching : MonoBehaviour
 
 
                 _Kernel_substep_g2p.LaunchAsync(x, v, C, grid_v, dx, dt, boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
-                _Kernel_substep_apply_plasticity.LaunchAsync(dg, x, E, nu, material, SigY, alpha, min_clamp, max_clamp, use_unified_material == true ? 1 : 0,
-                 boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
+                if (!fused)
+                    _Kernel_substep_apply_plasticity.LaunchAsync(dg, x, E, nu, material, SigY, alpha, min_clamp, max_clamp, use_unified_material == true ? 1 : 0,
+                     boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
                 if (renderType == RenderType.GaussianSplat && use_gaussian_acceleration)
                 {
                     _Kernel_substep_g2p.LaunchAsync(x_gaussian, v_gaussian, C_gaussian, grid_v, dx, dt, boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
@@ -894,6 +1022,9 @@ public class Mpm3DMarching : MonoBehaviour
         }
         else if (renderType == RenderType.MarchingCubes)
         {
+            // When the optimized kernels are active the per-substep reset no longer clears marching_m.
+            if (use_optimized_kernels && _Kernel_reset_marching != null && _Kernel_substep_p2g_fused != null && _Kernel_substep_reset_grid_only != null)
+                _Kernel_reset_marching.LaunchAsync(marching_m);
             _Kernel_substep_p2marching.LaunchAsync(x, point_color, marching_m, p_mass, use_unified_material == true ? 1 : 0, boundary_min[0], boundary_max[0], boundary_min[1], boundary_max[1], boundary_min[2], boundary_max[2]);
             _Kernel_normalize_m.LaunchAsync(marching_m, max_density);
             marching_m.CopyToNativeBufferAsync(marching_m_computeBuffer.GetNativeBufferPtr());
@@ -1627,6 +1758,7 @@ public class Mpm3DMarching : MonoBehaviour
     public void Dispose()
     {
         x?.Dispose();
+        x_readback?.Dispose(); x_readback = null;
         v?.Dispose();
         C?.Dispose();
         dg?.Dispose();
@@ -1829,6 +1961,9 @@ public class Mpm3DMarching : MonoBehaviour
             rotateAxis_2 = pinchratio * pinchGesture_2.rotationSpeed * transform.InverseTransformDirection(pinchGesture_2.rotationAxis);
             radius_2 = pinchGesture_2.pinchRadius / transform.lossyScale.x;
         }
+        // Nothing rotating: the kernel would be a full-grid no-op, so skip the dispatch.
+        if (radius_1 <= 0 && radius_2 <= 0)
+            return;
         _Kernel_substep_apply_rotate_force_field_two_hands.LaunchAsync(grid_v, grid_m,
             rotatePosition_1.x, rotatePosition_1.y, rotatePosition_1.z, radius_1, rotateAxis_1.x, rotateAxis_1.y, rotateAxis_1.z,
             rotatePosition_2.x, rotatePosition_2.y, rotatePosition_2.z, radius_2, rotateAxis_2.x, rotateAxis_2.y, rotateAxis_2.z,

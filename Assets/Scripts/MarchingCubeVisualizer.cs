@@ -47,8 +47,8 @@ namespace MarchingCubes
 
         public void OnDestroy()
         {
-            _voxelBuffer.Dispose();
-            _builder.Dispose();
+            _voxelBuffer?.Dispose();
+            _builder?.Dispose();
         }
 
         void Update()

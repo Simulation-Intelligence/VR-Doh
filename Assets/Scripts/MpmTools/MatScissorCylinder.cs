@@ -73,7 +73,7 @@ public class MatScissorCylinder : MatTool
             foreach (var bone in oculus_skeleton.Bones)
             {
 
-                if (bone.Id == (OVRSkeleton.BoneId)Enum.Parse(typeof(OVRSkeleton.BoneId), jointId1))
+                if (bone.Id == HandBoneCompat.Map(oculus_skeleton, (OVRSkeleton.BoneId)Enum.Parse(typeof(OVRSkeleton.BoneId), jointId1)))
                 {
 
                     transform1.position = bone.Transform.position;
@@ -81,7 +81,7 @@ public class MatScissorCylinder : MatTool
                     transform1.localScale = transform.localScale;
                     //
                 }
-                if (bone.Id == (OVRSkeleton.BoneId)Enum.Parse(typeof(OVRSkeleton.BoneId), jointId2))
+                if (bone.Id == HandBoneCompat.Map(oculus_skeleton, (OVRSkeleton.BoneId)Enum.Parse(typeof(OVRSkeleton.BoneId), jointId2)))
                 {
 
                     transform2.position = bone.Transform.position;

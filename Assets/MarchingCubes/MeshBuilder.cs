@@ -53,9 +53,7 @@ namespace MarchingCubes
 
     void RunCompute(ComputeBuffer voxels, float target, float scale)
     {
-      _vertexCounterBuffer.SetCounterValue(0);
-      _triangleCounterBuffer.SetCounterValue(0);
-      _counterBuffer.SetCounterValue(0);
+      _countersBuffer.SetData(s_ZeroCounters);
 
       //initialize vertex mapping buffer
       if (_smoothingIterations > 0)
@@ -88,9 +86,7 @@ namespace MarchingCubes
       _compute.SetBuffer(kernel, "Voxels", voxels);
       _compute.SetBuffer(kernel, "VertexBuffer", _vertexBuffer);
       _compute.SetBuffer(kernel, "IndexBuffer", _indexBuffer);
-      _compute.SetBuffer(kernel, "VertexCounter", _vertexCounterBuffer);
-      _compute.SetBuffer(kernel, "TriangleCounter", _triangleCounterBuffer);
-      _compute.SetBuffer(kernel, "Counter", _counterBuffer);
+      _compute.SetBuffer(kernel, "Counters", _countersBuffer);
       _compute.SetBuffer(kernel, "VertexMapping", _vertexMappingBuffer);
       _compute.SetBuffer(kernel, "AdjacencyList", _adjacencyListBuffer);
       _compute.SetBuffer(kernel, "NeighborCount", _neighborCountBuffer);
@@ -101,13 +97,13 @@ namespace MarchingCubes
         // Clear unused area of the buffers.
         _compute.SetBuffer(kernel, "VertexBuffer", _vertexBuffer);
         _compute.SetBuffer(kernel, "IndexBuffer", _indexBuffer);
-        _compute.SetBuffer(kernel, "VertexCounter", _vertexCounterBuffer);
+        _compute.SetBuffer(kernel, "Counters", _countersBuffer);
         _compute.DispatchThreads(kernel, 1024, 1, 1);
 
         kernel = _compute.FindKernel("ClearUnusedTriangles");
         _compute.SetBuffer(kernel, "IndexBuffer", _indexBuffer);
-        _compute.SetBuffer(kernel, "TriangleCounter", _triangleCounterBuffer);
-        _compute.DispatchThreads(2, 1024, 1, 1);
+        _compute.SetBuffer(kernel, "Counters", _countersBuffer);
+        _compute.DispatchThreads(kernel, 1024, 1, 1);
 
         // Laplacian smoothing
         LaplacianSmoothing(_smoothingIterations);
@@ -117,7 +113,7 @@ namespace MarchingCubes
         kernel = _compute.FindKernel("ClearUnused");
         _compute.SetBuffer(kernel, "VertexBuffer", _vertexBuffer);
         _compute.SetBuffer(kernel, "IndexBuffer", _indexBuffer);
-        _compute.SetBuffer(kernel, "Counter", _counterBuffer);
+        _compute.SetBuffer(kernel, "Counters", _countersBuffer);
         _compute.DispatchThreads(kernel, 1024, 1, 1);
       }
 
@@ -145,11 +141,9 @@ namespace MarchingCubes
     #region Compute buffer objects
 
     ComputeBuffer _triangleTable;
-    ComputeBuffer _vertexCounterBuffer;
-
-    ComputeBuffer _counterBuffer;
-
-    ComputeBuffer _triangleCounterBuffer;
+    // [0] vertex count, [1] triangle count, [2] generic count (see MarchingCubes.compute)
+    ComputeBuffer _countersBuffer;
+    static readonly uint[] s_ZeroCounters = new uint[3];
 
     ComputeBuffer _vertexMappingBuffer;
 
@@ -167,9 +161,7 @@ namespace MarchingCubes
       _triangleTable.SetData(PrecalculatedData.TriangleTable);
 
       // Buffer for triangle counting
-      _vertexCounterBuffer = new ComputeBuffer(1, 4, ComputeBufferType.Counter);
-      _triangleCounterBuffer = new ComputeBuffer(1, 4, ComputeBufferType.Counter);
-      _counterBuffer = new ComputeBuffer(1, 4, ComputeBufferType.Counter);
+      _countersBuffer = new ComputeBuffer(3, 4);
 
 
       // Buffer for vertex mapping
@@ -187,8 +179,7 @@ namespace MarchingCubes
     void ReleaseBuffers()
     {
       _triangleTable.Dispose();
-      _vertexCounterBuffer.Dispose();
-      _triangleCounterBuffer.Dispose();
+      _countersBuffer.Dispose();
       _vertexMappingBuffer.Dispose();
       _adjacencyListBuffer.Dispose();
       _neighborCountBuffer.Dispose();

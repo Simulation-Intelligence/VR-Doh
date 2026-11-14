@@ -255,7 +255,7 @@ namespace GLTFast.Export
             if (renderPipeline == RenderPipeline.HighDefinition) {
                 lightHd = uLight.gameObject.GetComponent<HDAdditionalLightData>();
                 if (lightHd!=null && lightHd.type == HDLightType.Area) {
-                    lightType = LightType.Area;
+                    lightType = LightType.Rectangle;
                 }
             }
 #endif
@@ -276,7 +276,7 @@ namespace GLTFast.Export
                 case LightType.Point:
                     light.SetLightType(LightPunctual.Type.Point);
                     break;
-                case LightType.Area:
+                case LightType.Rectangle:
                 case LightType.Disc:
                 default:
                     light.SetLightType(LightPunctual.Type.Spot);

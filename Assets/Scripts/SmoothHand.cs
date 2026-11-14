@@ -111,16 +111,16 @@ public class SmoothHand : MonoBehaviour
         }
         else if (oculus_hand.IsTracked && oculus_hand.HandConfidence == OVRHand.TrackingConfidence.High)
         {
-            int numBones = oculus_skeleton.Bones.Count;
+            // Drive the 24 legacy-OVR-rigged joints, whatever skeleton version the runtime reports
+            // (Meta XR SDK v74+ defaults to the 26-joint OpenXR skeleton).
+            int numBones = Mathf.Min(positionQueue.Count, HandBoneCompat.LegacyBoneCount);
             float currentTime = Time.time;
 
             for (int i = 0; i < numBones; i++)
             {
-                OVRBone bone = oculus_skeleton.Bones[i];
-
                 // Update queue data
-                Vector3 newPosition = bone.Transform.position;
-                Quaternion newRotation = bone.Transform.rotation;
+                if (!HandBoneCompat.TryGetLegacyPose(oculus_skeleton, i, out Vector3 newPosition, out Quaternion newRotation))
+                    continue;
                 switch (movingAverage)
                 {
                     case MovingAverage.Simple or MovingAverage.Weighted:

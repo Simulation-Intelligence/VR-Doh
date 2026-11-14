@@ -1302,7 +1302,7 @@ class UIManager : MonoBehaviour
 
             foreach (var b in oculus_skeletons[1].Bones)
             {
-                if (b.Id == OVRSkeleton.BoneId.Hand_ThumbTip)
+                if (b.Id == HandBoneCompat.Map(oculus_skeletons[1], OVRSkeleton.BoneId.Hand_ThumbTip))
                 {
                     handThumbTipPosition = b.Transform.position;
                     break;
@@ -1459,7 +1459,7 @@ class UIManager : MonoBehaviour
             Vector3 handThumbTipPosition = Vector3.zero;
             foreach (var b in oculus_skeletons[1].Bones)
             {
-                if (b.Id == OVRSkeleton.BoneId.Hand_ThumbTip)
+                if (b.Id == HandBoneCompat.Map(oculus_skeletons[1], OVRSkeleton.BoneId.Hand_ThumbTip))
                 {
                     handThumbTipPosition = b.Transform.position;
                     break;
