@@ -53,7 +53,8 @@ namespace MoonRabbit.World
         {
             progress = GetComponent<MoonProgress>();
             Synthesize();
-            bool spatial = !string.IsNullOrEmpty(AudioSettings.GetSpatializerPluginName());
+            EnsureListener();
+            bool spatial = SpatializerLoaded(out string spatializer);
             for (int i = 0; i < voices; i++)
             {
                 var go = new GameObject("MR_StorySound_" + i);
@@ -71,8 +72,53 @@ namespace MoonRabbit.World
             }
         }
 
+        /// <summary>
+        /// True only when the project's spatializer is actually available in this player. The AudioManager may name
+        /// one (e.g. "Meta XR Audio") whose package is not installed: a source with spatialize = true then plays silence
+        /// on Quest, so we fall back to Unity's own 3D panning.
+        /// </summary>
+        static bool SpatializerLoaded(out string name)
+        {
+            name = AudioSettings.GetSpatializerPluginName() ?? "";
+            if (string.IsNullOrEmpty(name)) return false;
+            try
+            {
+                var available = AudioSettings.GetSpatializerPluginNames();
+                if (available == null) return false;
+                foreach (var a in available) if (a == name) return true;
+            }
+            catch (Exception) { }
+            return false;
+        }
+
+        /// <summary>Adds an AudioListener to the main camera only if the scene has none at all (never a second one).</summary>
+        static void EnsureListener()
+        {
+            if (FindObjectsByType<AudioListener>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Length > 0) return;
+            var cam = Camera.main;
+            if (cam == null) return;
+            cam.gameObject.AddComponent<AudioListener>();
+            Debug.Log("[Moon Rabbit] Audio: no AudioListener in the scene, added one to " + cam.name);
+        }
+
+        void LogAudio()
+        {
+            var listeners = FindObjectsByType<AudioListener>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            SpatializerLoaded(out string sp);
+            string avail = "";
+            try { avail = string.Join("|", AudioSettings.GetSpatializerPluginNames() ?? new string[0]); } catch (Exception) { }
+            var a = pool.Count > 0 ? pool[0] : null;
+            Debug.Log($"[Moon Rabbit] Audio: listeners={listeners.Length}{(listeners.Length > 0 ? " on " + listeners[0].name : "")} " +
+                      $"spatializer='{sp}' available='{avail}' spatialize={(a != null && a.spatialize)} " +
+                      $"listenerPause={AudioListener.pause} listenerVolume={AudioListener.volume:F2} " +
+                      $"enabled={soundsEnabled} text={textSounds} progress={progressSounds} textVol={textVolume:F2} sfxVol={progressSfxVolume:F2} " +
+                      (a != null ? $"source: mute={a.mute} blend={a.spatialBlend} min={a.minDistance} max={a.maxDistance} prio={a.priority} " : "") +
+                      $"sampleRate={AudioSettings.outputSampleRate} speakerMode={AudioSettings.speakerMode}");
+        }
+
         void Start()
         {
+            LogAudio();
             progress.onChanged.AddListener(OnProgress);
             progress.onMilestone.AddListener(OnMilestone);
             lastValue = progress.Value;
