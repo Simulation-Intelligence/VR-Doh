@@ -30,13 +30,30 @@ namespace MoonRabbit.World
         [Tooltip("Lines longer than this many characters wrap onto two lines.")]
         public int wrapAt = 44;
         public Material fadeMaterial;
+        [Tooltip("MoonRabbit/GlassPanel: frosted-glass panel behind the lines (styles with panel on).")]
+        public Material panelMaterial;
+        [Header("Hanji scroll (the lines are written on it)")]
+        [Tooltip("Unrolls once at the start of the intro, the lines rise and drift on it, rolls up after the last line.")]
+        public bool scroll = true;
+        public Material scrollMaterial;
+        [Tooltip("Material of the small \"Skip intro\" hint under the scroll (the sky-style text material).")]
+        public Material hintMaterial;
+        public float scrollOpenTime = 0.75f;
+        public float scrollCloseTime = 0.9f;
+        [Tooltip("Emphasised letters brighten towards this at the top of the swell (on paper: a warm gold, not white).")]
+        public Color swellBrightColor = new Color(1f, 0.84f, 0.47f);
+        [Header("Last line (instruction) swell")]
+        [Tooltip("Scale at the top of the slow swell once the line has risen, and the swell's length up and down (s). " +
+                 "Reading time counts after it.")]
+        public float instructionSwellScale = 1.2f;
+        public float instructionSwellTime = 1.8f;
         [Header("Text styles")]
         [Tooltip("Story lines: Cinzel SemiBold, soft warm white, a little extra letter and line spacing (Cinzel's capitals " +
                  "and small capitals look alike, spacing reads better in VR).")]
         public StoryTextStyle narration = new StoryTextStyle
         {
             color = new Color(0.97f, 0.95f, 0.9f), letterHeight = 0.1f, characterSpacing = 6f, lineSpacing = 28f,
-            glowIntensity = 0.16f, rise = true,
+            glowIntensity = 0.16f, rise = true, halo = false, panel = true,
         };
         [Tooltip("Lines that tell the player what to do (start a line with '!'): Cinzel Black, moon gold, 1.2x, one pulse.")]
         public StoryTextStyle instruction = new StoryTextStyle
@@ -50,6 +67,12 @@ namespace MoonRabbit.World
         public Color descentColor = new Color(0.8f, 0.86f, 1f);
 
         public bool Playing { get; private set; }
+        /// <summary>True when the current / last intro was skipped (trigger / A / Space).</summary>
+        public bool WasSkipped => skip;
+        IntroScroll scrollObj;
+        bool instructionShowing;
+        /// <summary>Fired when an intro actually starts (launch, every reset path), with the screen at full black.</summary>
+        public event System.Action Started;
 
         MoonStory story;
         MoonProgress progress;
@@ -98,6 +121,8 @@ namespace MoonRabbit.World
             if (Time.frameCount == lastPlayFrame) return; // two triggers in one frame start it only once
             lastPlayFrame = Time.frameCount;
             if (running != null) { StopCoroutine(running); running = null; }
+            if (scrollObj != null) scrollObj.HideNow();
+            instructionShowing = false;
             if (sounds != null) sounds.StopTextSounds();
             // a restarted intro never leaves the previous line on screen
             if (narrationText != null) narrationText.SetAlpha(0f);
@@ -115,15 +140,33 @@ namespace MoonRabbit.World
             introStart = Time.time;
             skip = false;
             progress.IntroActive = true;
+            progress.MarkIntroStart();
             story.EarthBrightness = 0f;
             EnsureFade(cam.transform);
             SetFade(1f);
+            Started?.Invoke();
             SpawnStars(cam.transform);
-            if (narrationText == null) narrationText = StoryText.Create(transform, "MR_IntroText", narration, story.TextHalo, story.quadMesh);
+            if (narrationText == null) narrationText = StoryText.Create(transform, "MR_IntroText", narration, story.TextHalo, story.quadMesh, panelMaterial);
             text = narrationText;
             // world-fixed: placed once in front of the head, facing the Moon side of the garden
             yield return null; // let the head pose settle for a frame
             narrationText.PlaceInFront(cam.transform, story.textDistance, story.textAboveEyes);
+            narrationText.brightColor = swellBrightColor;
+            if (scroll && scrollMaterial != null)
+            {
+                if (scrollObj == null) scrollObj = IntroScroll.Create(transform, scrollMaterial, story.quadMesh, narration.font, hintMaterial);
+                // one size for the whole intro: the longest line (with the last line's swell)
+                var longest = Vector2.zero;
+                foreach (var l in lines)
+                {
+                    string r = l.StartsWith("!") ? "[" + l.Substring(1) + "]" : l;
+                    var m = narrationText.Measure(Emphasise(r, out _));
+                    if (r.Contains("[")) m *= instructionSwellScale;
+                    longest = Vector2.Max(longest, m);
+                }
+                scrollObj.Setup(narrationText.transform, longest, narrationText.FontSize * 0.45f);
+                scrollObj.Open(scrollOpenTime);
+            }
 
             introStart = Time.time;
             for (int idx = 0; idx < lines.Length && !skip; idx++)
@@ -137,8 +180,11 @@ namespace MoonRabbit.World
                 bool isInstruction = raw.Contains("[");
                 text = narrationText;
                 text.maxReveal = maxRevealTime;
+                text.bouncePeak = instructionSwellScale;
+                text.bounceTime = instructionSwellTime;
                 string rich = Emphasise(raw, out int from);
                 text.SetText(rich, from);
+                instructionShowing = isInstruction;
                 // a soft chime from the text, so it is heard (and located) even when looking elsewhere;
                 // the instruction line rings at its bounce
                 if (sounds != null) sounds.PlayIntroLine(text.transform.position, idx, isInstruction, isInstruction ? text.RevealDuration : 0.1f);
@@ -146,7 +192,7 @@ namespace MoonRabbit.World
                 progress.onIntroLine.Invoke(idx + 1);
 
                 // reading time counts from when the whole line has risen
-                float hold = text.RevealDuration + (isInstruction ? holdTime + 0.6f : holdTime);
+                float hold = text.RevealDuration + text.EmphasisDuration + (isInstruction ? holdTime + 0.6f : holdTime);
                 float t = 0f;
                 while (!skip && t < hold) { t += Time.deltaTime; yield return null; }
                 if (skip) break;
@@ -156,6 +202,20 @@ namespace MoonRabbit.World
                 float exit = text.ExitDuration;
                 while (!skip && t < exit) { t += Time.deltaTime; yield return null; }
                 text.SetAlpha(0f);
+            }
+
+            // the scroll rolls up after the last line (its swell and reading time are over); a skip just fades it
+            instructionShowing = false;
+            if (scrollObj != null && scrollObj.gameObject.activeSelf)
+            {
+                if (skip) scrollObj.Fade(0.25f);
+                else
+                {
+                    scrollObj.Close(scrollCloseTime);
+                    float w = 0f;
+                    while (!skip && w < scrollCloseTime) { w += Time.deltaTime; yield return null; }
+                    if (skip) scrollObj.Fade(0.2f);
+                }
             }
 
             // end (or skipped): clear text at once, fade out whatever else is showing
@@ -181,6 +241,11 @@ namespace MoonRabbit.World
 
         void LateUpdate()
         {
+            if (scrollObj != null)
+            {
+                scrollObj.CloudGlow = instructionShowing && narrationText != null ? 0.45f + 1.3f * narrationText.SwellNow : 0f;
+                if (skip) scrollObj.HideHint();
+            }
             // black fade-in and the drifting stars run on their own clock while the lines play
             if (!Playing || skip) return;
             float t = Time.time - introStart;

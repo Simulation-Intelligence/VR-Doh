@@ -112,6 +112,22 @@ namespace MoonRabbit.WorldEditor
         public bool moonFollowsProgress = true;
         [Tooltip("Intro (fade in, four story lines, about 13 s, skippable) on start and after every reset.")]
         public bool storyIntro = true;
+        [Tooltip("Intro starts in the real room (passthrough) with only the usu, dough and kine; a round portal opens around the usu " +
+                 "and the Moon garden spreads out. Off: the intro starts in the garden. Needs storyIntro.")]
+        public bool passthroughIntro = true;
+        [Tooltip("Seconds for the portal to open.")]
+        [Range(1f, 8f)] public float passthroughRevealTime = 3.5f;
+        [Tooltip("When the portal opens: as intro line 1-4 appears, or after the last line has gone (default).")]
+        public PortalReveal passthroughRevealAt = PortalReveal.AfterLastLine;
+        public enum PortalReveal { Line1 = 1, Line2 = 2, Line3 = 3, Line4 = 4, AfterLastLine = 0 }
+        [Tooltip("Intro lines written in ink on a hanji handscroll that unrolls once and rolls up after the last line, with " +
+                 "gold cloud corners and a small skip hint. Off: the lines float on their own (sky style).")]
+        public bool introScroll = true;
+        [Range(0.2f, 1f)] public float introScrollOpacity = 0.62f;
+        [Header("Intro last line swell")]
+        [Tooltip("Slow swell of \"Pound the mochi. Light the Moon.\" once it has risen: peak scale and length up and down (s).")]
+        [Range(1f, 1.5f)] public float introSwellScale = 1.2f;
+        [Range(0.4f, 4f)] public float introSwellTime = 1.8f;
         [Tooltip("Demo: putting the headset back on after it was off for headsetRestartMinSeconds restarts from the intro.")]
         public bool headsetRestart = true;
         [Header("Story sounds (synthesized unless a clip is set)")]

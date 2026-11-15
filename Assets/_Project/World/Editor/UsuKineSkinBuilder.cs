@@ -45,7 +45,10 @@ namespace MoonRabbit.WorldEditor
         {
             const int N = 32;
             float R = s.usuOuterRadius, b = s.usuBase, top = s.usuBase + s.usuDepth;
-            float rt = Facet(s.usuInnerTop, N), rb = Facet(s.usuInnerBottom, N);
+            // The visible bowl sits a little outside the solver's cone (and below its floor): the dough's surface hugs the
+            // cone, and a wall exactly on it z-fights with the dough (two materials flickering at the rim on Quest).
+            const float WallGap = 0.008f, FloorGap = 0.006f;
+            float rt = Facet(s.usuInnerTop + WallGap, N), rb = Facet(s.usuInnerBottom + WallGap, N);
             float Ro = Facet(R, N);
             var mb = new MeshBuilder(4); // 0 wood, 1 end grain (rim top), 2 grain ring, 3 pink band
 
@@ -70,12 +73,12 @@ namespace MoonRabbit.WorldEditor
             mb.Lathe(new[] { new Vector2(ringB, top), new Vector2(ringA, top) }, N, 2);
             mb.Lathe(new[] { new Vector2(ringA, top), new Vector2(rimIn, top) }, N, 1);
 
-            // Inner wall = the solver's cone (rim inner chamfer sits just outside it), then the floor.
+            // Inner wall = the solver's cone pushed out by WallGap (rim inner chamfer just outside it), then the floor.
             mb.Lathe(new[]
             {
                 new Vector2(rimIn, top), new Vector2(rt, top - 0.004f),
                 new Vector2(Mathf.Lerp(rb, rt, 0.5f), b + s.usuDepth * 0.5f),
-                new Vector2(rb, b), new Vector2(0f, b),
+                new Vector2(rb, b - FloorGap), new Vector2(0f, b - FloorGap),
             }, N, 0);
 
             // Pink rope band around the waist (as on the kit mortar).

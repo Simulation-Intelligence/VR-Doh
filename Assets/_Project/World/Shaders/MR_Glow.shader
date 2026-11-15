@@ -1,5 +1,9 @@
 // Additive, fog-free halo quad (Moon glow, Earth atmosphere, lantern glow).
 // Cheap replacement for bloom. Single-pass-instanced stereo safe.
+// Colour only (ColorMask RGB, alpha 0): the halo never touches the eye buffer's alpha. Passthrough is an underlay
+// composited with that alpha, so an additive alpha of 1 per quad (2+ where halos overlap in the FP16 HDR target)
+// showed as a dark / black square around the flying mochi and other halos on Quest; over passthrough (alpha 0) the
+// glow now simply adds light.
 Shader "MoonRabbit/Glow"
 {
     Properties
@@ -12,6 +16,7 @@ Shader "MoonRabbit/Glow"
     {
         Tags { "RenderType"="Transparent" "Queue"="Transparent" "IgnoreProjector"="True" }
         Blend One One
+        ColorMask RGB
         ZWrite Off
         Cull Off
         Pass
@@ -56,7 +61,7 @@ Shader "MoonRabbit/Glow"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 fixed mask = tex2D(_MainTex, i.uv).r;
-                return fixed4(_Color.rgb * mask * _Intensity, 1);
+                return fixed4(_Color.rgb * mask * _Intensity, 0);
             }
             ENDCG
         }

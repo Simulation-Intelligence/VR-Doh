@@ -126,6 +126,7 @@ namespace MoonRabbit.World
         {
             color = new Color(1f, 0.96f, 0.88f), letterHeight = 0.28f, characterSpacing = 2f,
             glowColor = new Color(1f, 0.76f, 0.4f), glowIntensity = 0.6f, rise = false, breathe = true,
+            halo = false, // letters only: no quad behind "Happy Chuseok, Earth!" (the font's own soft gold glow stays)
         };
         [Tooltip("Ending line height relative to the eyes (m): at eye level it stays below the Moon, the Earth and the wish lights.")]
         public float endingAboveEyes = 0f;
@@ -473,8 +474,12 @@ namespace MoonRabbit.World
             }
         }
 
+        /// <summary>Set by PassthroughIntro while the player is still in their room: the garden's glows are not drawn.</summary>
+        public static bool GardenHidden;
+
         public void DrawHalos(Material m, Matrix4x4[] mats, int count, float intensity)
         {
+            if (GardenHidden) return;
             if (m == null || quadMesh == null || count <= 0) return;
             m.SetFloat("_Intensity", intensity);
             var rp = new RenderParams(m)

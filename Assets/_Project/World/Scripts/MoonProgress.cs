@@ -66,6 +66,61 @@ namespace MoonRabbit.World
         [Tooltip("Right controller A (+1/N, hold 1 s = reset) and keyboard P / R / F.")]
         public bool demoControls = true;
         public float holdToReset = 1f;
+        [Tooltip("Intro skip: presses in the first seconds of the intro are ignored (s).")]
+        public float skipGuardSeconds = 1.5f;
+        [Tooltip("Intro skip with hand tracking: an index-thumb pinch held this long (s).")]
+        public float pinchHoldSeconds = 0.3f;
+        float introSince = -100f, pinchSince = -1f;
+        bool introWasActive;
+
+        // Meta SDK hands (OVRHand.GetFingerIsPinching(Index)), found by reflection so the kit compiles without it
+        static System.Type ovrHandType;
+        static System.Reflection.MethodInfo pinchMethod;
+        static System.Reflection.PropertyInfo trackedProp;
+        static object indexFinger;
+        static bool ovrLookedUp;
+        UnityEngine.Object[] hands;
+        float handsFoundAt = -100f;
+
+        /// <summary>Called by the intro when it (re)starts: the skip guard counts from here.</summary>
+        public void MarkIntroStart() { introSince = Time.unscaledTime; pinchSince = -1f; }
+
+        bool AnyHandPinching()
+        {
+            if (!ovrLookedUp)
+            {
+                ovrLookedUp = true;
+                foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    ovrHandType = a.GetType("OVRHand", false);
+                    if (ovrHandType != null) break;
+                }
+                if (ovrHandType != null)
+                {
+                    var fingerType = ovrHandType.GetNestedType("HandFinger");
+                    pinchMethod = fingerType != null ? ovrHandType.GetMethod("GetFingerIsPinching", new[] { fingerType }) : null;
+                    trackedProp = ovrHandType.GetProperty("IsTracked");
+                    if (fingerType != null) indexFinger = System.Enum.Parse(fingerType, "Index");
+                }
+            }
+            if (pinchMethod == null) return false;
+            if (hands == null || Time.unscaledTime - handsFoundAt > 2f)
+            {
+                hands = FindObjectsByType(ovrHandType, FindObjectsSortMode.None);
+                handsFoundAt = Time.unscaledTime;
+            }
+            try
+            {
+                foreach (var h in hands)
+                {
+                    if (h == null || !(h is Behaviour b) || !b.isActiveAndEnabled) continue;
+                    if (trackedProp != null && !(bool)trackedProp.GetValue(h)) continue;
+                    if ((bool)pinchMethod.Invoke(h, new[] { indexFinger })) return true;
+                }
+            }
+            catch (System.Exception) { pinchMethod = null; } // API changed: no pinch skip
+            return false;
+        }
 
         float aDownTime = -1f;
         bool aWasDown, holdFired, triggerWasDown;
@@ -150,9 +205,13 @@ namespace MoonRabbit.World
             var right = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
             if (right.isValid) right.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out aDown);
 
+            if (IntroActive && !introWasActive) { introSince = Time.unscaledTime; pinchSince = -1f; }
+            introWasActive = IntroActive;
             if (IntroActive)
             {
-                // During the intro: trigger (either hand), A or Space skips it; the press is swallowed.
+                // During the intro: trigger (either hand), A, Space, or (hand tracking) an index-thumb pinch held
+                // pinchHoldSeconds skips it; the press is swallowed. Nothing counts for skipGuardSeconds after the
+                // intro starts (no accidental skip from a press carried over from launch or the reset).
                 bool trig = false, trigL = false;
                 if (right.isValid) right.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out trig);
                 var left = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
@@ -166,7 +225,13 @@ namespace MoonRabbit.World
 #endif
                 bool anyNew = (aDown && !aWasDown) || ((trig || trigL) && !triggerWasDown) || key;
                 triggerWasDown = trig || trigL;
-                if (anyNew) SkipIntroRequested?.Invoke();
+                bool guard = Time.unscaledTime - introSince < skipGuardSeconds;
+                bool pinch = AnyHandPinching();
+                if (!pinch || guard) pinchSince = -1f;
+                else if (pinchSince < 0f) pinchSince = Time.unscaledTime;
+                bool pinchSkip = pinchSince >= 0f && Time.unscaledTime - pinchSince >= pinchHoldSeconds;
+                if (pinchSkip) pinchSince = float.MaxValue; // once per pinch
+                if (!guard && (anyNew || pinchSkip)) SkipIntroRequested?.Invoke();
                 if (aDown) holdFired = true; // swallow this A press
                 aWasDown = aDown;
                 return;

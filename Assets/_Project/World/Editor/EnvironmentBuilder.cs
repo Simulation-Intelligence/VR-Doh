@@ -710,9 +710,11 @@ namespace MoonRabbit.WorldEditor
             gp.lanternStands = stands.ToArray();
             gp.lanternPoints = lanternPoints.ToArray();
 
-            // wind chime hanging from the cassia tree (pivot = top), swaying a little
+            // wind chime hanging from the front edge of the cassia canopy, on the player's side (pivot = top, just under the
+            // lowest leaves there), out of the canopy's shade so the moonlight and the warm lights reach it; its middle is a
+            // little above eye height seen from the start position. Sways a little.
             var chime = PlaceTeamProp(s, group.transform, "03_Bamboo_Wind_Chime",
-                                      s.treePosition + new Vector3(-0.75f, s.treeHeight * 0.66f, -0.65f), 0f, false, false);
+                                      s.treePosition + new Vector3(-1.0f, s.treeHeight * 0.79f, -1.6f), 0f, false, false);
             if (chime != null) gp.chimes = new[] { chime.transform };
 
             // bench with basket behind the clearing's left side, sign beside the start of the stepping-stone path
@@ -912,10 +914,38 @@ namespace MoonRabbit.WorldEditor
 
             var intro = go.AddComponent<StoryIntro>();
             intro.playIntro = s.storyIntro;
+            intro.instructionSwellScale = s.introSwellScale;
+            intro.instructionSwellTime = s.introSwellTime;
+            intro.narration.halo = false;
+            intro.narration.panel = false; // glass panel kept as an option; the hanji scroll replaces it
+            intro.scroll = s.introScroll;
+            story.endingStyle.halo = false;
+            var scrollShader = Shader.Find("MoonRabbit/HanjiScroll");
+            if (scrollShader != null)
+            {
+                var sm = MRAssets.GetMaterial($"{G}/Materials/MR_HanjiScroll.mat", scrollShader);
+                sm.SetFloat("_Opacity", s.introScrollOpacity);
+                EditorUtility.SetDirty(sm);
+                intro.scrollMaterial = sm;
+            }
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/HanjiScroll shader missing (Assets/_Project/World/Shaders).");
+            var glassShader = Shader.Find("MoonRabbit/GlassPanel");
+            if (glassShader != null) intro.panelMaterial = MRAssets.GetMaterial($"{G}/Materials/MR_GlassPanel.mat", glassShader);
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/GlassPanel shader missing (Assets/_Project/World/Shaders).");
 #if MR_TMP
             var fonts = StoryFontBuilder.Build();
             intro.narration.font = fonts.intro; intro.narration.material = fonts.introMat;
             intro.instruction.font = fonts.instruction; intro.instruction.material = fonts.instructionMat;
+            intro.hintMaterial = fonts.introMat; // the skip hint floats under the scroll: sky look
+            if (s.introScroll && fonts.introInkMat != null)
+            {
+                // ink on paper: dark letters, gold instruction with a dark outline, no glow
+                intro.narration.material = fonts.introInkMat;
+                intro.narration.color = new Color(0.09f, 0.09f, 0.15f);
+                intro.instruction.color = new Color(0.98f, 0.77f, 0.3f);
+                if (fonts.instruction != null) StoryFontBuilder.InkStyle(fonts.instruction.material, fonts.instruction);
+            }
+            else if (fonts.instruction != null) StoryFontBuilder.SkyStyleInstruction(fonts.instruction);
             story.endingStyle.font = fonts.ending; story.endingStyle.material = fonts.endingMat;
 #endif
             var fadeShader = Shader.Find("MoonRabbit/ScreenFade");
@@ -927,6 +957,19 @@ namespace MoonRabbit.WorldEditor
                 intro.fadeMaterial = fm;
             }
             else Debug.LogError("[Moon Rabbit] MoonRabbit/ScreenFade shader missing (Assets/_Project/World/Shaders).");
+
+            // real room -> Moon garden portal at the start of every intro
+            var pt = go.AddComponent<PassthroughIntro>();
+            pt.passthroughIntro = s.passthroughIntro;
+            pt.revealTime = s.passthroughRevealTime;
+            pt.revealAtLine = (int)s.passthroughRevealAt;
+            pt.sphereMesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+            var veilShader = Shader.Find("MoonRabbit/PortalVeil");
+            if (veilShader != null) pt.veilMaterial = MRAssets.GetMaterial($"{G}/Materials/MR_PortalVeil.mat", veilShader);
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/PortalVeil shader missing (Assets/_Project/World/Shaders).");
+            var keepShader = Shader.Find("MoonRabbit/PortalKeep");
+            if (keepShader != null) pt.keepMaterial = MRAssets.GetMaterial($"{G}/Materials/MR_PortalKeep.mat", keepShader);
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/PortalKeep shader missing (Assets/_Project/World/Shaders).");
         }
 
         // ------------------------------------------------------------------ warm light on the dough
