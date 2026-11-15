@@ -106,7 +106,8 @@ namespace MoonRabbit.WorldEditor
         [Tooltip("Demo: putting the headset back on after it was off for headsetRestartMinSeconds restarts from the intro.")]
         public bool headsetRestart = true;
         [Header("Story sounds (synthesized unless a clip is set)")]
-        public bool storySounds = true;
+        [Tooltip("Master switch for StorySounds. Off by default; the MoonProgress sound hooks (onIntroLine, onStrike...) stay.")]
+        public bool storySounds = false;
         public bool textSounds = true;
         public bool progressSounds = true;
         [Tooltip("Shimmer on every progress step; turn off when the rhythm game plays its own hit sounds.")]
