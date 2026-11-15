@@ -46,6 +46,12 @@ MonoBehaviour:
   openingWidth: 55
   outwardLean: 5
   useGpuInstancing: 1
+  bambooBackThinning: 0.36
+  earthViewClear: 1
+  earthViewHalfWidth: 24
+  earthViewFalloff: 22
+  earthViewMaxElevation: 13
+  earthViewEyeHeight: 1.9
   treePosition: {x: 2.4, y: 0, z: 2.8}
   treeHeight: 3.6
   canopyRadius: 1.6
@@ -64,6 +70,23 @@ MonoBehaviour:
   riceGrainCount: 2400
   moonFollowsProgress: 1
   storyIntro: 1
+  headsetRestart: 1
+  storySounds: 0
+  textSounds: 1
+  progressSounds: 1
+  strikeSound: 1
+  textSoundVolume: 0.35
+  progressSfxVolume: 0.3
+  introLineClip: {fileID: 0}
+  instructionClip: {fileID: 0}
+  endingClip: {fileID: 0}
+  strikeClip: {fileID: 0}
+  milestoneClip: {fileID: 0}
+  fullMoonClip: {fileID: 0}
+  flightClip: {fileID: 0}
+  arrivalClip: {fileID: 0}
+  wishClip: {fileID: 0}
+  headsetRestartMinSeconds: 3
   mochiWarmLight: 1
   mochiLightColor: {r: 1, g: 0.72, b: 0.4, a: 1}
   mochiLightIntensity: 5.5
