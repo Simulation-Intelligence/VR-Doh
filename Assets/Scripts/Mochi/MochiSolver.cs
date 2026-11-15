@@ -136,7 +136,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
 
     ComputeShader cs;
     int kToolSdf, kNodes, kParticles, kBin, kClear, kDensity, kCopy;
-    ComputeBuffer parts, ids, gridV, gridM, gridR, toolA, toolB, prims, toolBuf, voxels;
+    ComputeBuffer parts, ids, gridV, gridM, toolA, toolB, prims, toolBuf, voxels;
     DoughLinks links;
     readonly ComputeBuffer[] counts = new ComputeBuffer[2];
     int cur;
@@ -175,8 +175,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         counts[1] = new ComputeBuffer(nodes, 4);
         ids = new ComputeBuffer(nodes * Slots, 4);
         gridV = new ComputeBuffer(nodes, 16);
-        gridM = new ComputeBuffer(nodes, 8);
-        gridR = new ComputeBuffer(nodes, 4);
+        gridM = new ComputeBuffer(nodes, 16);   // float4: mass, bonded fraction, render mass, unused
         toolA = new ComputeBuffer(nodes, 16);
         toolB = new ComputeBuffer(nodes, 16);
         prims = new ComputeBuffer(MaxPrims, 96);
@@ -218,7 +217,6 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetBuffer(kClear, "CountB", counts[1]);
         cs.SetBuffer(kClear, "GridV", gridV);
         cs.SetBuffer(kClear, "GridM", gridM);
-        cs.SetBuffer(kClear, "GridR", gridR);
         cs.DispatchThreads(kClear, gridCells);
         cs.SetBuffer(kBin, "Parts", parts);
         cs.SetBuffer(kBin, "CountB", counts[0]);
@@ -344,7 +342,6 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetBuffer(kNodes, "Ids", ids);
         cs.SetBuffer(kNodes, "GridV", gridV);
         cs.SetBuffer(kNodes, "GridM", gridM);
-        cs.SetBuffer(kNodes, "GridR", gridR);
         cs.SetBuffer(kNodes, "ToolA", toolA);
         cs.SetBuffer(kNodes, "ToolB", toolB);
         cs.SetBuffer(kParticles, "Parts", parts);
@@ -375,7 +372,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
             cs.SetInts("VoxDims", voxDims.x, voxDims.y, voxDims.z);
             cs.SetFloat("VoxDx", cellSize / renderScale);
             cs.SetFloat("VoxBlend", temporalBlend);
-            cs.SetBuffer(kDensity, "GridR", gridR);
+            cs.SetBuffer(kDensity, "GridM", gridM);
             cs.SetBuffer(kDensity, "Voxels", voxels);
             cs.DispatchThreads(kDensity, voxDims);
             builder.BuildIsosurface(voxels, isoValue, cellSize / renderScale);
@@ -596,7 +593,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
 
     void OnDestroy()
     {
-        parts?.Dispose(); ids?.Dispose(); gridV?.Dispose(); gridM?.Dispose(); gridR?.Dispose(); links?.Dispose();
+        parts?.Dispose(); ids?.Dispose(); gridV?.Dispose(); gridM?.Dispose(); links?.Dispose();
         toolA?.Dispose(); toolB?.Dispose(); prims?.Dispose(); toolBuf?.Dispose(); voxels?.Dispose();
         counts[0]?.Dispose(); counts[1]?.Dispose();
         builder?.Dispose();
