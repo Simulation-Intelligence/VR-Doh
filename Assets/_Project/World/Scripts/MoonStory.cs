@@ -149,6 +149,7 @@ namespace MoonRabbit.World
 
         MoonProgress progress;
         MochiLink link;
+        StorySounds sounds;
         MaterialPropertyBlock mpb;
         Material blossomHalo, stoneHalo, orbHalo, trailHalo, cityHalo, textHalo, burstHalo, wishHalo, treeGlowHalo, treeAuraHalo, flareHalo;
         Matrix4x4[] blossomM, stoneM, trailM, cityM;
@@ -179,6 +180,7 @@ namespace MoonRabbit.World
         {
             progress = GetComponent<MoonProgress>();
             link = GetComponent<MochiLink>();
+            sounds = GetComponent<StorySounds>();
             mpb = new MaterialPropertyBlock();
         }
 
@@ -660,6 +662,7 @@ namespace MoonRabbit.World
                 yield return null;
             }
 
+            if (sounds != null) sounds.PlayFlight(target);
             // a long curve out over the garden and up to the Earth
             var to = target - risen;
             var flat = new Vector3(to.x, 0f, to.z).normalized;
@@ -684,6 +687,7 @@ namespace MoonRabbit.World
 
             // the Earth glows and its lights come on
             progress.onMochiArrivedEarth.Invoke();
+            if (sounds != null) sounds.PlayArrival(target);
             burstStart = Time.time;
             if (!moonFollowsProgress) StartCoroutine(Fade(x => moonFull = x, 0f, 1f, 1.2f));
             StartCoroutine(EarthGlowPulse());
@@ -692,6 +696,7 @@ namespace MoonRabbit.World
             {
                 // wishes: warm lights rise from the Earth toward the Moon; the text follows once they are on their way
                 wishStart = Time.time + 0.8f;
+                if (sounds != null) sounds.PlayWishes(target);
                 yield return new WaitForSeconds(3.2f);
             }
 
@@ -702,6 +707,7 @@ namespace MoonRabbit.World
                 if (text == null) text = StoryText.Create(transform, "MR_EndingText", endingStyle, textHalo, quadMesh);
                 text.PlaceInFront(cam.transform, textDistance, endingAboveEyes);
                 text.SetText(endingText);
+                if (sounds != null) sounds.PlayEndingText(text.transform.position);
             }
             float shown = Time.time;
             float hold = Mathf.Max(3f, endingDuration - (shown - t0));

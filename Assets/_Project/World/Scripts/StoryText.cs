@@ -277,6 +277,33 @@ namespace MoonRabbit.World
 
         void LateUpdate() => Refresh();
 
+        [Header("Instruction emphasis (whole line)")]
+        [Tooltip("Peak of the bounce once the line has risen (scale), and its length (s).")]
+        public float bouncePeak = 1.25f;
+        public float bounceTime = 0.6f;
+        [Tooltip("Then it breathes gently while it is read: amplitude (±) and period (s).")]
+        public float breatheAmount = 0.03f;
+        public float breathePeriod = 1.6f;
+
+        /// <summary>Whole-line scale (from the line's centre): a bounce with overshoot once the line has risen, then a
+        /// slow breath while it is read. Lines without emphasis stay at 1.</summary>
+        float EmphasisScale(float sincePulse, float swell)
+        {
+            bool wholeLine = style.pulse || pulseFrom == 0;
+            if (!wholeLine || sincePulse < 0f || pulseStart < -50f) return 1f;
+            float up = bouncePeak - 1f;
+            float k;
+            if (sincePulse < bounceTime)
+            {
+                float t = sincePulse / bounceTime;
+                // fast rise to the peak (first 30 %), then settle with one small undershoot (easeOutBack-like)
+                if (t < 0.3f) { float a = t / 0.3f; k = up * (1f - (1f - a) * (1f - a)); }
+                else { float b = (t - 0.3f) / 0.7f; k = up * Mathf.Exp(-4.5f * b) * Mathf.Cos(b * Mathf.PI * 1.1f); }
+            }
+            else k = breatheAmount * Mathf.Sin((sincePulse - bounceTime) / breathePeriod * Mathf.PI * 2f);
+            return 1f + k;
+        }
+
         void Refresh()
         {
             float now = Time.time;
@@ -292,7 +319,7 @@ namespace MoonRabbit.World
                 glowK *= 1f + 0.18f * Mathf.Sin(ap * Mathf.PI) + 1.6f * flash;                    // slow breathing, period 2 s
             }
 #if MR_TMP
-            if (tmp != null) tmp.transform.localScale = Vector3.one * (pulseFrom >= 0 ? 1f : 1f + 0.08f * swell);
+            if (tmp != null) tmp.transform.localScale = Vector3.one * EmphasisScale(pu, swell);
             WriteVertices(now);
 #endif
             if (glow != null)
@@ -347,7 +374,7 @@ namespace MoonRabbit.World
                     float bright = 0f;
                     if (pulseFrom >= 0 && i >= pulseFrom && swellNow > 0f)
                     {
-                        scale *= 1f + 0.12f * swellNow;   // only the emphasised words swell and brighten
+                        if (pulseFrom > 0) scale *= 1f + 0.12f * swellNow; // part of a line: only those words swell
                         bright = 0.45f * swellNow;
                     }
                     if (exiting)

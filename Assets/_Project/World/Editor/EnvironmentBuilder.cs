@@ -767,6 +767,17 @@ namespace MoonRabbit.WorldEditor
                 follow.warmLightOffset = wl.localPosition - (s.mortarPosition + Vector3.up * s.pedestalHeight);
             }
 
+            var snd = go.AddComponent<StorySounds>();
+            snd.soundsEnabled = s.storySounds;
+            snd.textSounds = s.textSounds;
+            snd.progressSounds = s.progressSounds;
+            snd.strikeSound = s.strikeSound;
+            snd.textVolume = s.textSoundVolume;
+            snd.progressSfxVolume = s.progressSfxVolume;
+            snd.introLineClip = s.introLineClip; snd.instructionClip = s.instructionClip; snd.endingClip = s.endingClip;
+            snd.strikeClip = s.strikeClip; snd.milestoneClip = s.milestoneClip; snd.fullMoonClip = s.fullMoonClip;
+            snd.flightClip = s.flightClip; snd.arrivalClip = s.arrivalClip; snd.wishClip = s.wishClip;
+
             var hr = go.AddComponent<HeadsetRestart>();
             hr.restartOnRemount = s.headsetRestart;
             hr.minRemovedSeconds = s.headsetRestartMinSeconds;

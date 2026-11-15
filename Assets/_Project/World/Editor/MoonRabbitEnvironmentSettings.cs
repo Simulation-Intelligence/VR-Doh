@@ -105,6 +105,15 @@ namespace MoonRabbit.WorldEditor
         public bool storyIntro = true;
         [Tooltip("Demo: putting the headset back on after it was off for headsetRestartMinSeconds restarts from the intro.")]
         public bool headsetRestart = true;
+        [Header("Story sounds (synthesized unless a clip is set)")]
+        public bool storySounds = true;
+        public bool textSounds = true;
+        public bool progressSounds = true;
+        [Tooltip("Shimmer on every progress step; turn off when the rhythm game plays its own hit sounds.")]
+        public bool strikeSound = true;
+        [Range(0f, 1f)] public float textSoundVolume = 0.35f;
+        [Range(0f, 1f)] public float progressSfxVolume = 0.3f;
+        public AudioClip introLineClip, instructionClip, endingClip, strikeClip, milestoneClip, fullMoonClip, flightClip, arrivalClip, wishClip;
         public float headsetRestartMinSeconds = 3f;
 
         [Header("Warm light on the dough (lantern side of the usu)")]

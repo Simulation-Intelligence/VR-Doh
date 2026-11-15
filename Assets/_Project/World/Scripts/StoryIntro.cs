@@ -18,7 +18,7 @@ namespace MoonRabbit.World
         public string[] lines =
         {
             "It's Chuseok on Earth… but the Moon never rose.",
-            "No wishes. No rice cakes. No festival.",
+            "No wishes. No mochi. No festival.",
             "In the sky garden between Earth and Moon, the Moon Rabbits pick up the mallet.",
             "!Pound the mochi. Light the Moon.",
         };
@@ -54,6 +54,7 @@ namespace MoonRabbit.World
         MoonStory story;
         MoonProgress progress;
         StoryText text, narrationText, instructionText;
+        StorySounds sounds;
         GameObject fade;
         Renderer fadeRenderer;
         MaterialPropertyBlock mpb;
@@ -69,6 +70,7 @@ namespace MoonRabbit.World
         {
             story = GetComponent<MoonStory>();
             progress = GetComponent<MoonProgress>();
+            sounds = GetComponent<StorySounds>();
             mpb = new MaterialPropertyBlock();
         }
 
@@ -96,6 +98,7 @@ namespace MoonRabbit.World
             if (Time.frameCount == lastPlayFrame) return; // two triggers in one frame start it only once
             lastPlayFrame = Time.frameCount;
             if (running != null) { StopCoroutine(running); running = null; }
+            if (sounds != null) sounds.StopTextSounds();
             // a restarted intro never leaves the previous line on screen
             if (narrationText != null) narrationText.SetAlpha(0f);
             if (instructionText != null) instructionText.SetAlpha(0f);
@@ -136,6 +139,9 @@ namespace MoonRabbit.World
                 text.maxReveal = maxRevealTime;
                 string rich = Emphasise(raw, out int from);
                 text.SetText(rich, from);
+                // a soft chime from the text, so it is heard (and located) even when looking elsewhere;
+                // the instruction line rings at its bounce
+                if (sounds != null) sounds.PlayIntroLine(text.transform.position, idx, isInstruction, isInstruction ? text.RevealDuration : 0.1f);
                 text.SetAlpha(1f); // letters fade in themselves as they rise
                 progress.onIntroLine.Invoke(idx + 1);
 
@@ -153,6 +159,7 @@ namespace MoonRabbit.World
             }
 
             // end (or skipped): clear text at once, fade out whatever else is showing
+            if (skip && sounds != null) sounds.StopTextSounds();
             if (narrationText != null) narrationText.SetAlpha(0f);
             if (instructionText != null) instructionText.SetAlpha(0f);
             float a0 = fadeRenderer != null ? CurrentFade : 0f;
