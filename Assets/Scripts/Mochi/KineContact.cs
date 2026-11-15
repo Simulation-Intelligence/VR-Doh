@@ -104,6 +104,15 @@ public class KineContact : MonoBehaviour
         }
     }
 
+    /// <summary>Re-reads the kine's head size and the GrabZone's handle segment (after a mallet change).</summary>
+    public void Rebuild()
+    {
+        if (kine == null) return;
+        headBalls.Clear();
+        handleBalls.Clear();
+        BuildShapes();
+    }
+
     // The head as a capsule core plus rings of small balls on the face and top edges (its cylinder corners);
     // the handle as a row of balls along the GrabZone segment.
     void BuildShapes()

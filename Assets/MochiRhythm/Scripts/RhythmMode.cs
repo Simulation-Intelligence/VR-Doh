@@ -48,6 +48,8 @@ namespace MochiRhythm
         public RhythmGame Game { get; private set; }
         public RhythmPartner Partner { get; private set; }
         public RhythmStoryBridge Story { get; private set; }
+        /// <summary>Song choice: one scroll per song that turns into its mallet when grabbed (replaces the panel).</summary>
+        public SongScrolls Scrolls { get; private set; }
         public RhythmPanel Panel { get; private set; }
         /// <summary>The Satie side of the station's sound (pound, rim_knock, tent_release, dough_slap, knead_speed).</summary>
         public MochiSound Sound { get; private set; }
@@ -135,6 +137,7 @@ namespace MochiRhythm
             Panel.transform.localPosition = PanelLocalPosition;
             Panel.transform.localRotation = Quaternion.Euler(-15f, 0f, 0f); // tilted toward the kneader
             Sound = AddInactive<MochiSound>("Sound", transform, s => s.mode = this);
+            Scrolls = AddInactive<SongScrolls>("Song scrolls", transform, s => s.mode = this);
 
             Debug.Log($"[rhythm] rhythm mode on {station.name}: kine {(Kine != null ? Kine.name : "MISSING")}, usu {(Usu != null ? Usu.name : "MISSING")}, " +
                       $"{songs.Count} songs, {hitClips.Length} kine sounds");

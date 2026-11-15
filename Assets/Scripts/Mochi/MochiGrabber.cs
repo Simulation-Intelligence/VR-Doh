@@ -49,7 +49,7 @@ public class MochiGrabber : MonoBehaviour
         foreach (var g in grabbers) Sample(g);
 
         // Hover feedback.
-        foreach (var z in zones) if (z != null) z.SetHover(z.Held || Nearest(z));
+        foreach (var z in zones) if (z != null && z.isActiveAndEnabled) z.SetHover(z.Held || Nearest(z));
 
         foreach (var g in grabbers)
         {
@@ -109,6 +109,42 @@ public class MochiGrabber : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Whoever holds <paramref name="from"/> now holds <paramref name="to"/> instead, keeping to's current pose relative
+    /// to the hand (place it first). Used when a picked-up song scroll turns into a mallet. False if nobody holds from.
+    /// </summary>
+    public bool Handover(GrabZone from, GrabZone to)
+    {
+        foreach (var g in grabbers)
+        {
+            if (g.held != from || to == null || to.moveTarget == null) continue;
+            from.NotifyReleased();
+            g.held = to;
+            var t = to.moveTarget;
+            g.offsetRot = Quaternion.Inverse(g.rot) * t.rotation;
+            g.offsetPos = Quaternion.Inverse(g.rot) * (t.position - g.pos);
+            to.NotifyGrabbed();
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>Where the hand or controller holding <paramref name="z"/> grips, and its rotation. False if nobody does.</summary>
+    public bool GripPose(GrabZone z, out Vector3 pos, out Quaternion rot)
+    {
+        foreach (var g in grabbers)
+            if (g.held == z) { pos = g.pos; rot = g.rot; return true; }
+        pos = default; rot = Quaternion.identity;
+        return false;
+    }
+
+    /// <summary>Lets go of <paramref name="z"/> if anything holds it (the mallet turning back into a scroll).</summary>
+    public void ForceRelease(GrabZone z)
+    {
+        foreach (var g in grabbers)
+            if (g.held == z) { g.held = null; z.NotifyReleased(); }
+    }
+
     /// <summary>Points on tracked hands that are not holding anything (pinch point and wrist), for safety checks.</summary>
     public void GetFreeHandPoints(List<Vector3> points)
     {
@@ -147,7 +183,7 @@ public class MochiGrabber : MonoBehaviour
         GrabZone best = null; float bestD = reach;
         foreach (var z in zones)
         {
-            if (z == null || z.Held || z.moveTarget == null) continue;
+            if (z == null || z.Held || z.moveTarget == null || !z.isActiveAndEnabled) continue;
             if (handlesOnly && z.shape != GrabZone.Shape.Segment) continue;
             float d = z.Distance(point);
             if (d < bestD) { bestD = d; best = z; }

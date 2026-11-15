@@ -61,6 +61,8 @@ public class GrabZone : MonoBehaviour
     int appliedState = -1;
 
     public void SetHover(bool on) { hovered = on; }
+    /// <summary>A free hand or controller is within reach (or it is held).</summary>
+    public bool Hovered => hovered;
 
     void LateUpdate()
     {

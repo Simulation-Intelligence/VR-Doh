@@ -30,6 +30,28 @@ public abstract class PrimitiveTool : MatTool
         }
     }
 
+    /// <summary>Rebuilds the primitives after a size change (e.g. a different mallet). The solver sized its buffers
+    /// at start, so the new shape must have the same number of primitives; otherwise nothing changes.</summary>
+    public bool Rebuild()
+    {
+        build.Clear();
+        Build();
+        if (build.Count != numPrimitives || primitives == null || primitives.Length != numPrimitives)
+        {
+            Debug.LogWarning($"{name}: rebuilt shape has {build.Count} primitives, the solver expects {numPrimitives}; kept the old shape.");
+            return false;
+        }
+        init_primitives = build.ToArray();
+        for (int i = 0; i < numPrimitives; i++)
+        {
+            primitives[i] = init_primitives[i];
+            primitives[i].sphere1 = transform.TransformPoint(init_primitives[i].sphere1);
+            primitives[i].sphere2 = transform.TransformPoint(init_primitives[i].sphere2);
+            primitives[i].sphere3 = transform.TransformPoint(init_primitives[i].sphere3);
+        }
+        return true;
+    }
+
     protected void Capsule(Vector3 a, float ra, Vector3 b, float rb)
     {
         build.Add(new Primitive { sphere1 = a, radii1 = ra, sphere2 = b, radii2 = rb, sphere3 = b, radii3 = 0f });
