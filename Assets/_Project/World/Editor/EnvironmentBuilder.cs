@@ -365,7 +365,7 @@ namespace MoonRabbit.WorldEditor
             float midR = (inner + outer) * 0.5f;
             var placed = new List<Vector3>();
             var clumps = new List<List<Vector3>>();
-            int made = 0, guard = 0;
+            int made = 0, guard = 0, skippedBack = 0;
 
             bool InOpening(float azDeg) => Mathf.Abs(Mathf.DeltaAngle(azDeg, s.openingDirection)) < s.openingWidth * 0.5f;
 
@@ -394,15 +394,36 @@ namespace MoonRabbit.WorldEditor
                     var rot = tilt * Quaternion.Euler(0f, rng.Range(0f, 360f), 0f);
                     float sc = rng.Range(0.85f, 1.15f);
                     p.y = GroundHeight(s, p.x, p.z);
-                    clumpStalks.Add(p);
-                    var mtx = Matrix4x4.TRS(p + Vector3.down * s.bambooSink, rot, Vector3.one * sc);
                     int vi = rng.Int(0, V);
+                    // behind the player (away from the Moon): leave some stalks out; same draws, so the rest keeps its layout
+                    float back = Mathf.Abs(Mathf.DeltaAngle(Mathf.Atan2(p.x, p.z) * Mathf.Rad2Deg, s.moonAzimuth + 180f));
+                    float thin = s.bambooBackThinning * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(60f, 95f, back)));
+                    if (thin > 0f && Hash01(p * 1.7f + Vector3.one * 3.1f) < thin) { made++; skippedBack++; continue; }
+                    clumpStalks.Add(p);
+                    var scale = Vector3.one * sc;
+                    if (s.earthViewClear)
+                    {
+                        // toward the Earth: younger, lower bamboo so the ending's flight stays in view; grows back smoothly
+                        var eye = new Vector3(s.playerPosition.x, 0f, s.playerPosition.z);
+                        var d = new Vector3(p.x, 0f, p.z) - eye;
+                        float off = Mathf.Abs(Mathf.DeltaAngle(Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg, s.earthAzimuth));
+                        float w = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(s.earthViewHalfWidth, s.earthViewHalfWidth + s.earthViewFalloff, off));
+                        if (w > 0f)
+                        {
+                            float h = Mathf.Lerp(s.bambooHeight.x, s.bambooHeight.y, (vi + 0.5f) / V) * sc;
+                            float allowed = s.earthViewEyeHeight + d.magnitude * Mathf.Tan(s.earthViewMaxElevation * Mathf.Deg2Rad);
+                            float k = Mathf.Lerp(1f, Mathf.Clamp(allowed / h, 0.25f, 1f) * Mathf.Lerp(0.85f, 1f, Hash01(p)), w); // no rng draw: the rest of the grove keeps its layout
+                            scale = new Vector3(sc * Mathf.Sqrt(k), sc * k, sc * Mathf.Sqrt(k)); // shorter and a little slimmer
+                        }
+                    }
+                    var mtx = Matrix4x4.TRS(p + Vector3.down * s.bambooSink, rot, scale);
                     (pr < midR ? near : far)[vi].Add(mtx);
                     made++;
                 }
                 if (clumpStalks.Count > 0) clumps.Add(clumpStalks);
             }
             BuildBambooBases(s, root, m, rng, clumps);
+            BambooPlaced = made - skippedBack;
 
             var grove = new GameObject("MR_Bamboo");
             grove.transform.SetParent(root, false);
@@ -701,6 +722,13 @@ namespace MoonRabbit.WorldEditor
                 if (eg != null) story.earthGlow = eg.GetComponent<Renderer>();
             }
             story.moonFollowsProgress = s.moonFollowsProgress;
+            var island = new List<Renderer>();
+            foreach (var n in new[] { "MR_IslandUnderside", "MR_FloatingRocks" })
+            {
+                var t = root.Find(n);
+                if (t != null) island.Add(t.GetComponent<Renderer>());
+            }
+            story.islandRenderers = island.ToArray();
             story.moonlight = moonlight;
             story.atmosphere = atm;
 
@@ -741,6 +769,12 @@ namespace MoonRabbit.WorldEditor
 
             var intro = go.AddComponent<StoryIntro>();
             intro.playIntro = s.storyIntro;
+#if MR_TMP
+            var fonts = StoryFontBuilder.Build();
+            intro.narration.font = fonts.intro; intro.narration.material = fonts.introMat;
+            intro.instruction.font = fonts.instruction; intro.instruction.material = fonts.instructionMat;
+            story.endingStyle.font = fonts.ending; story.endingStyle.material = fonts.endingMat;
+#endif
             var fadeShader = Shader.Find("MoonRabbit/ScreenFade");
             if (fadeShader != null)
             {
@@ -1079,6 +1113,11 @@ namespace MoonRabbit.WorldEditor
             }
             return Vector3.up;
         }
+
+        /// <summary>Stalks actually placed by the last build (after the back thinning).</summary>
+        public static int BambooPlaced;
+
+        static float Hash01(Vector3 p) { float v = Mathf.Sin(p.x * 12.9898f + p.z * 78.233f) * 43758.5453f; return v - Mathf.Floor(v); }
 
         static float Noise3(Vector3 p, float freq, float seed)
         {

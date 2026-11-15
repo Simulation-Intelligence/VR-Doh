@@ -20,16 +20,32 @@ namespace MoonRabbit.World
             "It's Chuseok on Earth… but the Moon never rose.",
             "No wishes. No rice cakes. No festival.",
             "In the sky garden between Earth and Moon, the Moon Rabbits pick up the mallet.",
-            "Pound the mochi. Light the Moon.",
+            "!Pound the mochi. Light the Moon.",
         };
-        [Tooltip("Seconds per line (fade in, hold, fade out).")]
-        public float lineTime = 3.2f;
+        [Tooltip("Reading time per line once it has fully risen (s); the instruction line gets a little more.")]
+        public float holdTime = 2.2f;
         public float fadeTime = 0.6f;
         [Tooltip("Black at the start, fading to the scene over this many seconds.")]
         public float blackFade = 2.5f;
         [Tooltip("Lines longer than this many characters wrap onto two lines.")]
         public int wrapAt = 44;
         public Material fadeMaterial;
+        [Header("Text styles")]
+        [Tooltip("Story lines: Cinzel SemiBold, soft warm white, a little extra letter and line spacing (Cinzel's capitals " +
+                 "and small capitals look alike, spacing reads better in VR).")]
+        public StoryTextStyle narration = new StoryTextStyle
+        {
+            color = new Color(0.97f, 0.95f, 0.9f), letterHeight = 0.1f, characterSpacing = 6f, lineSpacing = 28f,
+            glowIntensity = 0.16f, rise = true,
+        };
+        [Tooltip("Lines that tell the player what to do (start a line with '!'): Cinzel Black, moon gold, 1.2x, one pulse.")]
+        public StoryTextStyle instruction = new StoryTextStyle
+        {
+            color = new Color(1f, 0.824f, 0.478f), letterHeight = 0.12f, characterSpacing = 5f, lineSpacing = 20f,
+            glowColor = new Color(1f, 0.78f, 0.38f), glowIntensity = 0.24f, rise = true, pulse = true,
+        };
+        [Tooltip("Longest time a line takes to rise in letter by letter (s); short lines rise letter by letter more slowly.")]
+        public float maxRevealTime = 1.6f;
         [Range(0, 300)] public int descentStars = 140;
         public Color descentColor = new Color(0.8f, 0.86f, 1f);
 
@@ -37,7 +53,7 @@ namespace MoonRabbit.World
 
         MoonStory story;
         MoonProgress progress;
-        StoryText text;
+        StoryText text, narrationText, instructionText;
         GameObject fade;
         Renderer fadeRenderer;
         MaterialPropertyBlock mpb;
@@ -73,6 +89,9 @@ namespace MoonRabbit.World
         {
             if (!playIntro || !isActiveAndEnabled) return;
             if (running != null) StopCoroutine(running);
+            // a restarted intro never leaves the previous line on screen
+            if (narrationText != null) narrationText.SetAlpha(0f);
+            if (instructionText != null) instructionText.SetAlpha(0f);
             running = StartCoroutine(Intro());
         }
 
@@ -81,60 +100,76 @@ namespace MoonRabbit.World
             var cam = MoonStory.MainCamera();
             while (cam == null) { yield return null; cam = MoonStory.MainCamera(); }
             Playing = true;
+            introStart = Time.time;
             skip = false;
             progress.IntroActive = true;
             story.EarthBrightness = 0f;
             EnsureFade(cam.transform);
             SetFade(1f);
             SpawnStars(cam.transform);
-            if (text == null) text = StoryText.Create(transform, "MR_IntroText", story.textHeight, story.textColor, story.TextHalo, story.quadMesh, 0.16f);
+            if (narrationText == null) narrationText = StoryText.Create(transform, "MR_IntroText", narration, story.TextHalo, story.quadMesh);
+            if (instructionText == null) instructionText = StoryText.Create(transform, "MR_IntroInstruction", instruction, story.TextHalo, story.quadMesh);
+            text = narrationText;
             // world-fixed: placed once in front of the head, facing the Moon side of the garden
             yield return null; // let the head pose settle for a frame
-            text.PlaceInFront(cam.transform, story.textDistance, story.textAboveEyes);
+            narrationText.PlaceInFront(cam.transform, story.textDistance, story.textAboveEyes);
+            instructionText.transform.SetPositionAndRotation(narrationText.transform.position, narrationText.transform.rotation);
 
-            float t0 = Time.time;
-            int line = -1;
-            textAlpha = 0f;
-            while (!skip)
+            introStart = Time.time;
+            for (int idx = 0; idx < lines.Length && !skip; idx++)
             {
-                float t = Time.time - t0;
-                SetFade(1f - Mathf.SmoothStep(0f, 1f, t / blackFade));
-                starAlpha = Mathf.Clamp01(t / 1.5f) * Mathf.Clamp01((7f - t) / 2f);
+                // a second of stars before the first line
+                while (!skip && Time.time - introStart < 1f) yield return null;
+                if (skip) break;
 
-                float lt = t - 1f; // first line after a second of stars
-                int idx = lt < 0f ? -1 : Mathf.FloorToInt(lt / lineTime);
-                if (idx >= lines.Length) break;
-                if (idx >= 0)
-                {
-                    if (idx != line)
-                    {
-                        line = idx;
-                        text.SetText(Wrap(lines[idx]));
-                        progress.onIntroLine.Invoke(idx + 1);
-                    }
-                    float u = lt - idx * lineTime;
-                    textAlpha = Mathf.Clamp01(u / fadeTime) * Mathf.Clamp01((lineTime - u) / fadeTime);
-                    text.SetAlpha(textAlpha);
-                }
-                yield return null;
+                bool isInstruction = lines[idx].StartsWith("!");
+                text = isInstruction ? instructionText : narrationText;
+                string body = isInstruction ? lines[idx].Substring(1) : lines[idx];
+                text.maxReveal = maxRevealTime;
+                text.SetText(Wrap(body));
+                text.SetAlpha(1f); // letters fade in themselves as they rise
+                progress.onIntroLine.Invoke(idx + 1);
+
+                // reading time counts from when the whole line has risen
+                float hold = text.RevealDuration + (isInstruction ? holdTime + 0.6f : holdTime);
+                float t = 0f;
+                while (!skip && t < hold) { t += Time.deltaTime; yield return null; }
+                if (skip) break;
+
+                text.BeginExit();
+                t = 0f;
+                float exit = text.ExitDuration;
+                while (!skip && t < exit) { t += Time.deltaTime; yield return null; }
+                text.SetAlpha(0f);
             }
 
-            // end (or skipped): quick fade of whatever is still showing
+            // end (or skipped): clear text at once, fade out whatever else is showing
+            if (narrationText != null) narrationText.SetAlpha(0f);
+            if (instructionText != null) instructionText.SetAlpha(0f);
             float a0 = fadeRenderer != null ? CurrentFade : 0f;
             for (float a = 0f; a < 0.35f; a += Time.deltaTime)
             {
                 float k = 1f - a / 0.35f;
                 SetFade(a0 * k);
-                text.SetAlpha(textAlpha * k);
                 starAlpha *= k;
                 yield return null;
             }
             SetFade(0f);
-            text.SetAlpha(0f);
             starAlpha = 0f;
             progress.IntroActive = false;
             Playing = false;
             running = null;
+        }
+
+        float introStart = -100f;
+
+        void LateUpdate()
+        {
+            // black fade-in and the drifting stars run on their own clock while the lines play
+            if (!Playing || skip) return;
+            float t = Time.time - introStart;
+            SetFade(1f - Mathf.SmoothStep(0f, 1f, t / blackFade));
+            starAlpha = Mathf.Clamp01(t / 1.5f) * Mathf.Clamp01((7f - t) / 2f);
         }
 
         string Wrap(string s)

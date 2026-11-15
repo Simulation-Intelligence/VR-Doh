@@ -32,17 +32,29 @@ namespace MoonRabbit.World
         public Vector2 moonEmission = new Vector2(0.03f, 0.35f);
         [Tooltip("Brightness of the unlit part (earthshine), at progress 0 and 1 (linear colour space: 0.12 already reads mid grey).")]
         public Vector2 moonDarkSide = new Vector2(0.02f, 0.12f);
-        public Vector2 moonGlowIntensity = new Vector2(0.25f, 1.15f);
-        public Vector2 moonGlowScale = new Vector2(3.0f, 5.0f);
+        public Vector2 moonGlowIntensity = new Vector2(0.2f, 1.6f);
+        public Vector2 moonGlowScale = new Vector2(3.0f, 7.5f); // the halo widens: the sky takes the moonlight
         [Tooltip("Extra Moon brightness right after a strike (decays in about half a second).")]
         public float strikePulse = 0.35f;
 
         [Header("Moonlight, ambient, fog (multipliers of the built values)")]
         public Light moonlight;
         public EnvironmentAtmosphere atmosphere;
-        public Vector2 moonlightScale = new Vector2(0.6f, 1.25f);
-        public Vector2 ambientScale = new Vector2(0.62f, 1.3f);
-        public Vector2 fogScale = new Vector2(1.5f, 0.45f);
+        public Vector2 moonlightScale = new Vector2(0.45f, 1.6f);
+        public Vector2 ambientScale = new Vector2(0.5f, 1.7f);
+        public Vector2 fogScale = new Vector2(1.6f, 0.4f);
+        [Tooltip("Fog colour multiplier at 0 and 1 (the haze turns from deep night to moonlit silver-violet).")]
+        public Vector2 fogBrightness = new Vector2(0.7f, 1.8f);
+        public Color moonlitFogTint = new Color(0.78f, 0.78f, 1f);
+        [Tooltip("Sky (Skybox/Panoramic, a runtime copy): exposure and tint at 0 and 1.")]
+        public Vector2 skyExposure = new Vector2(0.7f, 1.45f);
+        public Color skyTintDark = new Color(0.42f, 0.44f, 0.5f);
+        public Color skyTintBright = new Color(0.55f, 0.53f, 0.64f);
+        [Tooltip("Share of the brightening saved for the last stretch (ease-in from about 72 %).")]
+        [Range(0f, 1f)] public float lateBoost = 0.4f;
+        [Tooltip("Island underside and floating rocks: colour multiplier at 0 and 1 (they catch the moonlight too).")]
+        public Renderer[] islandRenderers;
+        public Vector2 islandBrightness = new Vector2(0.8f, 1.7f);
 
         [Header("Stone lanterns (25 %: one by one)")]
         public Renderer[] lanterns;
@@ -63,6 +75,14 @@ namespace MoonRabbit.World
         public Color blossomGlowColor = new Color(1f, 0.78f, 0.35f);
         public float blossomHaloSize = 0.34f;
         public Vector2 blossomEmission = new Vector2(0.45f, 2.2f);
+        [Tooltip("Canopy leaf emission and trunk colour multipliers at progress 0 and 1 (the tree itself brightens).")]
+        public Vector2 canopyEmission = new Vector2(0.55f, 1.9f);
+        public Vector2 trunkBrightness = new Vector2(0.85f, 1.25f);
+        public int canopyMaterial = 1;
+        public int trunkMaterial = 0;
+        [Tooltip("Soft gold light on the ground under the tree and a faint aura around the canopy (additive quads, no lights).")]
+        public float treeGroundGlow = 0.4f;
+        public float treeAura = 0.16f;
 
         [Header("Stepping stones (75 %: one by one toward the sky)")]
         public Vector3[] stonePoints;
@@ -100,12 +120,23 @@ namespace MoonRabbit.World
         public float wishRiseTime = 7f;
         public string endingText = "Happy Chuseok, Earth!";
         public Color textColor = new Color(0.97f, 0.95f, 0.9f);
-        [Tooltip("Letter height of story text (m) and its distance from the head.")]
-        public float textHeight = 0.14f;
+        [Tooltip("Ending line: Baloo 2 Bold, large, warm gold glow that breathes slowly and flashes once when it appears. " +
+                 "Tick 'rise' to let it rise in letter by letter like the intro.")]
+        public StoryTextStyle endingStyle = new StoryTextStyle
+        {
+            color = new Color(1f, 0.96f, 0.88f), letterHeight = 0.28f, characterSpacing = 2f,
+            glowColor = new Color(1f, 0.76f, 0.4f), glowIntensity = 0.6f, rise = false, breathe = true,
+        };
+        [Tooltip("Ending line height relative to the eyes (m): at eye level it stays below the Moon, the Earth and the wish lights.")]
+        public float endingAboveEyes = 0f;
+        [Tooltip("Capital letter height of other story text (m) and the text distance from the head.")]
+        public float textHeight = 0.1f;
         public float textDistance = 2.8f;
         public float textAboveEyes = 0.25f;
 
         public float ShownProgress { get; private set; }
+        /// <summary>0..1 brightness of the night (progress with the late ease-in), for other effects (sky mist).</summary>
+        public float Brightness { get; private set; }
         public bool InEnding { get; private set; }
         /// <summary>0..1 extra brightness of the Earth after the mochi arrives.</summary>
         public float EarthPulse { get; private set; }
@@ -119,20 +150,23 @@ namespace MoonRabbit.World
         MoonProgress progress;
         MochiLink link;
         MaterialPropertyBlock mpb;
-        Material blossomHalo, stoneHalo, orbHalo, trailHalo, cityHalo, textHalo, burstHalo, wishHalo;
+        Material blossomHalo, stoneHalo, orbHalo, trailHalo, cityHalo, textHalo, burstHalo, wishHalo, treeGlowHalo, treeAuraHalo, flareHalo;
         Matrix4x4[] blossomM, stoneM, trailM, cityM;
         Vector3[] trailPos, cityDir;
         float[] trailTime;
         int trailHead, trailCount;
         float trailUntil = -1f, cityOn, burstStart = -10f, wishStart = -100f;
         Matrix4x4[] wishM;
-        Matrix4x4[] burstM = new Matrix4x4[24];
+        Matrix4x4[] burstM = new Matrix4x4[64];
+        const float BurstLife = 3.6f;
         Color[] lanternBaseEmission;
         float[] lanternLightBase, poolBase;
-        Color blossomBaseEmission;
+        Color blossomBaseEmission, canopyBaseEmission, trunkBaseColor = Color.white;
+        Matrix4x4[] treeGlowM = new Matrix4x4[1], treeAuraM = new Matrix4x4[1], flareM = new Matrix4x4[1];
         float moonlightBase = 1f, moonGlowBaseScale = 4.2f, earthGlowBase = 0.5f, earthGlowBaseScale = 3.2f, earthEmissionBase = 0.45f, earthAmbientBase = 0.18f;
         float velocity, pulse, moonFull;
         Vector3 earthLightBase = Vector3.right;
+        Material skyCopy, skyOriginal;
         GameObject orb;
         Renderer orbRenderer;
         StoryText text;
@@ -178,6 +212,10 @@ namespace MoonRabbit.World
                 poolBase[i] = lanternPools[i] != null && lanternPools[i].sharedMaterial != null ? lanternPools[i].sharedMaterial.GetFloat("_Intensity") : 0f;
             if (cassiaTree != null && cassiaTree.sharedMaterials.Length > blossomMaterial && cassiaTree.sharedMaterials[blossomMaterial] != null)
                 blossomBaseEmission = cassiaTree.sharedMaterials[blossomMaterial].GetColor("_EmissionColor");
+            if (cassiaTree != null && cassiaTree.sharedMaterials.Length > canopyMaterial && cassiaTree.sharedMaterials[canopyMaterial] != null)
+                canopyBaseEmission = cassiaTree.sharedMaterials[canopyMaterial].GetColor("_EmissionColor");
+            if (cassiaTree != null && cassiaTree.sharedMaterials.Length > trunkMaterial && cassiaTree.sharedMaterials[trunkMaterial] != null)
+                trunkBaseColor = cassiaTree.sharedMaterials[trunkMaterial].GetColor("_Color");
 
             // One runtime copy of the halo material per instanced group (their colours differ); intensity set per frame.
             blossomHalo = HaloCopy("Blossom", blossomGlowColor);
@@ -187,6 +225,9 @@ namespace MoonRabbit.World
             cityHalo = HaloCopy("EarthLights", earthLightColor);
             burstHalo = HaloCopy("Burst", trailColor);
             wishHalo = HaloCopy("Wish", wishColor);
+            treeGlowHalo = HaloCopy("TreeGlow", blossomGlowColor);
+            treeAuraHalo = HaloCopy("TreeAura", blossomGlowColor);
+            flareHalo = HaloCopy("EarthFlare", new Color(1f, 0.9f, 0.7f));
             wishM = new Matrix4x4[wishCount];
             textHalo = HaloCopy("Text", Color.white);
             blossomM = new Matrix4x4[blossomPoints?.Length ?? 0];
@@ -202,6 +243,14 @@ namespace MoonRabbit.World
                 // spread over the disc of the Earth seen from the garden, a little toward the night (left) side
                 float a = (float)rng.NextDouble() * Mathf.PI * 2f, r = Mathf.Sqrt((float)rng.NextDouble()) * 0.85f;
                 cityDir[i] = new Vector3(Mathf.Cos(a) * r - 0.15f, Mathf.Sin(a) * r, 0f);
+            }
+
+            // the sky brightens too: work on a runtime copy so the asset is never changed
+            skyOriginal = RenderSettings.skybox;
+            if (skyOriginal != null && skyOriginal.HasProperty("_Exposure"))
+            {
+                skyCopy = new Material(skyOriginal) { name = skyOriginal.name + " (runtime)" };
+                RenderSettings.skybox = skyCopy;
             }
 
             progress.onComplete.AddListener(OnComplete);
@@ -220,6 +269,7 @@ namespace MoonRabbit.World
         void OnDisable()
         {
             if (!started) return;
+            if (skyOriginal != null) RenderSettings.skybox = skyOriginal;
             if (atmosphere != null) atmosphere.Apply();
             if (moonlight != null) moonlight.intensity = moonlightBase;
             if (bamboo != null) bamboo.silver = 0f;
@@ -228,7 +278,8 @@ namespace MoonRabbit.World
 
         void OnDestroy()
         {
-            foreach (var m in new[] { blossomHalo, stoneHalo, orbHalo, trailHalo, cityHalo, textHalo, burstHalo, wishHalo })
+            if (skyCopy != null) Destroy(skyCopy);
+            foreach (var m in new[] { blossomHalo, stoneHalo, orbHalo, trailHalo, cityHalo, textHalo, burstHalo, wishHalo, treeGlowHalo, treeAuraHalo, flareHalo })
                 if (m != null) Destroy(m);
         }
 
@@ -252,7 +303,9 @@ namespace MoonRabbit.World
             float sv = Ramp(v, 0f, 1f);
             float mv = moonFollowsProgress ? v : moonFull;
             float msv = Ramp(mv, 0f, 1f);
-            float p = pulse * pulse * strikePulse;
+            float p = pulse * pulse * strikePulse * Mathf.Lerp(0.6f, 1.6f, v); // later strikes light the Moon more
+            // brightness of the night: steady, then a stronger rise over the last quarter
+            float bright = Mathf.Clamp01((1f - lateBoost) * mv + lateBoost * Ramp(mv, 0.72f, 1f));
 
             // ---- Moon phase and brightness
             if (moon != null)
@@ -276,17 +329,39 @@ namespace MoonRabbit.World
             }
 
             // ---- light, ambient, fog: the garden brightens with the Moon
-            if (moonlight != null) moonlight.intensity = moonlightBase * Mathf.Lerp(moonlightScale.x, moonlightScale.y, msv);
+            if (moonlight != null) moonlight.intensity = moonlightBase * Mathf.Lerp(moonlightScale.x, moonlightScale.y, bright);
             if (atmosphere != null)
             {
-                float a = Mathf.Lerp(ambientScale.x, ambientScale.y, msv);
+                float a = Mathf.Lerp(ambientScale.x, ambientScale.y, bright);
                 RenderSettings.ambientSkyColor = atmosphere.ambientSky * a;
                 RenderSettings.ambientEquatorColor = atmosphere.ambientEquator * a;
                 RenderSettings.ambientGroundColor = atmosphere.ambientGround * a;
-                float f = Mathf.Lerp(fogScale.x, fogScale.y, sv);
+                float f = Mathf.Lerp(fogScale.x, fogScale.y, bright);
                 RenderSettings.fogDensity = atmosphere.fogDensity * f;
                 RenderSettings.fogEndDistance = atmosphere.fogEnd / Mathf.Max(0.1f, f);
+                var fc = Color.Lerp(atmosphere.fogColor, atmosphere.fogColor * moonlitFogTint, bright) * Mathf.Lerp(fogBrightness.x, fogBrightness.y, bright);
+                RenderSettings.fogColor = new Color(Mathf.Min(fc.r, 0.45f), Mathf.Min(fc.g, 0.45f), Mathf.Min(fc.b, 0.6f)); // never a glaring haze
             }
+            if (skyCopy != null)
+            {
+                skyCopy.SetFloat("_Exposure", Mathf.Lerp(skyExposure.x, skyExposure.y, bright));
+                skyCopy.SetColor("_Tint", Color.Lerp(skyTintDark, skyTintBright, bright));
+            }
+            if (islandRenderers != null)
+                for (int i = 0; i < islandRenderers.Length; i++)
+                {
+                    var r = islandRenderers[i];
+                    if (r == null) continue;
+                    var mats = r.sharedMaterials;
+                    for (int k = 0; k < mats.Length; k++)
+                    {
+                        if (mats[k] == null || !mats[k].HasProperty("_Color")) continue;
+                        r.GetPropertyBlock(mpb, k);
+                        mpb.SetColor("_Color", mats[k].color * Mathf.Lerp(islandBrightness.x, islandBrightness.y, bright));
+                        r.SetPropertyBlock(mpb, k);
+                    }
+                }
+            Brightness = bright;
 
             // ---- Earth (dark during the intro, glowing after the mochi arrives)
             if (earth != null)
@@ -303,9 +378,9 @@ namespace MoonRabbit.World
             if (earthGlow != null)
             {
                 earthGlow.GetPropertyBlock(mpb);
-                mpb.SetFloat("_Intensity", earthGlowBase * Mathf.Lerp(0.35f, 1f, EarthBrightness) + EarthPulse * 2.2f);
+                mpb.SetFloat("_Intensity", earthGlowBase * Mathf.Lerp(0.35f, 1f, EarthBrightness) + EarthPulse * 3.0f);
                 earthGlow.SetPropertyBlock(mpb);
-                earthGlow.transform.localScale = Vector3.one * (earthGlowBaseScale + EarthPulse * 3.4f);
+                earthGlow.transform.localScale = Vector3.one * (earthGlowBaseScale + EarthPulse * 6f);
             }
 
             // ---- lanterns one by one
@@ -339,6 +414,27 @@ namespace MoonRabbit.World
                 cassiaTree.GetPropertyBlock(mpb, blossomMaterial);
                 mpb.SetColor("_EmissionColor", blossomBaseEmission * Mathf.Lerp(blossomEmission.x, blossomEmission.y, bloom));
                 cassiaTree.SetPropertyBlock(mpb, blossomMaterial);
+                // the tree itself: leaves glow a little more, trunk a little lighter
+                cassiaTree.GetPropertyBlock(mpb, canopyMaterial);
+                mpb.SetColor("_EmissionColor", canopyBaseEmission * Mathf.Lerp(canopyEmission.x, canopyEmission.y, sv));
+                cassiaTree.SetPropertyBlock(mpb, canopyMaterial);
+                cassiaTree.GetPropertyBlock(mpb, trunkMaterial);
+                mpb.SetColor("_Color", trunkBaseColor * Mathf.Lerp(trunkBrightness.x, trunkBrightness.y, sv));
+                cassiaTree.SetPropertyBlock(mpb, trunkMaterial);
+
+                // gold light pooling on the ground under the tree, and a faint aura around the canopy
+                var tb = cassiaTree.bounds;
+                float glowK = Ramp(v, 0.2f, 1f);
+                var basePos = new Vector3(cassiaTree.transform.position.x, cassiaTree.transform.position.y + 0.04f, cassiaTree.transform.position.z);
+                treeGlowM[0] = Matrix4x4.TRS(basePos, Quaternion.Euler(90f, 0f, 0f), Vector3.one * tb.extents.x * 3.2f);
+                DrawHalos(treeGlowHalo, treeGlowM, 1, treeGroundGlow * glowK);
+                var cam0 = MainCamera();
+                if (cam0 != null)
+                {
+                    var ac = tb.center + Vector3.up * tb.extents.y * 0.3f;
+                    treeAuraM[0] = Matrix4x4.TRS(ac, Quaternion.LookRotation(ac - cam0.transform.position), Vector3.one * tb.extents.x * 3.4f);
+                    DrawHalos(treeAuraHalo, treeAuraM, 1, treeAura * glowK);
+                }
             }
             var cam = MainCamera();
             int nb = blossomM.Length, kb = 0;
@@ -393,10 +489,11 @@ namespace MoonRabbit.World
             if (moon != null) moon.SetPropertyBlock(null);
             if (moonGlow != null) { moonGlow.SetPropertyBlock(null); moonGlow.transform.localScale = Vector3.one * moonGlowBaseScale; }
             if (earth != null) earth.SetPropertyBlock(null);
+            if (islandRenderers != null) foreach (var r in islandRenderers) if (r != null) r.SetPropertyBlock(null);
             if (earthGlow != null) { earthGlow.SetPropertyBlock(null); earthGlow.transform.localScale = Vector3.one * earthGlowBaseScale; }
             if (lanterns != null) foreach (var l in lanterns) if (l != null) l.SetPropertyBlock(null, lanternGlowMaterial);
             if (lanternPools != null) foreach (var p in lanternPools) if (p != null) { p.SetPropertyBlock(null); p.enabled = true; }
-            if (cassiaTree != null) cassiaTree.SetPropertyBlock(null, blossomMaterial);
+            if (cassiaTree != null) { cassiaTree.SetPropertyBlock(null, blossomMaterial); cassiaTree.SetPropertyBlock(null, canopyMaterial); cassiaTree.SetPropertyBlock(null, trunkMaterial); }
             for (int i = 0; i < (lanternLights?.Length ?? 0); i++)
                 if (lanternLights[i] != null) { lanternLights[i].enabled = true; lanternLights[i].intensity = lanternLightBase[i]; }
         }
@@ -440,7 +537,7 @@ namespace MoonRabbit.World
 
         void DrawEarthLights()
         {
-            if ((cityOn <= 0.001f && Time.time - burstStart > 1.6f) || earth == null || earthLightCount == 0) return;
+            if ((cityOn <= 0.001f && Time.time - burstStart > BurstLife) || earth == null || earthLightCount == 0) return;
             var cam = MainCamera();
             if (cam == null) return;
             var c = earth.transform.position;
@@ -461,21 +558,28 @@ namespace MoonRabbit.World
             }
             DrawHalos(cityHalo, cityM, k, 1.7f);
 
-            // arrival burst: sparkles fly out from the Earth and fade (1.6 s)
+            // arrival burst: sparks fly far out from the Earth, slowing as they go, and fade slowly; a wide soft flare
             float age = Time.time - burstStart;
-            if (age < 1.6f)
+            if (age < BurstLife)
             {
                 int kb = 0;
-                float life = 1f - age / 1.6f;
+                float u = age / BurstLife;
+                float life = 1f - u;
+                float spread = 1f - (1f - u) * (1f - u) * (1f - u);                 // fast out, slow at the end
                 for (int i = 0; i < burstM.Length; i++)
                 {
-                    float ang = i * 2.399963f; // golden angle
-                    float rr = R * (1.1f + 2.6f * Mathf.Sqrt(age / 1.6f) * (0.6f + 0.4f * ((i * 37) % 11) / 10f));
-                    var pb = c + (right * Mathf.Cos(ang) + up * Mathf.Sin(ang)) * rr + toCam * R;
-                    float tw = 0.7f + 0.3f * Mathf.Sin(Time.time * 19f + i * 1.3f);
-                    burstM[kb++] = Matrix4x4.TRS(pb, Quaternion.LookRotation(pb - cam.transform.position), Vector3.one * R * 0.8f * life * tw);
+                    float ang = i * 2.399963f;                                         // golden angle
+                    float reach = 0.55f + 0.45f * ((i * 37) % 11) / 10f;
+                    float rr = R * (1.1f + 7.5f * spread * reach);                     // ~3x wider than before
+                    var pb = c + (right * Mathf.Cos(ang) + up * Mathf.Sin(ang)) * rr + toCam * R - Vector3.up * R * 0.8f * u * u; // a little droop like fireworks
+                    float tw = 0.65f + 0.35f * Mathf.Sin(Time.time * 17f + i * 1.3f);
+                    burstM[kb++] = Matrix4x4.TRS(pb, Quaternion.LookRotation(pb - cam.transform.position), Vector3.one * R * 1.15f * Mathf.Pow(life, 0.45f) * tw);
                 }
-                DrawHalos(burstHalo, burstM, kb, 1.2f * life); // own material: intensity is read at render time
+                DrawHalos(burstHalo, burstM, kb, 1.9f * Mathf.Pow(life, 0.6f)); // own material: intensity is read at render time
+                float flare = Mathf.Clamp01(age / 0.25f) * Mathf.Pow(life, 0.9f);
+                var fp = c + toCam * R * 1.2f;
+                flareM[0] = Matrix4x4.TRS(fp, Quaternion.LookRotation(fp - cam.transform.position), Vector3.one * R * (6f + 10f * spread));
+                DrawHalos(flareHalo, flareM, 1, 0.9f * flare);
             }
         }
 
@@ -594,16 +698,16 @@ namespace MoonRabbit.World
             var cam = MainCamera();
             if (cam != null && !string.IsNullOrEmpty(endingText))
             {
-                if (text == null) text = StoryText.Create(transform, "MR_EndingText", textHeight, textColor, textHalo, quadMesh);
+                if (text == null) text = StoryText.Create(transform, "MR_EndingText", endingStyle, textHalo, quadMesh);
+                text.PlaceInFront(cam.transform, textDistance, endingAboveEyes);
                 text.SetText(endingText);
-                text.PlaceInFront(cam.transform, textDistance, textAboveEyes);
             }
             float shown = Time.time;
             float hold = Mathf.Max(3f, endingDuration - (shown - t0));
             while (Time.time - shown < hold)
             {
                 float a = Time.time - shown;
-                if (text != null) text.SetAlpha(Mathf.Clamp01(a / 1.2f) * Mathf.Clamp01((hold - a) / 1f));
+                if (text != null) text.SetAlpha((endingStyle.rise ? 1f : Mathf.Clamp01(a / 1.2f)) * Mathf.Clamp01((hold - a) / 1f));
                 yield return null;
             }
             if (text != null) text.SetAlpha(0f);

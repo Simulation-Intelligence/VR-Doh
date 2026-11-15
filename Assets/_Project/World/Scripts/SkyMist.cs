@@ -21,7 +21,7 @@ namespace MoonRabbit.World
         public Vector2 size = new Vector2(7f, 15f);
         [Tooltip("Orbit speed (deg/s).")]
         public float drift = 0.6f;
-        public Vector2 intensity = new Vector2(0.22f, 0.4f);
+        public Vector2 intensity = new Vector2(0.16f, 0.62f);
         public int seed = 9;
 
         Vector4[] puffs; // angle (deg), radius, height, size
@@ -58,7 +58,7 @@ namespace MoonRabbit.World
             if (material == null || quad == null || count == 0 || puffs == null) return;
             if (cam.cameraType == CameraType.Preview || cam.cameraType == CameraType.Reflection) return;
             if (story == null && Application.isPlaying) story = FindAnyObjectByType<MoonStory>();
-            float p = story != null ? story.ShownProgress : 1f;
+            float p = story != null ? story.Brightness : 1f;
             if (runtimeMat == null) runtimeMat = new Material(material) { hideFlags = HideFlags.DontSave, enableInstancing = true };
             runtimeMat.SetFloat("_Intensity", Mathf.Lerp(intensity.x, intensity.y, p));
 

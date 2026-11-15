@@ -62,6 +62,21 @@ namespace MoonRabbit.WorldEditor
         [Tooltip("On: one BambooGrove draws everything with Graphics.RenderMeshInstanced. Off: one MeshRenderer per stalk.")]
         public bool useGpuInstancing = true;
 
+        [Tooltip("Share of bamboo left out behind the player (the half facing away from the Moon), fading in from the sides. " +
+                 "The forest there is rarely looked at; fewer stalks help Quest's frame time.")]
+        [Range(0f, 0.8f)] public float bambooBackThinning = 0.36f;
+
+        [Header("Clear view to the Earth (the ending's flight)")]
+        [Tooltip("Bamboo in the sector toward the Earth (seen from the player) is lower, so the mochi's flight and the Earth stay visible.")]
+        public bool earthViewClear = true;
+        [Tooltip("Half width of the fully lowered sector (deg) and the extra width over which bamboo grows back to full height.")]
+        public float earthViewHalfWidth = 24f;
+        public float earthViewFalloff = 22f;
+        [Tooltip("Stalk tops in the sector stay below this elevation seen from the eye (deg); the flight starts low and climbs.")]
+        public float earthViewMaxElevation = 13f;
+        [Tooltip("Eye height above the ground at the player position (m), for the sight line.")]
+        public float earthViewEyeHeight = 1.9f;
+
         [Header("Cassia tree")]
         [Tooltip("Front-right of the player, so the canopy does not hide the Moon (azimuth 0) from the usu.")]
         public Vector3 treePosition = new Vector3(2.4f, 0f, 2.8f);
