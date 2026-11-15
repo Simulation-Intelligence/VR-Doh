@@ -126,6 +126,7 @@ namespace MoonRabbit.World
         {
             color = new Color(1f, 0.96f, 0.88f), letterHeight = 0.28f, characterSpacing = 2f,
             glowColor = new Color(1f, 0.76f, 0.4f), glowIntensity = 0.6f, rise = false, breathe = true,
+            halo = false, // letters only: no quad behind "Happy Chuseok, Earth!" (the font's own soft gold glow stays)
         };
         [Tooltip("Ending line height relative to the eyes (m): at eye level it stays below the Moon, the Earth and the wish lights.")]
         public float endingAboveEyes = 0f;

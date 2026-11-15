@@ -28,6 +28,10 @@ namespace MoonRabbit.World
         public bool pulse;
         [Tooltip("Glow behind the line breathes slowly (period ~2 s, small amplitude) and flashes once when it appears.")]
         public bool breathe;
+        [Tooltip("Wide additive halo quad behind the line. Off: letters only (their own TMP glow stays).")]
+        public bool halo = true;
+        [Tooltip("Frosted-glass panel behind the line (rounded, soft white, thin bright edge, soft shadow); replaces the halo.")]
+        public bool panel;
     }
 
     /// <summary>
@@ -58,8 +62,15 @@ namespace MoonRabbit.World
         public float exitRise = 0.1f;
         public float exitStagger = 0.012f;
 
+        [Header("Glass panel (style.panel)")]
+        [Tooltip("Space around the text inside the panel (m).")]
+        public Vector2 panelPadding = new Vector2(0.11f, 0.07f);
+        [Tooltip("Room around the panel on the quad for its soft shadow (m).")]
+        public float panelShadowMargin = 0.07f;
+
         StoryTextStyle style;
-        Renderer glow;
+        Renderer glow, panel;
+        Vector2 panelSize;
         MaterialPropertyBlock mpb;
         float alpha, revealStart = -100f, pulseStart = -100f, exitStart = -100f, appearStart = -100f;
         bool revealing, exiting;
@@ -75,10 +86,66 @@ namespace MoonRabbit.World
 #endif
         TextMesh main, shadow;
 
+        /// <summary>0..1 of the current emphasis swell (drives the scroll's cloud glow).</summary>
+        public float SwellNow => swellNow;
+        [Tooltip("Colour the emphasised letters brighten towards at the top of the swell.")]
+        public Color32 brightColor = new Color32(255, 248, 225, 255);
+
+#if MR_TMP
+        void Calibrate()
+        {
+            if (fontSizeForHeight >= 0f || tmp == null) return;
+            bool was = gameObject.activeSelf;
+            if (!was) gameObject.SetActive(true);
+            tmp.fontSize = 10f;
+            tmp.text = "H";
+            tmp.ForceMeshUpdate(true);
+            float h = tmp.textBounds.size.y;
+            fontSizeForHeight = h > 1e-5f ? 10f * style.letterHeight / h : 1f;
+            tmp.fontSize = fontSizeForHeight;
+            tmp.text = "";
+            tmp.ForceMeshUpdate(true);
+            if (!was) gameObject.SetActive(false);
+        }
+#endif
+
+        /// <summary>Font size that gives the style's capital height (m).</summary>
+        public float FontSize
+        {
+            get
+            {
+#if MR_TMP
+                Calibrate();
+                return fontSizeForHeight;
+#else
+                return 1f;
+#endif
+            }
+        }
+
+        /// <summary>Laid-out size (m) of <paramref name="richText"/> at this line's size, without showing it.</summary>
+        public Vector2 Measure(string richText)
+        {
+#if MR_TMP
+            Calibrate();
+            bool was = gameObject.activeSelf;
+            if (!was) gameObject.SetActive(true);
+            var v = tmp.GetPreferredValues(richText);
+            // measuring re-parses the text: the laid-out letters of the current line are stale now
+            tmp.ForceMeshUpdate(true);
+            baseVerts = null; baseColors = null;
+            if (!was) gameObject.SetActive(false);
+            return v;
+#else
+            return new Vector2(richText.Length * style.letterHeight * 0.7f, style.letterHeight * 1.5f);
+#endif
+        }
+
         /// <summary>Line height of LegacyRuntime at fontSize 96 is 11 × characterSize (fallback only).</summary>
         const float LineHeightPerCharSize = 11f;
 
-        public static StoryText Create(Transform parent, string name, StoryTextStyle style, Material haloMaterial, Mesh quad)
+        public static StoryText Create(Transform parent, string name, StoryTextStyle style, Material haloMaterial, Mesh quad,
+                                       Material panelMaterial = null)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, true);
@@ -105,7 +172,20 @@ namespace MoonRabbit.World
             st.main = MakeText(go.transform, "Text", legacy, style.letterHeight * 1.4f, Vector3.zero);
             st.shadow = MakeText(go.transform, "Shadow", legacy, style.letterHeight * 1.4f, new Vector3(0.006f, -0.006f, 0.004f));
 #endif
-            if (haloMaterial != null && quad != null)
+            if (style.panel && panelMaterial != null && quad != null)
+            {
+                var g = new GameObject("Panel");
+                g.transform.SetParent(go.transform, false);
+                g.transform.localPosition = new Vector3(0f, 0f, 0.03f); // just behind the letters (sorted before them)
+                g.AddComponent<MeshFilter>().sharedMesh = quad;
+                var r = g.AddComponent<MeshRenderer>();
+                r.sharedMaterial = panelMaterial;
+                r.shadowCastingMode = ShadowCastingMode.Off;
+                r.receiveShadows = false;
+                r.lightProbeUsage = LightProbeUsage.Off;
+                st.panel = r;
+            }
+            else if (style.halo && haloMaterial != null && quad != null)
             {
                 var g = new GameObject("Glow");
                 g.transform.SetParent(go.transform, false);
@@ -166,16 +246,7 @@ namespace MoonRabbit.World
             // Enable first: TMP rebuilds its mesh (all letters fully opaque) on OnEnable. Doing that here, before the
             // mesh is laid out and hidden below, means no frame ever shows the whole sentence before it rises in.
             if (!gameObject.activeSelf) gameObject.SetActive(true);
-            if (fontSizeForHeight < 0f)
-            {
-                // calibrate once: font size that gives the requested capital height in metres
-                tmp.fontSize = 10f;
-                tmp.text = "H";
-                tmp.ForceMeshUpdate(true);
-                float h = tmp.textBounds.size.y;
-                fontSizeForHeight = h > 1e-5f ? 10f * style.letterHeight / h : 1f;
-                tmp.fontSize = fontSizeForHeight;
-            }
+            Calibrate(); // once: font size that gives the requested capital height in metres
             tmp.text = text;
             tmp.ForceMeshUpdate(true);
             size = tmp.textBounds.size;
@@ -201,6 +272,7 @@ namespace MoonRabbit.World
 #endif
             if (glow != null)
                 glow.transform.localScale = new Vector3(size.x * 1.3f + 0.4f, Mathf.Max(size.y, style.letterHeight) * 2.6f + 0.15f, 1f);
+            panelSize = new Vector2(size.x + panelPadding.x * 2f, Mathf.Max(size.y, style.letterHeight) + panelPadding.y * 2f);
             revealStart = Time.time;
             appearStart = Time.time;
             revealing = style.rise;
@@ -278,38 +350,42 @@ namespace MoonRabbit.World
         void LateUpdate() => Refresh();
 
         [Header("Instruction emphasis (whole line)")]
-        [Tooltip("Peak of the bounce once the line has risen (scale), and its length (s).")]
-        public float bouncePeak = 1.25f;
-        public float bounceTime = 0.6f;
+        [Tooltip("Peak of the slow swell once the line has risen (scale), and its whole length up and back down (s).")]
+        public float bouncePeak = 1.2f;
+        public float bounceTime = 1.8f;
         [Tooltip("Then it breathes gently while it is read: amplitude (±) and period (s).")]
-        public float breatheAmount = 0.03f;
-        public float breathePeriod = 1.6f;
+        public float breatheAmount = 0.025f;
+        public float breathePeriod = 2.8f;
 
-        /// <summary>Whole-line scale (from the line's centre): a bounce with overshoot once the line has risen, then a
+        bool WholeLineEmphasis => style != null && (style.pulse || pulseFrom == 0);
+
+        /// <summary>Seconds of the whole-line swell (0 for lines without it); reading time counts after it.</summary>
+        public float EmphasisDuration => WholeLineEmphasis ? bounceTime : 0f;
+
+        /// <summary>0..1..0 over the swell: smooth ease-in-out up and back down, no overshoot (sin²).</summary>
+        float SwellCurve(float sincePulse, float duration)
+        {
+            if (sincePulse < 0f || sincePulse >= duration || pulseStart < -50f) return 0f;
+            float s = Mathf.Sin(sincePulse / duration * Mathf.PI);
+            return s * s;
+        }
+
+        /// <summary>Whole-line scale (from the line's centre): a slow, mysterious swell once the line has risen, then a
         /// slow breath while it is read. Lines without emphasis stay at 1.</summary>
         float EmphasisScale(float sincePulse, float swell)
         {
-            bool wholeLine = style.pulse || pulseFrom == 0;
-            if (!wholeLine || sincePulse < 0f || pulseStart < -50f) return 1f;
-            float up = bouncePeak - 1f;
-            float k;
-            if (sincePulse < bounceTime)
-            {
-                float t = sincePulse / bounceTime;
-                // fast rise to the peak (first 30 %), then settle with one small undershoot (easeOutBack-like)
-                if (t < 0.3f) { float a = t / 0.3f; k = up * (1f - (1f - a) * (1f - a)); }
-                else { float b = (t - 0.3f) / 0.7f; k = up * Mathf.Exp(-4.5f * b) * Mathf.Cos(b * Mathf.PI * 1.1f); }
-            }
-            else k = breatheAmount * Mathf.Sin((sincePulse - bounceTime) / breathePeriod * Mathf.PI * 2f);
-            return 1f + k;
+            if (!WholeLineEmphasis || sincePulse < 0f || pulseStart < -50f) return 1f;
+            if (sincePulse < bounceTime) return 1f + (bouncePeak - 1f) * swell;
+            float b = (sincePulse - bounceTime) / breathePeriod;
+            return 1f + breatheAmount * Mathf.Sin(b * Mathf.PI * 2f) * Mathf.Clamp01(b * 2f); // eases into the breath
         }
 
         void Refresh()
         {
             float now = Time.time;
-            // one gentle swell (+8 %) and glow pulse for instructions
+            // swell and gold brightening on the same curve (whole line: slow; part of a line: short)
             float pu = now - pulseStart;
-            float swell = pu >= 0f && pu < 0.9f ? Mathf.Sin(pu / 0.9f * Mathf.PI) : 0f;
+            float swell = SwellCurve(pu, WholeLineEmphasis ? bounceTime : 0.9f);
             swellNow = swell;
             float glowK = 1f + (pulseFrom >= 0 ? 0.6f : 1.5f) * swell;
             if (style.breathe)
@@ -330,6 +406,26 @@ namespace MoonRabbit.World
                 glow.SetPropertyBlock(mpb);
                 glow.enabled = alpha > 0.001f;
             }
+            if (panel != null) UpdatePanel(now, EmphasisScale(pu, swell));
+        }
+
+        /// <summary>The glass panel comes up with the line (fade + small rise), follows the swell, and thins out with the
+        /// letters' drift-out.</summary>
+        void UpdatePanel(float now, float emphasis)
+        {
+            float appear = Mathf.SmoothStep(0f, 1f, (now - appearStart) / 0.6f);
+            float exit = exiting ? 1f - Mathf.SmoothStep(0f, 1f, (now - exitStart) / Mathf.Max(0.1f, exitTime)) : 1f;
+            float k = alpha * appear * exit;
+            panel.enabled = k > 0.002f;
+            if (!panel.enabled) return;
+            var size = panelSize * emphasis;
+            float m = panelShadowMargin;
+            panel.transform.localPosition = new Vector3(0f, -0.04f * (1f - appear) + 0.03f * (1f - exit), 0.03f);
+            panel.transform.localScale = new Vector3(size.x + m * 2f, size.y + m * 2f, 1f);
+            panel.GetPropertyBlock(mpb);
+            mpb.SetVector("_Size", new Vector4(size.x, size.y, size.x + m * 2f, size.y + m * 2f));
+            mpb.SetFloat("_Alpha", k);
+            panel.SetPropertyBlock(mpb);
         }
 
 #if MR_TMP
@@ -388,8 +484,10 @@ namespace MoonRabbit.World
                         fade *= 1f - Mathf.SmoothStep(0f, 1f, t);
                     }
                     int mi = ch.materialReferenceIndex, vi = ch.vertexIndex;
+                    if (mi < 0 || mi >= info.meshInfo.Length) continue;
                     var verts = info.meshInfo[mi].vertices;
                     var cols = info.meshInfo[mi].colors32;
+                    if (verts == null || cols == null || vi + 3 >= verts.Length || vi + 3 >= cols.Length) continue;
                     var centre = (verts[vi] + verts[vi + 2]) * 0.5f;
                     var rot = Quaternion.Euler(0f, 0f, tilt);
                     var offLocal = off * local;
@@ -397,7 +495,7 @@ namespace MoonRabbit.World
                     {
                         verts[vi + k] = centre + rot * ((verts[vi + k] - centre) * scale) + offLocal;
                         var c = cols[vi + k]; c.a = (byte)(c.a * fade);
-                        if (bright > 0f) c = Color32.Lerp(c, new Color32(255, 248, 225, c.a), bright);
+                        if (bright > 0f) c = Color32.Lerp(c, new Color32(brightColor.r, brightColor.g, brightColor.b, c.a), bright);
                         cols[vi + k] = c;
                     }
                 }

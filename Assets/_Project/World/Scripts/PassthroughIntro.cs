@@ -17,11 +17,12 @@ namespace MoonRabbit.World
     public class PassthroughIntro : MonoBehaviour
     {
         public bool passthroughIntro = true;
-        [Tooltip("Seconds for the portal to open (and to close on a reset).")]
+        [Tooltip("Seconds for the portal to open (also after a skip it opens in at most skipRevealTime).")]
         public float revealTime = 3.5f;
         public float closeTime = 2.2f;
-        [Tooltip("Intro line (1-based) at which the portal starts to open.")]
-        public int revealAtLine = 3;
+        public float skipRevealTime = 1.4f;
+        [Tooltip("When the portal opens: 1-4 = as that intro line appears; 0 = after the last line has gone (the intro's end).")]
+        public int revealAtLine = 0;
         public Material veilMaterial;
         [Tooltip("MoonRabbit/PortalKeep: marks the usu, pedestal, dough and kine so the veil leaves them alone.")]
         public Material keepMaterial;
@@ -67,7 +68,7 @@ namespace MoonRabbit.World
 
         void Start()
         {
-            progress.onIntroLine.AddListener(n => { if (n == revealAtLine && Active && state == State.Room) Open(revealTime); });
+            progress.onIntroLine.AddListener(n => { if (revealAtLine > 0 && n == revealAtLine && Active && state == State.Room) Open(revealTime); });
             if (intro != null) intro.Started += OnIntroStarted;
         }
 
@@ -101,9 +102,10 @@ namespace MoonRabbit.World
             if (!Active) { if (state != State.Garden) ShowGarden(); launched = true; return; }
             if (!launched) { launched = true; if (state == State.Garden) EnterRoom(); } // never show the garden first
 
-            // the intro ended or was skipped before the portal opened: open it now (quicker)
+            // the intro ended (after-last-line setting, or the line was never reached) or was skipped: open it now
             bool playing = intro.Playing;
-            if (!playing && (state == State.Room || state == State.Closing) && wasPlaying) Open(Mathf.Min(revealTime, 1.4f));
+            if (!playing && (state == State.Room || state == State.Closing) && wasPlaying)
+                Open(intro.WasSkipped ? Mathf.Min(revealTime, skipRevealTime) : revealTime);
             wasPlaying = playing;
 
             if (state == State.Opening || state == State.Closing) Animate();

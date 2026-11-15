@@ -21,11 +21,12 @@ namespace MoonRabbit.WorldEditor
         public const string EndingMatPath = F + "/Baloo2/MR_EndingText.mat";
         public const string InstructionFontPath = F + "/Cinzel/MR_Cinzel Black SDF.asset";
         public const string InstructionMatPath = F + "/Cinzel/MR_InstructionText.mat";
+        public const string IntroInkMatPath = F + "/Cinzel/MR_IntroInk.mat";
 
         public class Fonts
         {
             public TMP_FontAsset intro, ending, instruction;
-            public Material introMat, endingMat, instructionMat;
+            public Material introMat, endingMat, instructionMat, introInkMat;
         }
 
         [MenuItem("Moon Rabbit/Rebuild Story Fonts", false, 30)]
@@ -41,6 +42,12 @@ namespace MoonRabbit.WorldEditor
                 instruction = FontAsset(F + "/Cinzel/Cinzel-Black.ttf", InstructionFontPath, force), // "instruction" style: Cinzel Black
             };
             if (r.intro != null) r.introMat = TextMaterial(r.intro, IntroMatPath, 0.16f, new Color(1f, 0.8f, 0.55f, 0.35f));
+            if (r.intro != null)
+            {
+                r.introInkMat = MRAssets.GetMaterial(IntroInkMatPath, r.intro.material.shader);
+                r.introInkMat.CopyPropertiesFromMaterial(r.intro.material);
+                InkStyle(r.introInkMat, r.intro);
+            }
             if (r.ending != null) r.endingMat = TextMaterial(r.ending, EndingMatPath, 0.16f, new Color(1f, 0.76f, 0.38f, 0.6f), 0.85f); // wide soft gold glow
             if (r.instruction != null)
             {
@@ -124,6 +131,26 @@ namespace MoonRabbit.WorldEditor
             m.CopyPropertiesFromMaterial(fa.material);
             Style(m, fa, outline, glow, glowOuter);
             return m;
+        }
+
+        /// <summary>Ink on hanji: no glow, no drop shadow, a fine dark outline (it frames the gold instruction letters and
+        /// is invisible on the ink-coloured ones).</summary>
+        public static void InkStyle(Material m, TMP_FontAsset fa)
+        {
+            m.SetTexture(ShaderUtilities.ID_MainTex, fa.atlasTexture);
+            m.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            m.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.16f);
+            m.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0.13f, 0.09f, 0.06f, 1f));
+            m.DisableKeyword(ShaderUtilities.Keyword_Underlay);
+            m.DisableKeyword(ShaderUtilities.Keyword_Glow);
+            m.SetFloat(ShaderUtilities.ID_FaceDilate, 0.08f);
+            EditorUtility.SetDirty(m);
+        }
+
+        /// <summary>Back to the sky look (outline, shadow, gold glow) for the instruction font's own material.</summary>
+        public static void SkyStyleInstruction(TMP_FontAsset fa)
+        {
+            Style(fa.material, fa, 0.2f, new Color(1f, 0.78f, 0.35f, 0.6f), 0.7f);
         }
 
         static void Style(Material m, TMP_FontAsset fa, float outline, Color glow, float glowOuter)
