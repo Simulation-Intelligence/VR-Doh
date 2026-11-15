@@ -76,7 +76,7 @@ Deliberately non-physical parts, which carry the illusion:
     - a stretched link is dropped if its ends are in the same component of the short-link graph (union-find), so the dough can still flow;
     - otherwise it is kept. Short links that are bridges of that graph (Tarjan; the dough would split without them, as along a strand) are marked before they stretch.
   - **Tethers:** the kept stretched links and the bridges. In every substep, `Particles` holds each at the reach, half the excess per end, capped at half a cell. Their ends can't move apart along them. A taut strand passes the pull on, and the dough flows into it instead of tearing.
-  - **Drawing thin dough:** `P.v.w` now carries each particle's measured density, and `Nodes` writes a render mass `GridR` in which sparse particles (under `thinDensity` 0.42) count up to `thinBoost` (6) times. `Density` draws from it, so strands stay visible.
+  - **Drawing thin dough:** `P.v.w` now carries each particle's measured density, and `Nodes` writes a render mass into `GridM.z` (GridM is float4) in which sparse particles (under `thinDensity` 0.42) count up to `thinBoost` (6) times. `Density` draws from it, so strands stay visible. **A kernel can bind at most 8 writable buffers**: `Nodes` is at 8, so new per-node values go into GridM's spare component, never a new RW buffer (324ba4a added a ninth and did not compile)
   - **Reach changes** take effect at the next `ResetDough`.
 
 Tool velocities are displacement divided by *simulated* frame time, so when the substep cap puts the dough in slow motion a tool still sweeps through it consistently. Do not change that back to `Time.deltaTime`.

@@ -25,8 +25,12 @@
 // dough stretched thinner than a cell came apart into blobs. Links between neighbouring particles are
 // kept on the CPU; the ones holding a part of the dough to the rest (tethers) are enforced here, in
 // Particles: a tether never stretches past LinkReach and its ends don't move apart along it, so the
-// dough stretches into strands and folds, but never tears. Thin dough is drawn heavier (GridR), so a
+// dough stretches into strands and folds, but never tears. Thin dough is drawn heavier (GridM.z), so a
 // strand stays visible instead of vanishing into beads under the iso level.
+//
+// A kernel may bind at most 8 writable buffers (UAVs). Nodes is at that limit (Parts, CountA, CountB,
+// Ids, GridV, GridM, ToolA, ToolB), so new per-node values go into a spare component of GridM, not a
+// buffer of their own.
 
 #pragma kernel ToolSdf
 #pragma kernel Nodes
@@ -67,13 +71,12 @@ RWStructuredBuffer<uint> CountA;     // particles per cell, this substep
 RWStructuredBuffer<uint> CountB;     // particles per cell, next substep
 RWStructuredBuffer<uint> Ids;        // SLOTS particle ids per cell
 RWStructuredBuffer<float4> GridV;    // xyz node velocity, w = tool distance at this substep
-RWStructuredBuffer<float2> GridM;    // node mass, bonded fraction of that mass
+RWStructuredBuffer<float4> GridM;    // node mass, bonded fraction of that mass, render mass (thin dough weighted up), unused
 RWStructuredBuffer<float4> ToolA;    // xyz outward tool normal, w = signed distance (end-of-frame pose)
 RWStructuredBuffer<float4> ToolB;    // xyz tool surface velocity, w = tack seconds
 StructuredBuffer<Prim> Prims;
 StructuredBuffer<Tool> Tools;
 RWStructuredBuffer<float> Voxels;    // render density field
-RWStructuredBuffer<float> GridR;     // render mass per node: node mass with thin dough weighted up
 RWStructuredBuffer<float4> PosOut;   // particle positions, copied out for DoughLinks' readback
 StructuredBuffer<uint2> LinkRange;   // per particle: first tether in LinkOther, tether count
 StructuredBuffer<uint> LinkOther;    // the particle at the far end of each tether
@@ -323,8 +326,7 @@ void Nodes(uint3 id : SV_DispatchThreadID)
     }
     float m = w * PMass;
     float bond = w > 0.0 ? wb / w : 0.0;
-    GridM[node] = float2(m, bond);
-    GridR[node] = wr * PMass;
+    GridM[node] = float4(m, bond, wr * PMass, 0.0);
 
     float4 ta = ToolA[node];
     float4 tb = ToolB[node];
@@ -441,7 +443,7 @@ void Particles(uint3 id : SV_DispatchThreadID)
         float weight = wt[i].x * wt[j].y * wt[k].z;
         uint ni = NodeIndex((uint3)(base + int3(i, j, k)));
         float4 g = GridV[ni];
-        float2 gm = GridM[ni];
+        float4 gm = GridM[ni];
         bondP += weight * gm.y;
         densP += weight * gm.x;
         nv += weight * g.xyz;
@@ -585,7 +587,6 @@ void ClearCounts(uint3 id : SV_DispatchThreadID)
     CountB[node] = 0;
     GridV[node] = 0;
     GridM[node] = 0;
-    GridR[node] = 0;
 }
 
 // Positions out, for DoughLinks' readback (a fraction of the whole particle buffer).
@@ -615,7 +616,7 @@ void Density(uint3 id : SV_DispatchThreadID)
     for (int k = 0; k < 3; k++)
     {
         int3 I = clamp(base + int3(i, j, k), 0, (int3)Dims - 1);
-        sum += wt[i].x * wt[j].y * wt[k].z * GridR[NodeIndex((uint3)I)];   // thin dough weighted up
+        sum += wt[i].x * wt[j].y * wt[k].z * GridM[NodeIndex((uint3)I)].z;   // render mass: thin dough weighted up
     }
     uint vi = id.x + VoxDims.x * (id.y + VoxDims.y * id.z);
     float v = sum / RestNodeMass;
