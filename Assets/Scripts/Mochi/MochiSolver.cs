@@ -88,6 +88,18 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     [Tooltip("Tool speeds above this are treated as tracking glitches, m/s.")]
     public float maxToolSpeed = 8f;
 
+    [Header("One body (DoughLinks)")]
+    [Tooltip("Keep the dough in one piece: neighbouring particles are linked, and a link that holds a part of the dough to the rest never stretches past the reach, so the dough stretches and folds but never comes apart into blobs.")]
+    public bool keepInOnePiece = true;
+    [Tooltip("Link reach, in particle lattice spacings (1.5: the face and edge neighbours of the starting lattice).")]
+    public float linkReach = 1.5f;
+    [Tooltip("Frames between link rebuilds (each copies the positions out, reads them back and rebuilds on a worker thread).")]
+    [Range(1, 12)] public int linkEveryFrames = 3;
+    [Tooltip("Thin dough (a stretched strand or sheet) below this fraction of rest density is drawn heavier, so it stays visible.")]
+    public float thinDensity = 0.42f;
+    [Tooltip("At most this many times heavier.")]
+    public float thinBoost = 6f;
+
     [Header("Tools")]
     public List<MatTool> tools = new();
     [Tooltip("The usu wall is evaluated analytically from this tool's dimensions instead of its capsules.")]
@@ -123,8 +135,9 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     const int MaxPrims = 512, MaxTools = 16;
 
     ComputeShader cs;
-    int kToolSdf, kNodes, kParticles, kBin, kClear, kDensity;
-    ComputeBuffer parts, ids, gridV, gridM, toolA, toolB, prims, toolBuf, voxels;
+    int kToolSdf, kNodes, kParticles, kBin, kClear, kDensity, kCopy;
+    ComputeBuffer parts, ids, gridV, gridM, gridR, toolA, toolB, prims, toolBuf, voxels;
+    DoughLinks links;
     readonly ComputeBuffer[] counts = new ComputeBuffer[2];
     int cur;
     MeshBuilder builder;
@@ -150,6 +163,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         kBin = cs.FindKernel("Bin");
         kClear = cs.FindKernel("ClearCounts");
         kDensity = cs.FindKernel("Density");
+        kCopy = cs.FindKernel("CopyPositions");
         Allocate();
         ResetDough();
     }
@@ -162,6 +176,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         ids = new ComputeBuffer(nodes * Slots, 4);
         gridV = new ComputeBuffer(nodes, 16);
         gridM = new ComputeBuffer(nodes, 8);
+        gridR = new ComputeBuffer(nodes, 4);
         toolA = new ComputeBuffer(nodes, 16);
         toolB = new ComputeBuffer(nodes, 16);
         prims = new ComputeBuffer(MaxPrims, 96);
@@ -195,12 +210,15 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         parts = new ComputeBuffer(Mathf.Max(ParticleCount, 1), ParticleStride);
         parts.SetData(data);
         readback = null; readbackReady = false;
+        links?.Dispose();
+        links = new DoughLinks(ParticleCount, linkReach * cellSize / Mathf.Pow(particlesPerCell, 1f / 3f), linkEveryFrames);
 
         SetConstants(1e-3f);
         cs.SetBuffer(kClear, "CountA", counts[0]);
         cs.SetBuffer(kClear, "CountB", counts[1]);
         cs.SetBuffer(kClear, "GridV", gridV);
         cs.SetBuffer(kClear, "GridM", gridM);
+        cs.SetBuffer(kClear, "GridR", gridR);
         cs.DispatchThreads(kClear, gridCells);
         cs.SetBuffer(kBin, "Parts", parts);
         cs.SetBuffer(kBin, "CountB", counts[0]);
@@ -245,6 +263,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
                     for (int k = 0; k < 28; k++) list.Add(0f);
                     list[o] = p.x; list[o + 1] = p.y; list[o + 2] = p.z;
                     list[o + 20] = 1f; list[o + 21] = 1f; list[o + 22] = 1f;   // b = identity
+                    list[o + 7] = 1f;   // v.w: measured density, rest until the first substep measures it
                 }
         return list.ToArray();
     }
@@ -285,6 +304,8 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetInt("FloorCells", floorCells);
         cs.SetFloat("VMax", Mathf.Min(0.8f * dx / dt, maxDoughSpeed));
         cs.SetFloat("PushOut", 1f);
+        cs.SetFloat("ThinDensity", thinDensity);
+        cs.SetFloat("ThinBoost", Mathf.Max(thinBoost, 1f));
         Vector3 fc = FloorCentre;
         cs.SetVector("LumpCentre", fc + new Vector3(0f, 0.04f, 0f));
         if (usu != null)
@@ -323,6 +344,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetBuffer(kNodes, "Ids", ids);
         cs.SetBuffer(kNodes, "GridV", gridV);
         cs.SetBuffer(kNodes, "GridM", gridM);
+        cs.SetBuffer(kNodes, "GridR", gridR);
         cs.SetBuffer(kNodes, "ToolA", toolA);
         cs.SetBuffer(kNodes, "ToolB", toolB);
         cs.SetBuffer(kParticles, "Parts", parts);
@@ -331,6 +353,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetBuffer(kParticles, "GridM", gridM);
         cs.SetBuffer(kParticles, "ToolA", toolA);
         cs.SetBuffer(kParticles, "ToolB", toolB);
+        links.Bind(cs, kParticles, keepInOnePiece);
         for (int s = 0; s < n; s++)
         {
             cs.SetFloat("TimeLeft", (n - 1 - s) * dt);
@@ -345,13 +368,14 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         LastSubstepCount = n;
         LastFrameSimTime = n * dt;
         SimTime += LastFrameSimTime;
+        if (keepInOnePiece && n > 0) links.Tick(cs, kCopy, parts);
 
         if (builder != null && n > 0)
         {
             cs.SetInts("VoxDims", voxDims.x, voxDims.y, voxDims.z);
             cs.SetFloat("VoxDx", cellSize / renderScale);
             cs.SetFloat("VoxBlend", temporalBlend);
-            cs.SetBuffer(kDensity, "GridM", gridM);
+            cs.SetBuffer(kDensity, "GridR", gridR);
             cs.SetBuffer(kDensity, "Voxels", voxels);
             cs.DispatchThreads(kDensity, voxDims);
             builder.BuildIsosurface(voxels, isoValue, cellSize / renderScale);
@@ -488,6 +512,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     void LogStats(int primCount, float toolSpeed)
     {
         int count = ParticleCount; int sub = LastSubstepCount; float fps = 1f / Mathf.Max(Time.unscaledDeltaTime, 1e-4f);
+        string tetherInfo = keepInOnePiece && links != null ? $"{links.LinkCount}/tethers {links.TetherCount}" : "off";
         float floor = FloorOffset, rim = FloorOffset + (usu != null ? usu.depth : 0.13f);
         string fists = "";
         foreach (var kv in toolStates) if (kv.Key is MatHand) fists += (kv.Key.handType == MatTool.HandType.LeftHand ? "L" : "R") + (kv.Value.fist ? "fist " : "open ");
@@ -507,7 +532,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
                 if (d[o + 3] > 0f) bonded++;
                 vmax = Mathf.Max(vmax, v); top = Mathf.Max(top, y - floor);
             }
-            Debug.Log($"MochiStats fps={fps:F0} sub={sub} prims={primCount} toolSpeed={toolSpeed:F2} {fists}vmax={vmax:F2} fast={fast} aboveRim={air} bonded={bonded} top={top * 100f:F0}cm nan={bad}");
+            Debug.Log($"MochiStats fps={fps:F0} sub={sub} prims={primCount} toolSpeed={toolSpeed:F2} {fists}vmax={vmax:F2} fast={fast} aboveRim={air} bonded={bonded} top={top * 100f:F0}cm nan={bad} links={tetherInfo}");
         });
     }
 
@@ -571,7 +596,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
 
     void OnDestroy()
     {
-        parts?.Dispose(); ids?.Dispose(); gridV?.Dispose(); gridM?.Dispose();
+        parts?.Dispose(); ids?.Dispose(); gridV?.Dispose(); gridM?.Dispose(); gridR?.Dispose(); links?.Dispose();
         toolA?.Dispose(); toolB?.Dispose(); prims?.Dispose(); toolBuf?.Dispose(); voxels?.Dispose();
         counts[0]?.Dispose(); counts[1]?.Dispose();
         builder?.Dispose();

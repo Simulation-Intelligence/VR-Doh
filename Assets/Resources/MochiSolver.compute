@@ -20,6 +20,13 @@
 // a prescribed stretch that draws the lump up into a tent instead of tearing a skin off it.
 // A bond only ages while the tool pulls, so after the tool's tack time every bond made in the
 // same press lets go together and the tent springs and slumps back.
+//
+// One body (DoughLinks.cs, 2026-11-15): particles hold together only through shared grid nodes, so
+// dough stretched thinner than a cell came apart into blobs. Links between neighbouring particles are
+// kept on the CPU; the ones holding a part of the dough to the rest (tethers) are enforced here, in
+// Particles: a tether never stretches past LinkReach and its ends don't move apart along it, so the
+// dough stretches into strands and folds, but never tears. Thin dough is drawn heavier (GridR), so a
+// strand stays visible instead of vanishing into beads under the iso level.
 
 #pragma kernel ToolSdf
 #pragma kernel Nodes
@@ -27,6 +34,7 @@
 #pragma kernel Bin
 #pragma kernel ClearCounts
 #pragma kernel Density
+#pragma kernel CopyPositions
 
 #define SLOTS 24
 #define GRIP_TACK 5.0
@@ -65,6 +73,10 @@ RWStructuredBuffer<float4> ToolB;    // xyz tool surface velocity, w = tack seco
 StructuredBuffer<Prim> Prims;
 StructuredBuffer<Tool> Tools;
 RWStructuredBuffer<float> Voxels;    // render density field
+RWStructuredBuffer<float> GridR;     // render mass per node: node mass with thin dough weighted up
+RWStructuredBuffer<float4> PosOut;   // particle positions, copied out for DoughLinks' readback
+StructuredBuffer<uint2> LinkRange;   // per particle: first tether in LinkOther, tether count
+StructuredBuffer<uint> LinkOther;    // the particle at the far end of each tether
 
 uint3 Dims;
 uint ParticleCount;
@@ -93,6 +105,10 @@ float VMax;
 float PushOut;
 float Centering;      // pull toward the usu axis, 1/s2 (acceleration = Centering * distance from the axis)
 float3 LumpCentre;  // rough centre of the lump: a tool moving away from it is pulling, toward it is pressing
+float LinkReach;     // a tether's longest length, m
+uint LinksOn;        // enforce tethers
+float ThinDensity;   // below this fraction of rest density a particle counts as thin dough...
+float ThinBoost;     // ...and is drawn up to this many times heavier
 float4 Usu0;         // centre x, floor y, centre z, inner radius at the floor
 float4 Usu1;         // inner radius at the rim, depth, enabled, wall friction scale
 
@@ -280,7 +296,7 @@ void Nodes(uint3 id : SV_DispatchThreadID)
     CountB[node] = 0;
 
     float invDx = 1.0 / Dx;
-    float w = 0.0, wb = 0.0;
+    float w = 0.0, wb = 0.0, wr = 0.0;
     float3 mv = 0;
     for (int a = 0; a < 3; a++)
     for (int b = 0; b < 3; b++)
@@ -301,11 +317,14 @@ void Nodes(uint3 id : SV_DispatchThreadID)
             mv += wt * (PMass * P.v.xyz - float3(dot(P.a0.xyz, dp), dot(P.a1.xyz, dp), dot(P.a2.xyz, dp)));
             w += wt;
             if (P.x.w > 0.0) wb += wt;
+            // P.v.w: the density the particle measured last substep (1 = rest)
+            wr += wt * clamp(ThinDensity / max(P.v.w, 1e-3), 1.0, ThinBoost);
         }
     }
     float m = w * PMass;
     float bond = w > 0.0 ? wb / w : 0.0;
     GridM[node] = float2(m, bond);
+    GridR[node] = wr * PMass;
 
     float4 ta = ToolA[node];
     float4 tb = ToolB[node];
@@ -462,6 +481,31 @@ void Particles(uint3 id : SV_DispatchThreadID)
         float gn = length(grad);
         if (gn > 1e-12) xn += (grad / gn) * min(-dP * PushOut, 0.5 * Dx);
     }
+    // One body: each tether holding this particle to the rest of the dough is kept at LinkReach (half the
+    // excess moves this end, the other end's thread moves the other half), and the two ends don't move
+    // apart along it. The far end is read while its own thread may be writing it: this substep's or the
+    // last one's state, both close enough. The total move is capped like the tool push-out.
+    if (LinksOn != 0)
+    {
+        uint2 lr = LinkRange[p];
+        float3 corr = 0;
+        for (uint li = 0; li < lr.y; li++)
+        {
+            uint q = LinkOther[lr.x + li];
+            if (q >= ParticleCount) continue;
+            Particle Q = Parts[q];
+            float3 e = Q.x.xyz - xn;
+            float len = length(e);
+            if (len <= LinkReach || len < 1e-9) continue;
+            float3 ln = e / len;
+            corr += (0.5 * (len - LinkReach)) * ln;
+            float sep = dot(Q.v.xyz - nv, ln);   // > 0: the far end is moving away
+            if (sep > 0.0) nv += (0.5 * sep) * ln;
+        }
+        float cl = length(corr);
+        if (cl > 0.5 * Dx) corr *= 0.5 * Dx / cl;
+        xn += corr;
+    }
     float3 hi = ((float3)Dims - 2.0) * Dx;
     xn = clamp(xn, float3(2.0 * Dx, (FloorCells + 0.05) * Dx, 2.0 * Dx), hi);
 
@@ -514,7 +558,7 @@ void Particles(uint3 id : SV_DispatchThreadID)
     float3x3 A = (-Dt * PVol * 4.0 * invDx * invDx) * tau + PMass * C;
 
     P.x = float4(xn, tack);
-    P.v = float4(nv, 0);
+    P.v = float4(nv, densP / RestNodeMass);   // w: measured density, for drawing thin dough heavier (Nodes)
     P.a0 = float4(A[0], 0);
     P.a1 = float4(A[1], 0);
     P.a2 = float4(A[2], 0);
@@ -541,6 +585,15 @@ void ClearCounts(uint3 id : SV_DispatchThreadID)
     CountB[node] = 0;
     GridV[node] = 0;
     GridM[node] = 0;
+    GridR[node] = 0;
+}
+
+// Positions out, for DoughLinks' readback (a fraction of the whole particle buffer).
+[numthreads(64, 1, 1)]
+void CopyPositions(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= ParticleCount) return;
+    PosOut[id.x] = Parts[id.x].x;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -562,7 +615,7 @@ void Density(uint3 id : SV_DispatchThreadID)
     for (int k = 0; k < 3; k++)
     {
         int3 I = clamp(base + int3(i, j, k), 0, (int3)Dims - 1);
-        sum += wt[i].x * wt[j].y * wt[k].z * GridM[NodeIndex((uint3)I)].x;
+        sum += wt[i].x * wt[j].y * wt[k].z * GridR[NodeIndex((uint3)I)];   // thin dough weighted up
     }
     uint vi = id.x + VoxDims.x * (id.y + VoxDims.y * id.z);
     float v = sum / RestNodeMass;
