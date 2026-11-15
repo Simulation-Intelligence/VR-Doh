@@ -289,6 +289,7 @@ namespace MochiRhythm
                 strikeSurface = surface;
                 double since = Mathf.Clamp((surface - face.y) / down, 0f, dt); // back-date to the crossing
                 PlayHit(Kine.transform.position, down);
+                if (Game.Active) MoonRabbit.World.MoonProgress.Instance?.NotifyStrike(Kine.transform.position); // the Moon's strike pulse, rice hop
                 if (PlayerPounding && Game.Active)
                 {
                     bool turned = bowlTime >= 0.12f;
@@ -302,6 +303,7 @@ namespace MochiRhythm
         public void OnPartnerStrike(Vector3 faceWorld)
         {
             PlayHit(faceWorld, 4f);
+            if (Game.Active) MoonRabbit.World.MoonProgress.Instance?.NotifyStrike(faceWorld);
             bool turned = bowlTime >= 0.12f;
             bowlTime = 0f;
             Game.PartnerStrike(HandsUnder(faceWorld), turned);

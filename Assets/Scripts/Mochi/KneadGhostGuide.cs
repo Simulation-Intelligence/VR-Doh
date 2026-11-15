@@ -142,6 +142,36 @@ public class KneadGhostGuide : MonoBehaviour
         ghost.SetPose(shape, new UnityEngine.Pose(station.transform.TransformPoint(local), WristRotation(ghost, fingers, palm)));
     }
 
+    /// <summary>A ghost hand from the same provider for other guides (e.g. the song scrolls' pinch hint), or null.</summary>
+    public HandGhost MakeGhost(Handedness handedness, Transform parent)
+    {
+        if (ghostProvider == null) return null;
+        var g = Instantiate(ghostProvider.GetHand(handedness), parent);
+        RegisterRestFrame(g, handedness);
+        return g;
+    }
+
+    /// <summary>Poses a ghost made by <see cref="MakeGhost"/>: finger shape, wrist position, fingers and palm directions (world).</summary>
+    public void PoseGhost(HandGhost ghost, HandPose shape, Vector3 wrist, Vector3 fingers, Vector3 palm)
+    {
+        ghost.SetPose(shape, new UnityEngine.Pose(wrist, WristRotation(ghost, fingers, palm)));
+    }
+
+    // The ghost's palm frame at rest (+X index side, +Y wrist->middle knuckle, +Z out of the palm), as in Retarget.
+    void RegisterRestFrame(HandGhost ghost, Handedness handedness)
+    {
+        if (wristToHand.ContainsKey(ghost)) return;
+        var puppet = ghost.GetComponentInChildren<HandPuppet>(true);
+        var maps = new Dictionary<HandJointId, Transform>();
+        foreach (var jm in puppet.JointMaps) if (jm != null && jm.transform != null) maps[jm.id] = jm.transform;
+        Transform wrist = puppet.transform;
+        Vector3 w = wrist.position;
+        Vector3 up = (maps[HandJointId.HandMiddle1].position - w).normalized;
+        Vector3 side = Vector3.ProjectOnPlane(maps[HandJointId.HandIndex1].position - maps[HandJointId.HandPinky1].position, up).normalized;
+        Vector3 palmOut = (handedness == Handedness.Right ? -1f : 1f) * Vector3.Cross(side, up);
+        wristToHand[ghost] = Quaternion.Inverse(Quaternion.LookRotation(up, palmOut)) * wrist.rotation;
+    }
+
     // Wrist rotation that makes the ghost's fingers point along `fingers` with its palm facing `palm`.
     readonly Dictionary<HandGhost, Quaternion> wristToHand = new();
     Quaternion WristRotation(HandGhost ghost, Vector3 fingers, Vector3 palm)

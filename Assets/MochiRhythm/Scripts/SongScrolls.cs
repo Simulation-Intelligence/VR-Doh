@@ -36,6 +36,7 @@ namespace MochiRhythm
             public GrabZone zone;
             public TextMeshPro title;
             public float openedAt, glow;
+            public SongScrollHints.Decor decor;
         }
 
         enum State { Hidden, Offering, Holding, Returning }
@@ -59,6 +60,26 @@ namespace MochiRhythm
         float idleSince = -1f, stateSince;
         bool songStarted;
         Transform pose;
+
+        [Header("Hints")]
+        [Tooltip("Seconds without a hand near the scrolls before the ghost hand shows the pinch.")]
+        public float hintAfter = 2f;
+        [Tooltip("A tracked hand closer than this (m) to a scroll counts as reaching for it: the ghost hand steps back.")]
+        public float hintNearDistance = 0.25f;
+        [Tooltip("Size (m) of the mallet silhouette above each scroll.")]
+        public float silhouetteSize = 0.17f;
+        SongScrollHints hints;
+        SongScrollHints.PinchHint pinchHint;
+        KneadGhostGuide guide;
+        OVRHand[] trackedHands = new OVRHand[0];
+        HandPoseHolder shapeNow;
+        float awayFor, hintClock;
+        int hintSlot = -1, hintGlowSlot = -1;
+
+        /// <summary>The scrolls are up and waiting for a pick (the knead ghosts keep away meanwhile).</summary>
+        public bool Offering => state == State.Offering;
+
+        class HandPoseHolder { public Oculus.Interaction.HandGrab.HandPose pose; }
 
         void Start()
         {
@@ -92,7 +113,13 @@ namespace MochiRhythm
 
             pose = new GameObject("Scroll pose").transform;
             pose.SetParent(transform, false);
+            hints = new SongScrollHints(PaperOnScreen);
             BuildSlots();
+            guide = FindAnyObjectByType<KneadGhostGuide>(FindObjectsInactive.Include);
+            pinchHint = SongScrollHints.MakePinch(guide, transform);
+            if (pinchHint == null) Debug.LogWarning("[rhythm] song scrolls: no ghost hand or pinch pose; the pinch hint is off");
+            else shapeNow = new HandPoseHolder { pose = new Oculus.Interaction.HandGrab.HandPose(pinchHint.open) };
+            trackedHands = FindObjectsByType<OVRHand>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             HideKine();
             mode.Driver.Rest();
             Debug.Log($"[rhythm] song scrolls: {slots.Count} songs -> " + string.Join(", ", slots.ConvertAll(s => mode.Music.NameOf(s.song) + " = " + s.mallet.name)));
@@ -162,7 +189,18 @@ namespace MochiRhythm
                 var slot = s;
                 s.zone.Grabbed += _ => Pick(slot);
                 mode.Grabber.zones.Add(s.zone);
+                s.decor = hints.Decorate(s.scroll.transform, MeshOf(s.mallet), silhouetteSize, 0.035f);
             }
+        }
+
+        /// <summary>The paper's size as drawn (IntroScroll adds its padding to the size it is given).</summary>
+        Vector2 PaperOnScreen => paperSize + new Vector2(0.025f, 0.02f) * 2f;
+
+        Mesh MeshOf(Mallet m)
+        {
+            if (m.build == null) return baseSkinMesh;
+            if (!meshes.TryGetValue(m, out var mesh)) meshes[m] = mesh = m.build(m);
+            return mesh;
         }
 
         /// <summary>"Skrillex_-_Bangarang_feat._Sirah_(mp3.pm)" -> "Bangarang"; "PSY - Gangnam Style" -> "Gangnam Style".</summary>
@@ -231,6 +269,7 @@ namespace MochiRhythm
                     if (k >= 1f) FinishReturn();
                     break;
             }
+            UpdatePinchHint();
             UpdateScrolls();
             if (state == State.Holding) SetSkinScale(EaseOutBack(Mathf.Clamp01((Time.time - stateSince) / morphTime)));
         }
@@ -280,11 +319,65 @@ namespace MochiRhythm
                 float a = open ? Mathf.Clamp01((Time.time - s.openedAt - openTime * 0.6f) / 0.4f) : Mathf.Max(0f, s.title.color.a - Time.deltaTime * 4f);
                 var c = intro.narration.color; c.a = a;
                 s.title.color = c;
-                float want = s.zone.enabled && s.zone.Hovered ? 1f : 0f;
+                float want = s.zone.enabled && (s.zone.Hovered || hintGlowSlot == slots.IndexOf(s)) ? 1f : 0f;
                 s.glow = Mathf.MoveTowards(s.glow, want, Time.deltaTime * 5f);
                 s.scroll.CloudGlow = 0.2f + 1.1f * s.glow;
                 s.scroll.transform.localScale = Vector3.one * (1f + 0.07f * s.glow);
+                hints.Tick(s.decor, s.scroll.transform, a, s.glow);
             }
+        }
+
+        // ---- the ghost hand showing the pinch ----
+
+        static float Smooth(float t) { t = Mathf.Clamp01(t); return t * t * (3f - 2f * t); }
+
+        void UpdatePinchHint()
+        {
+            hintGlowSlot = -1;
+            if (pinchHint == null || slots.Count == 0) return;
+            var ghost = pinchHint.ghost.gameObject;
+            bool near = false;
+            foreach (var s in slots)
+            {
+                if (!s.scroll.gameObject.activeSelf) continue;
+                if (s.zone.enabled && s.zone.Hovered) near = true;
+                foreach (var h in trackedHands) // only hands being tracked: an idle anchor can sit anywhere
+                    if (h != null && h.IsTracked && h.IsDataValid && Vector3.Distance(h.transform.position, s.scroll.transform.position) < hintNearDistance) near = true;
+            }
+            awayFor = near ? 0f : awayFor + Time.deltaTime;
+            bool show = state == State.Offering && Time.time - stateSince > openTime + 1f && awayFor > hintAfter;
+            if (!show)
+            {
+                if (ghost.activeSelf) ghost.SetActive(false);
+                hintClock = 0f;
+                return;
+            }
+
+            // one demonstration every 4.4 s, on the next scroll each time:
+            // reach in (1 s), pinch (0.4 s), hold (0.7 s), let go (0.4 s), draw back (0.8 s), rest (1.1 s)
+            const float cycle = 4.4f;
+            if (hintSlot < 0 || hintClock >= cycle) { hintClock = hintSlot < 0 ? 0f : hintClock - cycle; hintSlot = (hintSlot + 1) % slots.Count; }
+            float t = hintClock;
+            hintClock += Time.deltaTime;
+            bool visible = t < 3.3f;
+            if (ghost.activeSelf != visible) ghost.SetActive(visible);
+            if (!visible) return;
+
+            var st = slots[hintSlot].scroll.transform;
+            float along = t < 1f ? Smooth(t) : t < 2.5f ? 1f : 1f - Smooth((t - 2.5f) / 0.8f);
+            float closed = t < 1f ? 0f : t < 1.4f ? Smooth((t - 1f) / 0.4f) : t < 2.1f ? 1f : 1f - Smooth((t - 2.1f) / 0.4f);
+            if (closed > 0.5f) hintGlowSlot = hintSlot;
+
+            // the bottom edge of the paper, a little right of the middle, from the player's side
+            Vector3 target = st.TransformPoint(new Vector3(0.025f, -PaperOnScreen.y * 0.5f + 0.015f, -0.012f));
+            Vector3 toward = st.forward;
+            Vector3 fingers = (toward + Vector3.up * 0.25f).normalized;
+            Vector3 palm = (-st.right * 0.85f - Vector3.up * 0.35f).normalized;
+            Vector3 start = target - toward * 0.17f - Vector3.up * 0.07f;
+            Vector3 tip = Vector3.Lerp(start, target, along);
+            Quaternion frame = Quaternion.LookRotation(fingers, Vector3.ProjectOnPlane(palm, fingers).normalized);
+            Oculus.Interaction.HandGrab.HandPose.Lerp(pinchHint.open, pinchHint.pinch, closed, ref shapeNow.pose);
+            guide.PoseGhost(pinchHint.ghost, shapeNow.pose, tip - frame * pinchHint.tipOffset, fingers, palm);
         }
 
         // ---- scroll -> mallet ----
@@ -294,6 +387,7 @@ namespace MochiRhythm
             if (state != State.Offering) return;
             mode.Grabber.GripPose(s.zone, out Vector3 hand, out _);
             CloseAll(s);
+            foreach (var o in slots) hints.ClearNotes(o.decor);
             s.scroll.Fade(0.2f);
             s.openedAt = -1f;
 
