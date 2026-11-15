@@ -50,6 +50,7 @@ namespace MoonRabbit.WorldEditor
             atm.ambientEquator = s.ambientEquator;
             atm.ambientGround = s.ambientGround;
 
+            if (s.teamProps) BuildTeamProps(s, t);
             if (s.storyProgression) BuildStory(s, t, atm, moonlight);
 
             var prefab = MRAssets.SavePrefab(root, PrefabPath);
@@ -644,6 +645,132 @@ namespace MoonRabbit.WorldEditor
                 go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // quad faces up
                 go.transform.localScale = Vector3.one * (s.lanternPoolRadius * 2f);
             }
+        }
+
+        // ------------------------------------------------------------------ team props (tzhu235)
+
+        /// <summary>The team's model, referenced as is (never moved or changed); null when not in this project.</summary>
+        static (Mesh mesh, Material[] mats) TeamModel(string name)
+        {
+            var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/" + name + ".obj");
+            if (go == null) return (null, null);
+            var mf = go.GetComponentInChildren<MeshFilter>(true);
+            var mr = go.GetComponentInChildren<MeshRenderer>(true);
+            return mf != null && mr != null ? (mf.sharedMesh, mr.sharedMaterials) : (null, null);
+        }
+
+        static GameObject PlaceTeamProp(MoonRabbitEnvironmentSettings s, Transform parent, string model, Vector3 pos, float faceTo,
+                                        bool onGround, bool isStatic, string swapMaterial = null, Material swapWith = null)
+        {
+            var (mesh, mats) = TeamModel(model);
+            if (mesh == null) return null;
+            mats = (Material[])mats.Clone();
+            if (swapMaterial != null)
+                for (int i = 0; i < mats.Length; i++) if (mats[i] != null && mats[i].name == swapMaterial) mats[i] = swapWith;
+            var go = MeshObject("MR_Prop_" + model, parent, mesh, mats, ShadowCastingMode.Off);
+            if (onGround) pos.y += GroundHeight(s, pos.x, pos.z);
+            go.transform.localPosition = pos;
+            // face the clearing (the usu) unless a yaw is given
+            var toCentre = -new Vector3(pos.x, 0f, pos.z);
+            go.transform.localRotation = float.IsNaN(faceTo) ? Quaternion.LookRotation(toCentre.sqrMagnitude > 1e-4f ? toCentre : Vector3.forward)
+                                                             : Quaternion.Euler(0f, faceTo, 0f);
+            if (isStatic) GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            return go;
+        }
+
+        /// <summary>
+        /// tzhu235's garden props, placed around the clearing so the view to the Moon and the Earth, the kine's swing
+        /// around the usu and the stepping-stone path stay clear. Only the paper and firefly glow materials are swapped
+        /// for our own Standard + emission copies (GardenProps lights them with progress); everything else is the
+        /// original model and materials. Static batching for what does not move.
+        /// </summary>
+        static void BuildTeamProps(MoonRabbitEnvironmentSettings s, Transform root)
+        {
+            if (TeamModel("01_Paper_Lanterns").mesh == null && TeamModel("04_Bench_With_Basket").mesh == null) return; // kit project: no team models
+            var group = new GameObject("MR_TeamProps");
+            group.transform.SetParent(root, false);
+            var gp = group.AddComponent<GardenProps>();
+            var paperGlow = MRAssets.Lit(G, "MR_PropPaperGlow", MoonRabbitEnvironmentSettings.Hex(0xFDCE8B), 0.1f, new Color(0.01f, 0.006f, 0.002f));
+            var fireflyGlow = MRAssets.Lit(G, "MR_PropFireflyGlow", MoonRabbitEnvironmentSettings.Hex(0xF8E169), 0.2f, new Color(0.01f, 0.01f, 0.004f));
+
+            // paper lantern stands at the clearing's right edge (lit one lantern at a time with progress)
+            var stands = new List<Renderer>(); var lanternPoints = new List<Vector3>();
+            Vector3[] standPos = { new Vector3(3.5f, 0f, 0.4f), new Vector3(-3.6f, 0f, 0.2f), new Vector3(0.9f, 0f, -3.7f) };
+            for (int i = 0; i < Mathf.Min(s.teamLanternStands, standPos.Length); i++)
+            {
+                var go = PlaceTeamProp(s, group.transform, "01_Paper_Lanterns", standPos[i], float.NaN, true, true, "Amber_paper", paperGlow);
+                if (go == null) break;
+                go.name += "_" + i;
+                stands.Add(go.GetComponent<Renderer>());
+                // the two lanterns: centres of the paper on the left and right half of the frame
+                var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+                foreach (var c in PaperCentres(mesh, go.GetComponent<MeshRenderer>().sharedMaterials, "MR_PropPaperGlow"))
+                    lanternPoints.Add(root.InverseTransformPoint(go.transform.TransformPoint(c)));
+            }
+            gp.lanternStands = stands.ToArray();
+            gp.lanternPoints = lanternPoints.ToArray();
+
+            // wind chime hanging from the cassia tree (pivot = top), swaying a little
+            var chime = PlaceTeamProp(s, group.transform, "03_Bamboo_Wind_Chime",
+                                      s.treePosition + new Vector3(-0.75f, s.treeHeight * 0.66f, -0.65f), 0f, false, false);
+            if (chime != null) gp.chimes = new[] { chime.transform };
+
+            // bench with basket behind the clearing's left side, sign beside the start of the stepping-stone path
+            PlaceTeamProp(s, group.transform, "04_Bench_With_Basket", new Vector3(-3.1f, 0f, -1.9f), float.NaN, true, true);
+            var pathDir = MoonRabbitEnvironmentSettings.Azimuth(s.stonePathDirection);
+            var side = Vector3.Cross(Vector3.up, pathDir).normalized;
+            PlaceTeamProp(s, group.transform, "05_Moon_Rabbit_Sign", pathDir * (s.stonePathStart - 0.3f) - side * 0.95f,
+                          float.NaN, true, true);
+
+            // bamboo fountain at the clearing's back-right edge
+            PlaceTeamProp(s, group.transform, "Bamboo_Fountain", new Vector3(3.0f, 0f, -2.6f), float.NaN, true, true);
+
+            // mossy stones at bamboo bases / island edge
+            Vector3[] stonePos = { new Vector3(-4.7f, 0f, -0.9f), new Vector3(4.9f, 0f, 1.9f), new Vector3(-2.2f, 0f, -4.6f), new Vector3(1.8f, 0f, 4.8f) };
+            float[] stoneYaw = { 30f, 140f, 260f, 75f };
+            for (int i = 0; i < Mathf.Min(s.teamMossyStones, stonePos.Length); i++)
+                PlaceTeamProp(s, group.transform, "06_Mossy_Stones_And_Leaves", stonePos[i], stoneYaw[i], true, true);
+
+            // firefly swarms drifting in the bamboo
+            var flies = new List<Transform>(); var flyRenderers = new List<Renderer>();
+            Vector3[] flyPos = { new Vector3(-5.6f, 1.3f, 2.6f), new Vector3(5.8f, 1.6f, -0.4f), new Vector3(-1.5f, 1.4f, 6.2f) };
+            for (int i = 0; i < Mathf.Min(s.teamFireflySwarms, flyPos.Length); i++)
+            {
+                var go = PlaceTeamProp(s, group.transform, "Firefly_Swarm", flyPos[i] + Vector3.up * GroundHeight(s, flyPos[i].x, flyPos[i].z),
+                                       i * 97f, false, false, "Firefly_lantern", fireflyGlow);
+                if (go == null) break;
+                flies.Add(go.transform); flyRenderers.Add(go.GetComponent<Renderer>());
+            }
+            gp.fireflies = flies.ToArray();
+            gp.fireflyRenderers = flyRenderers.ToArray();
+            gp.paperGlowColor = MoonRabbitEnvironmentSettings.Hex(0xFFB65C);
+            gp.fireflyGlowColor = MoonRabbitEnvironmentSettings.Hex(0xFFE27A);
+            var glow = Shader.Find("MoonRabbit/Glow");
+            if (glow != null)
+            {
+                var halo = MRAssets.GetMaterial($"{G}/Materials/MR_PropLanternHalo.mat", glow);
+                halo.SetTexture("_MainTex", HaloTexture());
+                halo.SetColor("_Color", MoonRabbitEnvironmentSettings.Hex(0xFFB65C));
+                halo.SetFloat("_Intensity", 1f);
+                halo.enableInstancing = true;
+                EditorUtility.SetDirty(halo);
+                gp.haloMaterial = halo;
+                gp.quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            }
+        }
+
+        /// <summary>Centres of the paper lanterns in a stand (paper sub-mesh split into its left and right half).</summary>
+        static List<Vector3> PaperCentres(Mesh mesh, Material[] mats, string paperMat)
+        {
+            var res = new List<Vector3>();
+            int sub = System.Array.FindIndex(mats, m => m != null && m.name == paperMat);
+            if (sub < 0) return res;
+            var v = mesh.vertices; var idx = mesh.GetIndices(sub);
+            Vector3 l = Vector3.zero, r = Vector3.zero; int nl = 0, nr = 0;
+            foreach (var i in idx) { if (v[i].x < 0f) { l += v[i]; nl++; } else { r += v[i]; nr++; } }
+            if (nl > 0) res.Add(l / nl);
+            if (nr > 0) res.Add(r / nr);
+            return res;
         }
 
         // ------------------------------------------------------------------ story progression

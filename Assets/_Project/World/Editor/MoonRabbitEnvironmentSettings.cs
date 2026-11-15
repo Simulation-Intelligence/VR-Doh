@@ -66,6 +66,15 @@ namespace MoonRabbit.WorldEditor
                  "The forest there is rarely looked at; fewer stalks help Quest's frame time.")]
         [Range(0f, 0.8f)] public float bambooBackThinning = 0.36f;
 
+        [Header("Team props (tzhu235's models in Assets/, placed only when present)")]
+        [Tooltip("Paper lanterns, wind chime, bench, sign, fountain, mossy stones and fireflies from the team's models " +
+                 "(Assets/<name>.obj). Skipped when a model is missing (e.g. in the kit project).")]
+        public bool teamProps = true;
+        [Tooltip("Counts: the paper lantern stand is ~56k triangles each (rope detail), so one stand by default.")]
+        [Range(0, 3)] public int teamLanternStands = 1;
+        [Range(0, 4)] public int teamMossyStones = 1;
+        [Range(0, 3)] public int teamFireflySwarms = 1;
+
         [Header("Clear view to the Earth (the ending's flight)")]
         [Tooltip("Bamboo in the sector toward the Earth (seen from the player) is lower, so the mochi's flight and the Earth stay visible.")]
         public bool earthViewClear = true;
