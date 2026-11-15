@@ -52943,6 +52943,7 @@ Transform:
   - {fileID: 2054267680}
   - {fileID: 3850581631266766120}
   - {fileID: 238909442}
+  - {fileID: 1154020554}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &726005676
@@ -53004,6 +53005,8 @@ MonoBehaviour:
   minTableHeight: 0.45
   requestSpaceSetupIfNoTable: 1
   headWait: 0.5
+  cutOutTable: 1
+  cutoutMaterial: {fileID: 0}
 --- !u!1 &726259096
 GameObject:
   m_ObjectHideFlags: 0
@@ -86229,6 +86232,96 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1154020553
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1154020554}
+  - component: {fileID: 1154020555}
+  m_Layer: 0
+  m_Name: KneadGhostGuide
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1154020554
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154020553}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 726005675}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1154020555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154020553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 384b0ce56e445ee4cac1c48bc6ffac2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KneadGhostGuide
+  station: {fileID: 726005674}
+  ghostProvider: {fileID: 11400000, guid: 9b9df4f150839de48af887d742aabf53, type: 2}
+  gestureFile: {fileID: 4900000, guid: 6c41c071b7effa349a54e9890cb7ca87, type: 3}
+  hand: 1
+  blend: 0.25
+  pause: 1
+  steps:
+  - gesture: fold
+    from: {x: 0.02, y: 0.29, z: 0.13}
+    to: {x: 0.02, y: 0.22, z: 0.02}
+    fingers: {x: 0, y: -1, z: 0.35}
+    palm: {x: 0, y: -0.3, z: -1}
+    seconds: 1
+    bothHands: 0
+  - gesture: press
+    from: {x: 0.02, y: 0.27, z: -0.1}
+    to: {x: 0.02, y: 0.22, z: -0.06}
+    fingers: {x: 0, y: -0.15, z: 1}
+    palm: {x: 0, y: -1, z: 0}
+    seconds: 0.8
+    bothHands: 0
+  - gesture: fold
+    from: {x: 0.1, y: 0.29, z: 0.11}
+    to: {x: 0.05, y: 0.22, z: 0.01}
+    fingers: {x: -0.3, y: -1, z: 0.3}
+    palm: {x: 0.3, y: -0.3, z: -1}
+    seconds: 1
+    bothHands: 0
+  - gesture: press
+    from: {x: 0.04, y: 0.27, z: -0.1}
+    to: {x: 0.04, y: 0.22, z: -0.06}
+    fingers: {x: -0.1, y: -0.15, z: 1}
+    palm: {x: 0, y: -1, z: 0}
+    seconds: 0.8
+    bothHands: 0
+  - gesture: cradle
+    from: {x: 0.13, y: 0.15, z: -0.02}
+    to: {x: 0.11, y: 0.25, z: -0.02}
+    fingers: {x: -1, y: 0.2, z: 0.3}
+    palm: {x: 0, y: 1, z: 0}
+    seconds: 1.4
+    bothHands: 1
+  hideRadius: 0.25
+  showAfter: 4
+  leftHandAnchor: {fileID: 0}
+  rightHandAnchor: {fileID: 0}
 --- !u!1 &1154903326
 GameObject:
   m_ObjectHideFlags: 0
