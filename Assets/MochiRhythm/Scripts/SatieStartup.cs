@@ -38,6 +38,9 @@ namespace MochiRhythm
 
         static bool SpatializerLoaded(string name)
         {
+#if UNITY_EDITOR
+            // GetSpatializerPluginNames is Editor-only. A player cannot tell whether the named plugin is really
+            // loaded, so it reports "not loaded" and Satie plays its own stereo mix (never silent).
             try
             {
                 var loaded = AudioSettings.GetSpatializerPluginNames();
@@ -45,6 +48,7 @@ namespace MochiRhythm
                 foreach (var n in loaded) if (n == name) return true;
             }
             catch (Exception) { }
+#endif
             return false;
         }
     }

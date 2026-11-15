@@ -153,13 +153,22 @@ public class KineContact : MonoBehaviour
         };
     }
 
+    // Only an enabled recorder or test bench counts: scenes keep a disabled MochiTestBench on the station,
+    // and FindAnyObjectByType also returns disabled components.
+    static bool Running<T>() where T : Behaviour
+    {
+        foreach (var o in FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (o.isActiveAndEnabled) return true;
+        return false;
+    }
+
     void Update()
     {
         if (station == null || kine == null || profile == null) return;
         if (Time.unscaledTime >= nextSuspendCheck)
         {
             nextSuspendCheck = Time.unscaledTime + 1f;
-            suspended = FindAnyObjectByType<MochiStrikeRecorder>() != null || FindAnyObjectByType<MochiTestBench>() != null;
+            suspended = Running<MochiStrikeRecorder>() || Running<MochiTestBench>();
         }
         UpdateHaptics();
         if (suspended) { hasPrev = false; InContact = false; return; }
