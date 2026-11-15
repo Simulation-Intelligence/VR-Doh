@@ -87,6 +87,10 @@ MonoBehaviour:
   progressSounds: 0
   strikeSound: 1
   textSoundVolume: 0.11
+  scrollSounds: 1
+  swellSound: 1
+  endingTextSound: 0
+  endingFirework: 0
   progressSfxVolume: 0.3
   introLineClip: {fileID: 0}
   instructionClip: {fileID: 0}

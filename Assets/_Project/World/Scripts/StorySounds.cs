@@ -33,7 +33,7 @@ namespace MoonRabbit.World
         [Tooltip("Rubbed singing-bowl / glass swell under the last intro line's swell.")]
         public bool swellSound = true;
         [Tooltip("Distant fireworks when the mochi reaches the Earth (on its own; the other ending sounds stay off).")]
-        public bool endingFirework = true;
+        public bool endingFirework = false; // off for now (Jihyeon); the sound is kept
         [Range(0f, 1f)] public float fireworkVolume = 0.07f;
         [Tooltip("The fireworks are far away: heard a moment after the flash (s).")]
         public float fireworkDelay = 0.3f;
@@ -217,7 +217,7 @@ namespace MoonRabbit.World
 
         /// <summary>One pop of the distant fireworks: time (s), sound variant, gain, pitch, yaw / pitch offset (deg).</summary>
         public struct Pop { public float time, gain, pitch, angle, tilt; public int variant; }
-        public const int FireworkVariants = 6;
+        public const int FireworkVariants = 12; // many variants: no snap pattern repeats audibly
 
         /// <summary>The pops' rhythm: 3-5 close together in the first ~0.3 s, the rest thinning out to ~2.3 s.</summary>
         public static List<Pop> FireworkSchedule(int seed)
@@ -542,45 +542,77 @@ namespace MoonRabbit.World
         }
 
         /// <summary>
-        /// One small distant firework crackle ("tik-tik, tadak"): 2-4 short bright clicks (band-passed noise, 2-6 kHz,
-        /// 5-20 ms) scattered over ~80 ms, each with a tiny sparkle ping, and a light, airy tail. No low body: distance is
-        /// only the volume and the faint tail, nothing is muffled.
+        /// One small distant firework crackle, built to sound natural rather than synthetic: 3-8 snaps at irregular
+        /// (Poisson) intervals, each with its own random band (800 Hz-8 kHz, random Q), length (2-40 ms), decay and a
+        /// fine flutter; a noise "sizzle" after them (sparse grains, no sine tones); a faint low air "whum" and a wide,
+        /// soft far-away tail. Nothing repeats a fixed frequency.
         /// </summary>
         public static float[] FireworkPopData(int seed)
         {
             var rng = new System.Random(seed * 7919 + 13);
-            float len = 0.9f;
+            float R() => (float)rng.NextDouble();
+            float len = 1.4f;
             int n = (int)(len * Rate);
             var d = new float[n];
-            int clicks = 2 + rng.Next(3);
-            for (int c = 0; c < clicks; c++)
+            // snaps: Poisson-like gaps (exponential, mean ~18 ms), the first one the strongest
+            int snaps = 3 + rng.Next(6);
+            float t0 = 0f;
+            for (int c = 0; c < snaps; c++)
             {
-                float t0 = c == 0 ? 0f : 0.01f + 0.07f * (float)rng.NextDouble();
-                float dur = 0.005f + 0.015f * (float)rng.NextDouble();
-                int s0 = (int)(t0 * Rate), m = (int)(dur * 1.6f * Rate);
+                if (c > 0) t0 += -Mathf.Log(Mathf.Max(1e-4f, R())) * 0.018f;
+                float dur = Mathf.Exp(Mathf.Lerp(Mathf.Log(0.002f), Mathf.Log(0.04f), R())); // 2-40 ms, log-uniform
+                float fc = Mathf.Exp(Mathf.Lerp(Mathf.Log(800f), Mathf.Log(8000f), R()));    // 0.8-8 kHz
+                int s0 = (int)(t0 * Rate), m = (int)(dur * 2.5f * Rate) + 8;
                 var nz = Noise(m, rng);
-                BandPass(nz, 2000f + 4000f * (float)rng.NextDouble(), 1.1f);
-                float g = c == 0 ? 1f : 0.45f + 0.5f * (float)rng.NextDouble();
-                float ping = 3800f + 3200f * (float)rng.NextDouble(), pingDecay = 0.025f + 0.035f * (float)rng.NextDouble();
-                for (int i = 0; s0 + i < n && i < (int)((dur + pingDecay * 4f) * Rate); i++)
+                BandPass(nz, fc, Mathf.Lerp(0.5f, 2f, R()));
+                if (R() < 0.5f) BandPass(nz, fc * Mathf.Lerp(0.7f, 1.4f, R()), 0.7f); // some snaps a little purer
+                float g = (c == 0 ? 1f : Mathf.Lerp(0.3f, 0.95f, R())) * Mathf.Exp(-t0 / 0.25f);
+                float att = Mathf.Lerp(0.0002f, 0.0012f, R()), tau = dur * Mathf.Lerp(0.25f, 0.6f, R());
+                float fl = 0f;
+                for (int i = 0; i < m && s0 + i < n; i++)
                 {
                     float t = i / (float)Rate;
-                    float env = (1f - Mathf.Exp(-t / 0.0007f)) * Mathf.Exp(-t / (dur * 0.45f)); // fast, but no hard edge
-                    float v = i < m ? nz[i] * env * 2.4f : 0f;
-                    v += 0.18f * (1f - Mathf.Exp(-t / 0.001f)) * Mathf.Exp(-t / pingDecay) * Mathf.Sin(2f * Mathf.PI * ping * t);
-                    d[s0 + i] += g * v;
+                    fl += ((R() * 2f - 1f) - fl) * 0.08f;                      // fine, irregular flutter
+                    float env = (1f - Mathf.Exp(-t / att)) * Mathf.Exp(-t / tau) * (1f + 0.45f * fl);
+                    d[s0 + i] += g * env * nz[i] * 2.2f;
                 }
             }
-            // light, airy far-away tail (short combs, no low-pass muffling)
+            // sizzle: sparse tiny noise grains thinning out over 60-250 ms (no tones)
+            float sz = Mathf.Lerp(0.06f, 0.25f, R());
+            var hiss = Noise(n, rng);
+            BandPass(hiss, Mathf.Lerp(2500f, 6500f, R()), 0.6f);
+            float grain = 0f;
+            for (int i = 0; i < (int)((t0 + sz * 3f) * Rate) && i < n; i++)
+            {
+                float t = i / (float)Rate;
+                if (R() < 0.004f) grain = Mathf.Lerp(0.3f, 1f, R()); // a new grain now and then
+                grain *= 0.996f;
+                d[i] += hiss[i] * grain * 0.18f * Mathf.Exp(-t / sz);
+            }
+            // a faint low air "whum" (distance), very small
+            var low = Noise(n, rng);
+            LowPass(low, 140f);
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Rate;
+                d[i] += low[i] * 0.45f * (1f - Mathf.Exp(-t / 0.01f)) * Mathf.Exp(-t / 0.18f);
+            }
+            // wide, soft far-away tail: combs at irregular delays + one all-pass to smear the echoes
             var wet = new float[n];
-            int[] dl = { (int)(0.0231f * Rate), (int)(0.0297f * Rate), (int)(0.0353f * Rate), (int)(0.0411f * Rate) };
+            int[] dl = { (int)(0.0311f * Rate), (int)(0.0419f * Rate), (int)(0.0533f * Rate), (int)(0.0677f * Rate), (int)(0.0791f * Rate) };
             foreach (var L in dl)
             {
                 var c = new float[n];
-                for (int i = 0; i < n; i++) c[i] = d[i] + (i >= L ? c[i - L] * 0.62f : 0f);
-                for (int i = 0; i < n; i++) wet[i] += c[i] * 0.25f;
+                for (int i = 0; i < n; i++) c[i] = d[i] + (i >= L ? c[i - L] * 0.72f : 0f);
+                for (int i = 0; i < n; i++) wet[i] += c[i] * 0.2f;
             }
-            for (int i = 0; i < n; i++) d[i] = d[i] * 0.85f + wet[i] * 0.3f;
+            int ap = (int)(0.0051f * Rate); var apb = new float[n];
+            for (int i = 0; i < n; i++) { float x = wet[i] + (i >= ap ? apb[i - ap] * 0.6f : 0f); apb[i] = x; wet[i] = (i >= ap ? apb[i - ap] : 0f) - 0.6f * x; }
+            LowPass(wet, 6000f); // air softens the tail a little (the snaps stay bright)
+            for (int i = 0; i < n; i++) d[i] = d[i] * 0.8f + wet[i] * 0.4f;
+            // gentle limiter so the short snaps carry about the same loudness as before at the same volume
+            float mx = 0f; foreach (var v in d) mx = Mathf.Max(mx, Mathf.Abs(v));
+            if (mx > 1e-6f) for (int i = 0; i < n; i++) d[i] = (float)Math.Tanh(d[i] / mx * 1.6f);
             Normalize(d, 0.6f);
             return d;
         }
