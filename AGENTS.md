@@ -32,7 +32,8 @@ Both solvers implement `IMochiSim` (`Assets/Scripts/Mochi/IMochiSim.cs`). Gamepl
   - `MochiSolver.cs`: native solver host. Buffers, substep loop, tool upload, fist detection, marching-cubes mesh. All tuning fields live here.
   - `KineTool.cs`, `UsuTool.cs`, `PalmTool.cs`, `PrimitiveTool.cs`: colliders built from medial primitives (two spheres = cone/capsule, three spheres = slab).
   - `KineDriver.cs`: moves the kine (held controller, auto-pound, or external).
-  - `MochiGrabber.cs`, `GrabZone.cs`, `KineSafety.cs`: picking up the kine and the usu rim, and the swing-near-hands warning.
+  - `MochiGrabber.cs`, `GrabZone.cs`, `KineSafety.cs`: picking up the kine and the usu rim, and the swing-near-hands warning. The rim zone is not in the grabber's list in `MochiStandalone`; placement is automatic.
+  - `UsuTablePlacer.cs`: puts the station on the nearest scanned table from the MR Utility Kit room (the `MRUK` object in `MochiStandalone`, World Lock off because the rig is moved for the Moon scene), at the table's near edge, and cuts the table out of the VR world so the real table shows in passthrough. With no table it opens Space Setup once (on device only). In the Editor the Meta XR Simulator's synthetic room supplies the table; `Office00` is the prefab fallback.
   - `MochiStrikeRecorder.cs`: development aid, see Testing.
   - `MochiTestBench.cs`: older scripted bench with a JSON report; written for the Taichi solver, works through `IMochiSim`.
 - `Assets/Resources/MochiSolver.compute`: the whole native simulation. Read its header comment first.
