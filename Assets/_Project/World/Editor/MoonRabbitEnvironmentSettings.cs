@@ -112,6 +112,13 @@ namespace MoonRabbit.WorldEditor
         public bool moonFollowsProgress = true;
         [Tooltip("Intro (fade in, four story lines, about 13 s, skippable) on start and after every reset.")]
         public bool storyIntro = true;
+        [Tooltip("Intro starts in the real room (passthrough) with only the usu, dough and kine; a round portal opens around the usu " +
+                 "and the Moon garden spreads out. Off: the intro starts in the garden. Needs storyIntro.")]
+        public bool passthroughIntro = true;
+        [Tooltip("Seconds for the portal to open.")]
+        [Range(1f, 8f)] public float passthroughRevealTime = 3.5f;
+        [Tooltip("Intro line (1-4) at which the portal starts to open.")]
+        [Range(1, 4)] public int passthroughRevealLine = 3;
         [Tooltip("Demo: putting the headset back on after it was off for headsetRestartMinSeconds restarts from the intro.")]
         public bool headsetRestart = true;
         [Header("Story sounds (synthesized unless a clip is set)")]

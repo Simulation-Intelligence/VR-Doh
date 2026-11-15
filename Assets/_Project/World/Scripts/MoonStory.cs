@@ -473,8 +473,12 @@ namespace MoonRabbit.World
             }
         }
 
+        /// <summary>Set by PassthroughIntro while the player is still in their room: the garden's glows are not drawn.</summary>
+        public static bool GardenHidden;
+
         public void DrawHalos(Material m, Matrix4x4[] mats, int count, float intensity)
         {
+            if (GardenHidden) return;
             if (m == null || quadMesh == null || count <= 0) return;
             m.SetFloat("_Intensity", intensity);
             var rp = new RenderParams(m)

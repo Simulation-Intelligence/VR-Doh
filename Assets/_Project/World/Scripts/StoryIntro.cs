@@ -50,6 +50,8 @@ namespace MoonRabbit.World
         public Color descentColor = new Color(0.8f, 0.86f, 1f);
 
         public bool Playing { get; private set; }
+        /// <summary>Fired when an intro actually starts (launch, every reset path), with the screen at full black.</summary>
+        public event System.Action Started;
 
         MoonStory story;
         MoonProgress progress;
@@ -118,6 +120,7 @@ namespace MoonRabbit.World
             story.EarthBrightness = 0f;
             EnsureFade(cam.transform);
             SetFade(1f);
+            Started?.Invoke();
             SpawnStars(cam.transform);
             if (narrationText == null) narrationText = StoryText.Create(transform, "MR_IntroText", narration, story.TextHalo, story.quadMesh);
             text = narrationText;

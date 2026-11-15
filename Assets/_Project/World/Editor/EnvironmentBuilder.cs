@@ -927,6 +927,19 @@ namespace MoonRabbit.WorldEditor
                 intro.fadeMaterial = fm;
             }
             else Debug.LogError("[Moon Rabbit] MoonRabbit/ScreenFade shader missing (Assets/_Project/World/Shaders).");
+
+            // real room -> Moon garden portal at the start of every intro
+            var pt = go.AddComponent<PassthroughIntro>();
+            pt.passthroughIntro = s.passthroughIntro;
+            pt.revealTime = s.passthroughRevealTime;
+            pt.revealAtLine = s.passthroughRevealLine;
+            pt.sphereMesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+            var veilShader = Shader.Find("MoonRabbit/PortalVeil");
+            if (veilShader != null) pt.veilMaterial = MRAssets.GetMaterial($"{G}/Materials/MR_PortalVeil.mat", veilShader);
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/PortalVeil shader missing (Assets/_Project/World/Shaders).");
+            var keepShader = Shader.Find("MoonRabbit/PortalKeep");
+            if (keepShader != null) pt.keepMaterial = MRAssets.GetMaterial($"{G}/Materials/MR_PortalKeep.mat", keepShader);
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/PortalKeep shader missing (Assets/_Project/World/Shaders).");
         }
 
         // ------------------------------------------------------------------ warm light on the dough

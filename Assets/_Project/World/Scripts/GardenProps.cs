@@ -92,7 +92,7 @@ namespace MoonRabbit.World
                     r.SetPropertyBlock(mpb, paperSub);
                 }
             }
-            if (halo != null && quad != null && k > 0)
+            if (halo != null && quad != null && k > 0 && !MoonStory.GardenHidden)
             {
                 halo.SetFloat("_Intensity", 0.55f);
                 Graphics.RenderMeshInstanced(new RenderParams(halo)
