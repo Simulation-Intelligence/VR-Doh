@@ -15,9 +15,9 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.10980392, g: 0.13333334, b: 0.1882353, a: 1}
+  m_FogColor: {r: 0.11490196, g: 0.15372549, b: 0.2545098, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.04
+  m_FogDensity: 0.027999999
   m_LinearFogStart: 6
   m_LinearFogEnd: 40
   m_AmbientSkyColor: {r: 0.36, g: 0.42, b: 0.6, a: 1}
@@ -53209,11 +53209,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MochiRoomSafety
   suppressBoundary: 1
-  cutOutFurniture: 1
+  furnitureStyle: 0
   wallRevealDistance: 0.8
   cutoutMaterial: {fileID: 0}
   head: {fileID: 0}
   usuClearance: {x: 0.45, y: 0.7}
+  boulderProp: {fileID: 515000712460133896, guid: a82a27c10ee8549c08d0e669688b18ae, type: 3}
+  benchProp: {fileID: 2386694729506570117, guid: 539ade50bdfdb4131b493782c3360675, type: 3}
+  lanternProp: {fileID: 5631741863169537089, guid: 55c78408cb4e2403e8a5318c2a121e28, type: 3}
+  standInSide: {fileID: 2100000, guid: 6af67f54a06d04ec2a649c892920b2b8, type: 2}
+  standInTop: {fileID: 2100000, guid: c277491f120ff421cac68913870d59a8, type: 2}
+  footprintGrow: 1.15
+  tableStandIn: 1
 --- !u!1 &726259096
 GameObject:
   m_ObjectHideFlags: 0

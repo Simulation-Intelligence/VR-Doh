@@ -145,6 +145,13 @@ public class UsuTablePlacer : MonoBehaviour
             if (go != null && go.activeSelf) { go.SetActive(false); Debug.Log($"UsuTablePlacer: hid '{go.name}' (usu is on a real table)."); }
     }
 
+    /// <summary>Removes the table's passthrough cut-out (another component shows the table instead).</summary>
+    public void ClearTableCutout()
+    {
+        if (tableCutout != null) Destroy(tableCutout);
+        tableCutout = null;
+    }
+
     /// <summary>A box over the table's volume (or its top, down to the floor) drawn with the passthrough cutout.</summary>
     void BuildCutout(MRUKAnchor table)
     {
