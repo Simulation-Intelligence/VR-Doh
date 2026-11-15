@@ -1,0 +1,9 @@
+{
+  "name": "Satie.Editor",
+  "rootNamespace": "Satie.Core.EditorTools",
+  "references": ["Satie.Runtime"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

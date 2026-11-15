@@ -1,0 +1,201 @@
+{
+ "Audio/light-breeze-rustling-bamboo": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/786c2815-743d-44e2-804b-4ab0fbe4a335.mp3",
+  "sampleId": "786c2815-743d-44e2-804b-4ab0fbe4a335",
+  "reused": true,
+  "prompt": "Audio/light-breeze-rustling-bamboo",
+  "source": "provided",
+  "sha256": "bad44dd815c782a1b72d1d37f0879fd5a8eef1fd40183c54c84d13cfaaa78847",
+  "licence": "provided"
+ },
+ "Audio/generation/summer_night_insects_chirring_": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/753ecc96-d8fc-42f9-a897-48107766724e.mp3",
+  "sampleId": "753ecc96-d8fc-42f9-a897-48107766724e",
+  "reused": true,
+  "prompt": "Audio/generation/summer_night_insects_chirring_",
+  "source": "provided",
+  "sha256": "5eca35477b58ae4edf809d8ba2931f82ef9667002547e8a5d11c302182f181af",
+  "licence": "provided"
+ },
+ "Audio/generation/bare_hands_continuously_pressi": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/8f7afd00-2c03-420e-8d82-2b4bd988a1be.mp3",
+  "sampleId": "8f7afd00-2c03-420e-8d82-2b4bd988a1be",
+  "reused": true,
+  "prompt": "Audio/generation/bare_hands_continuously_pressi",
+  "source": "provided",
+  "sha256": "09cc0f48c0ec92dad3ef209652405c2a4df71d2e84ecd0ce1e90d02b814d83b0",
+  "licence": "provided"
+ },
+ "Audio/generation/pound_34095c15_24694bd6#2": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/c8670e41-3e59-4a25-b703-800e59e39305.mp3",
+  "sampleId": "c8670e41-3e59-4a25-b703-800e59e39305",
+  "reused": true,
+  "prompt": "Audio/generation/pound_34095c15_24694bd6#2",
+  "source": "provided",
+  "sha256": "08be7ceb6a6a6cc889542df5597d7049bcc4156da9631e4f807656aa7cd18459",
+  "licence": "provided"
+ },
+ "Audio/generation/pound_34095c15_24694bd6#3": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/56be4800-78cf-46af-8c7e-1b42350f8c59.mp3",
+  "sampleId": "56be4800-78cf-46af-8c7e-1b42350f8c59",
+  "reused": true,
+  "prompt": "Audio/generation/pound_34095c15_24694bd6#3",
+  "source": "provided",
+  "sha256": "c020c25ca2738a32e4459175ea11cb3f44136d89fb0b3091bdc5a06e177e588a",
+  "licence": "provided"
+ },
+ "Audio/generation/air_displaced_by_a_heavy_cylin": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/84a4d35e-8296-479d-b8b5-c11e7dc44778.mp3",
+  "sampleId": "84a4d35e-8296-479d-b8b5-c11e7dc44778",
+  "reused": true,
+  "prompt": "Audio/generation/air_displaced_by_a_heavy_cylin",
+  "source": "provided",
+  "sha256": "ea7082849e5dd17d90401632cd713c102164f8fbba58faa2aaedcae840641cb6",
+  "licence": "provided"
+ },
+ "Audio/generation/rim_knock_7e23f170_e3e56df1#3": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/947cb11a-6ee9-4926-afef-5e735dbab2ed.mp3",
+  "sampleId": "947cb11a-6ee9-4926-afef-5e735dbab2ed",
+  "reused": true,
+  "prompt": "Audio/generation/rim_knock_7e23f170_e3e56df1#3",
+  "source": "provided",
+  "sha256": "19ef113f5ac8870d326ce89413ec2741f3985ce675ae2a6689c168a48f0e0042",
+  "licence": "provided"
+ },
+ "Audio/generation/single_release_of_stretched_st": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/837ea276-46da-4efb-ab6d-abc5484e73e4.mp3",
+  "sampleId": "837ea276-46da-4efb-ab6d-abc5484e73e4",
+  "reused": true,
+  "prompt": "Audio/generation/single_release_of_stretched_st",
+  "source": "provided",
+  "sha256": "b4780f17f6b19fe0bdac7187283600b0f642033d22d4c738e44f436b287d1b2e",
+  "licence": "provided"
+ },
+ "Audio/generation/single_release_of_stretched_st#2": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/32705790-c64b-4f52-9035-417bf7dea60a.mp3",
+  "sampleId": "32705790-c64b-4f52-9035-417bf7dea60a",
+  "reused": true,
+  "prompt": "Audio/generation/single_release_of_stretched_st#2",
+  "source": "provided",
+  "sha256": "ff3f9d0dc4a939901979f286099ec55f294c6e6c34faa53212d454cede183375",
+  "licence": "provided"
+ },
+ "Audio/generation/single_bare_palm_slap_onto_moi#2": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/c17c964c-0691-4b7d-a5cc-af19a275c570.mp3",
+  "sampleId": "c17c964c-0691-4b7d-a5cc-af19a275c570",
+  "reused": true,
+  "prompt": "Audio/generation/single_bare_palm_slap_onto_moi#2",
+  "source": "provided",
+  "sha256": "d9bb06d1ad1159a79fd9240b7f89e792c0a6f5c63cf7dec929ea073928ed6769",
+  "licence": "provided"
+ },
+ "Audio/generation/rim_knock_7e23f170_e3e56df1": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/947cb11a-6ee9-4926-afef-5e735dbab2ed.mp3",
+  "sampleId": "947cb11a-6ee9-4926-afef-5e735dbab2ed",
+  "reused": true,
+  "prompt": "Single heavy wooden mallet strike against the rim of a carved wooden mortar, immediate solid wood-on-wood knock with short woody resonance, exactly one impact, dry, no lead-in or repeated hits",
+  "source": "generated",
+  "name": "heavy-wooden-mallet-strike-rim",
+  "licence": "generated:elevenlabs",
+  "generator": {
+   "provider": "elevenlabs",
+   "model": "eleven_text_to_sound_v2"
+  },
+  "qa": {
+   "heard": "Single knock on wood",
+   "verdict": "pass"
+  },
+  "sha256": "19ef113f5ac8870d326ce89413ec2741f3985ce675ae2a6689c168a48f0e0042"
+ },
+ "Audio/generation/pound_34095c15_24694bd6": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/c8670e41-3e59-4a25-b703-800e59e39305.mp3",
+  "sampleId": "c8670e41-3e59-4a25-b703-800e59e39305",
+  "reused": true,
+  "prompt": "Single heavy wooden mallet strike into sticky elastic glutinous rice dough in a wooden mortar, immediate deep wet thump with woody body, exactly one impact, dry, no lead-in or repeated hits",
+  "source": "generated",
+  "name": "heavy-wooden-mallet-strike",
+  "licence": "generated:elevenlabs",
+  "generator": {
+   "provider": "elevenlabs",
+   "model": "eleven_text_to_sound_v2"
+  },
+  "qa": {
+   "heard": "a single dull thumping sound",
+   "verdict": "pass"
+  },
+  "sha256": "08be7ceb6a6a6cc889542df5597d7049bcc4156da9631e4f807656aa7cd18459"
+ },
+ "Audio/generation/single_release_of_stretched_st#3": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/abfb7a5b-e5a5-44e6-b6b9-40831c344e86.mp3",
+  "sampleId": "abfb7a5b-e5a5-44e6-b6b9-40831c344e86",
+  "reused": false,
+  "prompt": "Single release of stretched sticky glutinous rice dough from a wooden mallet face, immediate tacky peel followed closely by one soft wet flop as the dough collapses into its mound, dry, no lead-in",
+  "source": "generated",
+  "name": "release-stretched-sticky",
+  "licence": "generated:elevenlabs",
+  "generator": {
+   "provider": "elevenlabs",
+   "model": "eleven_text_to_sound_v2"
+  },
+  "qa": {
+   "heard": "a single dry tacky pull and soft wet impact sound of sticky dough",
+   "verdict": "pass"
+  },
+  "sha256": "e3aeba53f0939138c7a487916387e15874f14cfcf750b1ecd62a5473b401ac66"
+ },
+ "Audio/generation/single_bare_palm_slap_onto_moi": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/c17c964c-0691-4b7d-a5cc-af19a275c570.mp3",
+  "sampleId": "c17c964c-0691-4b7d-a5cc-af19a275c570",
+  "reused": true,
+  "prompt": "Single bare palm slap onto moist sticky glutinous rice dough, immediate wet rounded slap with yielding dough body, exactly one contact, dry, no lead-in or repeated hits",
+  "source": "generated",
+  "name": "bare-palm-slap-moist-sticky",
+  "licence": "generated:elevenlabs",
+  "generator": {
+   "provider": "elevenlabs",
+   "model": "eleven_text_to_sound_v2"
+  },
+  "qa": {
+   "heard": "a single wet slap against dough or a similar moist surface",
+   "verdict": "pass"
+  },
+  "sha256": "d9bb06d1ad1159a79fd9240b7f89e792c0a6f5c63cf7dec929ea073928ed6769"
+ },
+ "Audio/generation/single_bare_palm_slap_onto_moi#3": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/31e6d8bf-48ec-4a6d-a508-255028f268e3.mp3",
+  "sampleId": "31e6d8bf-48ec-4a6d-a508-255028f268e3",
+  "reused": false,
+  "prompt": "Single bare palm slap onto moist sticky glutinous rice dough, immediate wet rounded slap with yielding dough body, exactly one contact, dry, no lead-in or repeated hits",
+  "source": "generated",
+  "name": "bare-palm-slap-moist-sticky",
+  "licence": "generated:elevenlabs",
+  "generator": {
+   "provider": "elevenlabs",
+   "model": "eleven_text_to_sound_v2"
+  },
+  "qa": {
+   "heard": "a single dry, crisp hand slap or snap sound with no room reverb",
+   "verdict": "pass"
+  },
+  "sha256": "c2575d6863843e10dd0aa5ce9c74ef4060f4c706b0559af538c3de823b39902f"
+ },
+ "Audio/generation/pound_34095c15_24694bd6#4": {
+  "url": "https://nfcuwfkfctfpdrwkgvtm.supabase.co/storage/v1/object/public/community-samples/6b4e7a9f-f88b-4baa-ba7f-7c3edcb4cf22/game-takes/2173f170-ba5b-4dba-9f39-8701224c08d6.mp3",
+  "sampleId": "2173f170-ba5b-4dba-9f39-8701224c08d6",
+  "reused": false,
+  "prompt": "Single heavy wooden mallet strike into sticky elastic glutinous rice dough in a wooden mortar, immediate deep wet thump with woody body, exactly one impact, dry, no lead-in or repeated hits",
+  "source": "generated",
+  "name": "heavy-wooden-mallet-strike",
+  "licence": "generated:elevenlabs",
+  "generator": {
+   "provider": "elevenlabs",
+   "model": "eleven_text_to_sound_v2"
+  },
+  "qa": {
+   "heard": "A single heavy wooden mallet striking dough in a wooden mortar",
+   "verdict": "pass",
+   "regenerated": true
+  },
+  "sha256": "1f4a467d588c7e1e753f516d63cb8849391d11c75c85e1aa71de60a29b12b983"
+ }
+}

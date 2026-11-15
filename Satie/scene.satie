@@ -1,0 +1,78 @@
+level_reference 70
+loop gen Bare hands continuously pressing and folding sticky glutinous rice dough, yielding wet squelches and tacky friction without slaps or impacts, dry consistent texture, seamless loop
+    source_id knead
+    loopable
+    at MochiSolver
+    spl 54
+    volume follow knead_speed 0to1.5 0to1
+    distance_model free_field_v1
+    visual sphere
+
+loop gen Air displaced by a heavy cylindrical wooden mallet moving steadily, low broad unpitched air swish without impacts, dry consistent texture, seamless loop
+    source_id kine_swing
+    loopable
+    at Kine
+    spl 53
+    volume follow kine_speed 0to8 0to1
+    distance_model free_field_v1
+    visual sphere
+
+loop light-breeze-rustling-bamboo
+    source_id bamboo
+    randomstart
+    ring 10
+    radius 3
+    zone free_play
+    at MR_Bamboo
+    spl 43
+    distance_model free_field_v1
+    visual sphere
+
+loop gen Summer night insects chirring steadily with small natural pauses, restrained cricket stridulation without birds or frogs, dry seamless ambience loop, consistent texture
+    source_id night_insects
+    bed
+    loopable
+    zone free_play
+    spl 28
+    duration 30
+    visual none
+
+on pound gen Single heavy wooden mallet strike into sticky elastic glutinous rice dough in a wooden mortar, immediate deep wet thump with woody body, exactly one impact, dry, no lead-in or repeated hits
+    gen_key pound_34095c15
+    source_id pound
+    at Usu
+    spl 82
+    volume follow strike_speed 0to8 0.15to1
+    cooldown 0.04
+    distance_model free_field_v1
+    variants 4
+    visual sphere
+
+on rim_knock gen Single heavy wooden mallet strike against the rim of a carved wooden mortar, immediate solid wood-on-wood knock with short woody resonance, exactly one impact, dry, no lead-in or repeated hits
+    gen_key rim_knock_7e23f170
+    source_id rim_knock
+    at Usu
+    spl 78
+    volume follow strike_speed 0to8 0.15to1
+    cooldown 0.04
+    distance_model free_field_v1
+    variants 3
+    visual sphere
+
+on tent_release gen Single release of stretched sticky glutinous rice dough from a wooden mallet face, immediate tacky peel followed closely by one soft wet flop as the dough collapses into its mound, dry, no lead-in
+    source_id tent_release
+    at MochiSolver
+    spl 58
+    cooldown 0.04
+    distance_model free_field_v1
+    variants 3
+    visual sphere
+
+on dough_slap gen Single bare palm slap onto moist sticky glutinous rice dough, immediate wet rounded slap with yielding dough body, exactly one contact, dry, no lead-in or repeated hits
+    source_id dough_slap
+    at MochiSolver
+    spl 65
+    cooldown 0.04
+    distance_model free_field_v1
+    variants 3
+    visual sphere

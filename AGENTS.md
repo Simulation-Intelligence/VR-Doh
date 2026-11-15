@@ -31,7 +31,18 @@ Both solvers implement `IMochiSim` (`Assets/Scripts/Mochi/IMochiSim.cs`). Gamepl
   - `MochiStation.cs`: places the usu and the solver, hands the tool list to the solver. If its `solver` field is set it uses the native solver, otherwise `mochi` (Taichi).
   - `MochiSolver.cs`: native solver host. Buffers, substep loop, tool upload, fist detection, marching-cubes mesh. All tuning fields live here.
   - `KineTool.cs`, `UsuTool.cs`, `PalmTool.cs`, `PrimitiveTool.cs`: colliders built from medial primitives (two spheres = cone/capsule, three spheres = slab).
-  - `KineDriver.cs`: moves the kine (held controller, auto-pound, or external).
+  - `KineDriver.cs`: moves the kine (held controller, auto-pound, or external). Auto-pound tips the handle up near the bottom of the stroke (`tiltOverRim`, `RimTilt`, `AutoPoundRotation`). The tilt is just enough for the handle to clear the usu rim: about 18° at `bottomHeight`, and level once the face is more than about 7 cm above the floor. Without it the handle, level with the middle of the head, passed through the rim.
+  - `KineContact.cs`: kine-versus-solid collisions, which the solver doesn't do (it only collides dough with tools). After the kine is posed each frame, it pushes the head out of three things:
+    - the usu (the cross-section `UsuTool`'s visual is lathed from)
+    - the table top
+    - free tracked hands, while the kine moves; the hand holding it is ignored
+
+    The handle hits the rim and the table, but not hands by default (it reaches over the kneader's wrists). A handle hitting the rim pivots the kine rather than shoving it: about the holding hand or controller when held, so the head swings up and the kine stays in the hand; about the head when the kine drives itself. Other details:
+    - Position and rotation are swept in 2 cm steps (of the head and of the handle's end), so fast swings can't tunnel through the rim.
+    - A held kine stops at the surface while the real hand carries on.
+    - Impacts raise `Contact` and buzz the holding controller.
+    - It is added at runtime to every `KineTool` (`KineContactBootstrap`; define `MOCHI_KINE_CONTACT_OFF` to stop that).
+    - It is idle while the recorder or test bench runs.
   - `MochiGrabber.cs`, `GrabZone.cs`, `KineSafety.cs`: picking up the kine and the usu rim, and the swing-near-hands warning. The rim zone is not in the grabber's list in `MochiStandalone`; placement is automatic.
   - `UsuTablePlacer.cs`: puts the station on the nearest scanned table from the MR Utility Kit room (the `MRUK` object in `MochiStandalone`, World Lock off because the rig is moved for the Moon scene), at the table's near edge, and cuts the table out of the VR world so the real table shows in passthrough. With no table it opens Space Setup once (on device only). In the Editor the Meta XR Simulator's synthetic room supplies the table; `Office00` is the prefab fallback.
   - `MochiStrikeRecorder.cs`: development aid, see Testing.
@@ -40,6 +51,7 @@ Both solvers implement `IMochiSim` (`Assets/Scripts/Mochi/IMochiSim.cs`). Gamepl
 - `Assets/Scripts/MpmTools/MatHand.cs`: tracked hand as about 95 medial primitives per hand.
 - `Assets/MarchingCubes/`: isosurface mesh builder used by both solvers.
 - `Assets/Shaders/Mochi/MochiSurface.shader`, `Assets/Materials/Mochi/`: dough look.
+- `Assets/MochiRhythm/`: rhythm mode (pound and knead to a song), see "Rhythm mode" below and its README.
 
 ## How the native solver works
 
@@ -64,7 +76,7 @@ Targets, with current native-solver status as of 2026-11-14:
 
 | Target | Status |
 |---|---|
-| Kine sinks to about half the lump height on a 4 m/s strike | Sink depth is set by the driver; looks right |
+| Kine sinks to about half the lump height on a 4 m/s strike | Sink depth is set by the driver; looks right. Since 2026-11-14 the auto-pound kine tips up to about 18° in the bottom ~5 cm of the stroke (`tiltOverRim`). The face then meets the dough slightly tilted and the head untilts during the first few cm of the lift, while the tent forms. **Not yet re-recorded**: compare `strike` recordings with `tiltOverRim` on and off before trusting the tent targets below |
 | On lift the dough follows the kine into a tent about as tall as the lump, then lets go after about 0.15 s | Working: a connected column up to about 2.3x lump height, released with a pointed peak, repeatable strike after strike. Needs `pullShape` 1 (an uneven stretch tears a cap off under the kine) and the shoulder plate in `KineTool` (dough caught in the groove behind the face rode up with the kine) |
 | After release the tent falls back to a round mound in 0.3-0.4 s | Drops within about 0.3 s, then takes about 1.5 s to finish rounding |
 | Dents round off instead of staying as permanent prints | Working in the Editor. The dough is soft (`yieldStress` 80 Pa, `relaxTime` 0.05 s) and pulled toward the usu axis (`centering`), so it flows back into a dome: a hand cut that splits the lump refills in a couple of seconds, and repeated strikes start from the same mound. A cohesion (fake surface tension) term was tried first and collapsed the lump; do not bring it back |
@@ -74,6 +86,7 @@ Targets, with current native-solver status as of 2026-11-14:
 | The lump keeps its volume through repeated kneading | Working since `crowdStiffness` was added. Before it, particles packed into fewer cells each cycle (the tracked volume ratio J still read 1), overflowed the per-cell lists and vanished from the picture. After repeated grips the lump is still lumpy and can shed specks |
 | Real tracked hands (`MatHand`) knead correctly | **Untested.** Only the scripted `PalmTool` has been run |
 | Real time at 72 Hz on Quest 3 | Holds 72 fps with the lump at rest and nobody touching it: app GPU time about 9.4 ms, GPU about 91% busy (2026-11-14, first run). Not yet measured during strikes or kneading, where the 12-substep cap will put the dough in slow motion. There is almost no headroom |
+| The kine can't pass through the usu, the table or a free hand | `KineContact` plus `KineDriver.tiltOverRim`, written 2026-11-14. Type-checked off-Editor only; **not yet run**. The head is blocked by the usu, the table and free hands. The handle rests on the rim (the kine pivots) and on the table. Auto-pound strikes clear everything, so they never need the correction. The handle still passes over hands (off by default) |
 
 Update this table when you change any of it.
 
@@ -132,6 +145,27 @@ Solver fields on `MochiSolver` can be changed live in play mode before starting 
 For anything involving fingers, test with the real hand collider, not the flat palm: `r.handShape = true; r.jitter = 0.0015f;` uses a rigid copy of the 95-primitive tracked hand. Thin fingers behave very differently from the palm (they squeeze dough out between them).
 
 On the headset the solver logs a `MochiStats` line per second (`metavr log -t Unity`): frame rate, substeps, fastest particle, how many are above the rim, whether each hand counts as a fist.
+
+## Rhythm mode
+
+`Assets/MochiRhythm/` (details in its README) adds a song-driven game on top of the station. It is a port of the three.js prototype's rhythm mode, with the same beat tracker, timing windows and scoring.
+
+- **Attach.** `RhythmModeBootstrap` adds a `MochiRhythm` object at scene load to any scene whose `MochiStation` uses tracked hands. No scene file is changed. Define `MOCHI_RHYTHM_OFF` to disable this.
+- **Idle.** Until someone presses Start on its panel (on the table, left of the usu), it only plays sounds. `MochiSound` routes strikes, usu/table knocks, hand slaps and native-solver dough release through Satie, and publishes kneading speed and free-play/rhythm state. Strikes and knocks fall back to the original mallet clips if Satie is unavailable. The scene and cut-take sources are in `Satie/`, the compiled scene is in `Assets/Resources/SatieCore/`, and the embedded runtime is in `Packages/world.satie.unity/`.
+- **Recorder and test bench.** It pauses itself while `MochiStrikeRecorder` or `MochiTestBench` runs, so recordings are unchanged.
+- **Gameplay code** goes only through `MochiStation.Sim` (particle readback for the dough surface), `KineTool` (face = local origin), `KineDriver`, `GrabZone.Held` and `UsuTool` dimensions. It changes none of their code or fields.
+- **Partner.** While a game runs and nobody holds the kine, `RhythmPartner` moves the kine itself (`KineDriver` must be in External mode). It uses the AutoPound speeds and heights, with each fall timed to land on a note. It returns the kine with `KineDriver.Rest()` when the game stops.
+- **Cost.** One asynchronous particle readback 8 times a second while playing (2 when idle) and a few line renderers. This has not been measured on the headset.
+- **Songs** go in `Assets/MochiRhythm/Resources/MochiRhythm/Music/` (mp3s there are git-ignored), or on the headset in `/sdcard/Android/data/com.immersethebay.mochipound/files/Music/`.
+- **Editor keys:**
+  - F5: start/stop
+  - F6 / F7: previous / next song
+  - F8: beat density
+  - F9: partner on/off
+  - `[` and `]`: calibration
+  - F10: test strike
+
+Status (2026-11-14): written and type-checked off-Editor (against stand-ins plus this branch's `GrabZone`, `KineDriver`, `KineTool`, `PrimitiveTool`, `MochiGrabber`, `HandBoneCompat` and `IMochiSim` sources). **Not yet compiled in Unity or run in play mode or on the headset.**
 
 ## Building for Quest (standalone)
 
