@@ -714,6 +714,8 @@ namespace MoonRabbit.World
             if (text != null) text.SetAlpha(0f);
 
             // reset for the next demo
+            progress.LastResetReason = "ending";
+            Debug.Log("[Moon Rabbit] Story reset (reason: ending)");
             link.ResetDough();
             link.SetDoughVisible(true);
             link.RestKine();
@@ -729,6 +731,7 @@ namespace MoonRabbit.World
         /// darken the Earth and start again from the intro, exactly like the reset after the ending.</summary>
         public void HardReset()
         {
+            Debug.Log("[Moon Rabbit] Story reset (reason: " + progress.LastResetReason + ")");
             StopAllCoroutines();
             if (orb != null) orb.SetActive(false);
             if (text != null) text.SetAlpha(0f);

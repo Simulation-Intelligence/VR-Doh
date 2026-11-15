@@ -63,6 +63,8 @@ namespace MoonRabbit.World
         MaterialPropertyBlock mpb;
         float alpha, revealStart = -100f, pulseStart = -100f, exitStart = -100f, appearStart = -100f;
         bool revealing, exiting;
+        float swellNow;
+        int pulseFrom = -1; // first character of the emphasised part (pulses on its own), -1 = whole line
         float[] charStart;
         float revealDuration;
 #if MR_TMP
@@ -152,10 +154,18 @@ namespace MoonRabbit.World
         }
 
         /// <summary>Sets the line. The rise-in (if the style has it) and the pulse start now.</summary>
-        public void SetText(string text)
+        public void SetText(string text) => SetText(text, -1);
+
+        /// <summary>Sets the line; characters from <paramref name="emphasisFrom"/> on (rich text: index in the visible
+        /// characters) get the gold pulse once the line has risen, the rest does not.</summary>
+        public void SetText(string text, int emphasisFrom)
         {
+            pulseFrom = emphasisFrom;
             Vector2 size;
 #if MR_TMP
+            // Enable first: TMP rebuilds its mesh (all letters fully opaque) on OnEnable. Doing that here, before the
+            // mesh is laid out and hidden below, means no frame ever shows the whole sentence before it rises in.
+            if (!gameObject.activeSelf) gameObject.SetActive(true);
             if (fontSizeForHeight < 0f)
             {
                 // calibrate once: font size that gives the requested capital height in metres
@@ -178,6 +188,11 @@ namespace MoonRabbit.World
                 baseVerts[m] = (Vector3[])info.meshInfo[m].vertices.Clone();
                 baseColors[m] = (Color32[])info.meshInfo[m].colors32.Clone();
             }
+            revealStart = Time.time;
+            revealing = style.rise;
+            exiting = false;
+            ComputeLetterTimes(text);
+            WriteVertices(Time.time); // same frame: every letter starts invisible (or at the current line alpha)
 #else
             main.text = text;
             shadow.text = text;
@@ -191,7 +206,7 @@ namespace MoonRabbit.World
             revealing = style.rise;
             exiting = false;
             ComputeLetterTimes(text);
-            pulseStart = style.pulse ? Time.time + revealDuration : -100f; // the gold pulse once the line has risen
+            pulseStart = style.pulse || pulseFrom >= 0 ? Time.time + revealDuration : -100f; // the gold pulse once the line has risen
         }
 
         /// <summary>Seconds until every letter of the current line has risen into place (0 without the rise-in).</summary>
@@ -248,8 +263,15 @@ namespace MoonRabbit.World
             main.color = new Color(style.color.r, style.color.g, style.color.b, alpha);
             shadow.color = new Color(0f, 0f, 0f, alpha * 0.6f);
 #endif
-            if (alpha > 0.001f && !gameObject.activeSelf) gameObject.SetActive(true);
-            if (alpha <= 0.001f && gameObject.activeSelf) gameObject.SetActive(false);
+            if (alpha > 0.001f && !gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+#if MR_TMP
+                // OnEnable just made TMP rebuild the mesh fully opaque: rebuild now and write our alphas this frame
+                if (tmp != null) tmp.ForceMeshUpdate(true);
+#endif
+            }
+            if (alpha <= 0.001f && gameObject.activeSelf && !revealing) gameObject.SetActive(false);
             if (gameObject.activeSelf) Refresh();
         }
 
@@ -261,7 +283,8 @@ namespace MoonRabbit.World
             // one gentle swell (+8 %) and glow pulse for instructions
             float pu = now - pulseStart;
             float swell = pu >= 0f && pu < 0.9f ? Mathf.Sin(pu / 0.9f * Mathf.PI) : 0f;
-            float glowK = 1f + 1.5f * swell;
+            swellNow = swell;
+            float glowK = 1f + (pulseFrom >= 0 ? 0.6f : 1.5f) * swell;
             if (style.breathe)
             {
                 float ap = now - appearStart;
@@ -269,7 +292,7 @@ namespace MoonRabbit.World
                 glowK *= 1f + 0.18f * Mathf.Sin(ap * Mathf.PI) + 1.6f * flash;                    // slow breathing, period 2 s
             }
 #if MR_TMP
-            if (tmp != null) tmp.transform.localScale = Vector3.one * (1f + 0.08f * swell);
+            if (tmp != null) tmp.transform.localScale = Vector3.one * (pulseFrom >= 0 ? 1f : 1f + 0.08f * swell);
             WriteVertices(now);
 #endif
             if (glow != null)
@@ -299,7 +322,7 @@ namespace MoonRabbit.World
                 System.Array.Copy(baseVerts[m], verts, verts.Length);
                 for (int v = 0; v < cols.Length; v++) { var c = baseColors[m][v]; c.a = (byte)(c.a * alpha); cols[v] = c; }
             }
-            if (revealing || exiting)
+            if (revealing || exiting || (pulseFrom >= 0 && swellNow > 0f))
             {
                 // world units → the text's local units
                 float sc = tmp.transform.lossyScale.y;
@@ -321,6 +344,12 @@ namespace MoonRabbit.World
                         tilt = r * riseTilt;
                         fade = Mathf.SmoothStep(0f, 1f, t * 1.5f);
                     }
+                    float bright = 0f;
+                    if (pulseFrom >= 0 && i >= pulseFrom && swellNow > 0f)
+                    {
+                        scale *= 1f + 0.12f * swellNow;   // only the emphasised words swell and brighten
+                        bright = 0.45f * swellNow;
+                    }
                     if (exiting)
                     {
                         // drift up and thin out, letter after letter, like incense smoke
@@ -340,7 +369,9 @@ namespace MoonRabbit.World
                     for (int k = 0; k < 4; k++)
                     {
                         verts[vi + k] = centre + rot * ((verts[vi + k] - centre) * scale) + offLocal;
-                        var c = cols[vi + k]; c.a = (byte)(c.a * fade); cols[vi + k] = c;
+                        var c = cols[vi + k]; c.a = (byte)(c.a * fade);
+                        if (bright > 0f) c = Color32.Lerp(c, new Color32(255, 248, 225, c.a), bright);
+                        cols[vi + k] = c;
                     }
                 }
                 if (revealing && !anyMoving) revealing = false;

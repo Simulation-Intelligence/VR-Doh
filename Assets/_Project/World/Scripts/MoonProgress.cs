@@ -120,11 +120,15 @@ namespace MoonRabbit.World
 
         /// <summary>Demo reset: like the automatic reset after the ending (story, dough, rice, intro). Falls back to
         /// <see cref="ResetProgress"/> when nothing handles it.</summary>
-        public void RequestDemoReset()
+        public void RequestDemoReset(string reason = "reset")
         {
+            LastResetReason = reason;
             if (DemoResetRequested != null) DemoResetRequested.Invoke();
             else ResetProgress();
         }
+
+        /// <summary>Why the last demo reset happened (reset-A, reset-R, headset, ending), for logs.</summary>
+        public string LastResetReason { get; set; } = "launch";
 
         /// <summary>Back to 0 (crescent). Also unlocks after the ending.</summary>
         public void ResetProgress()
@@ -171,7 +175,7 @@ namespace MoonRabbit.World
             if (aDown && !holdFired && aDownTime >= 0f && Time.unscaledTime - aDownTime >= holdToReset)
             {
                 holdFired = true;
-                RequestDemoReset();
+                RequestDemoReset("reset-A");
             }
             if (!aDown && aWasDown && !holdFired) AddDemoStep();
             aWasDown = aDown;
@@ -181,12 +185,12 @@ namespace MoonRabbit.World
             if (kb != null)
             {
                 if (kb.pKey.wasPressedThisFrame) AddDemoStep();
-                if (kb.rKey.wasPressedThisFrame) RequestDemoReset();
+                if (kb.rKey.wasPressedThisFrame) RequestDemoReset("reset-R");
                 if (kb.fKey.wasPressedThisFrame) Set(1f);
             }
 #elif ENABLE_LEGACY_INPUT_MANAGER
             if (Input.GetKeyDown(KeyCode.P)) AddDemoStep();
-            if (Input.GetKeyDown(KeyCode.R)) RequestDemoReset();
+            if (Input.GetKeyDown(KeyCode.R)) RequestDemoReset("reset-R");
             if (Input.GetKeyDown(KeyCode.F)) Set(1f);
 #endif
         }

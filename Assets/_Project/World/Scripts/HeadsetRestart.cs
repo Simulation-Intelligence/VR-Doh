@@ -21,6 +21,9 @@ namespace MoonRabbit.World
         public float minRemovedSeconds = 3f;
         [Tooltip("Wait after putting it on before the intro starts, so tracking and the view have settled (s).")]
         public float settleDelay = 0.5f;
+        [Tooltip("Ignore mount / pause / presence events for this long after the app starts (s): Quest sends some at launch, " +
+                 "and permission or Space Setup dialogs can pause it.")]
+        public float startupGrace = 8f;
 
         public bool HeadsetOn { get; private set; } = true;
 
@@ -31,10 +34,15 @@ namespace MoonRabbit.World
         Action onUnmounted, onMounted;
         EventInfo unmountedEvent, mountedEvent;
 
+        float enabledAt;
+
         void Awake() => progress = GetComponent<MoonProgress>();
+
+        bool InGrace => Time.realtimeSinceStartup - enabledAt < startupGrace;
 
         void OnEnable()
         {
+            enabledAt = Time.realtimeSinceStartup;
             // Meta XR SDK: static events on OVRManager, subscribed by reflection (no assembly reference)
             var ovr = FindType("OVRManager");
             if (ovr == null) return;
@@ -71,15 +79,14 @@ namespace MoonRabbit.World
             return null;
         }
 
-        // Quest pauses / unfocuses the app when the headset comes off. In the Editor these fire when another window
-        // takes focus, so they only count in a player build.
+        // Quest pauses the app when the headset comes off. Focus is not used: system dialogs (permissions, Space Setup,
+        // the menu) take focus without anyone taking the headset off. In the Editor pause follows the Editor window.
         void OnApplicationPause(bool paused) { if (Application.isEditor) return; if (paused) Removed(); else PutOn(); }
-        void OnApplicationFocus(bool focus) { if (Application.isEditor) return; if (!focus) Removed(); else PutOn(); }
 
         /// <summary>The headset came off (or the app lost focus / was paused).</summary>
         public void Removed()
         {
-            if (!HeadsetOn) return;
+            if (!HeadsetOn || InGrace) return; // only a real removal after launch counts
             HeadsetOn = false;
             removedAt = Time.realtimeSinceStartup;
             restartAt = -1f;
@@ -93,7 +100,10 @@ namespace MoonRabbit.World
             float off = removedAt >= 0f ? Time.realtimeSinceStartup - removedAt : 0f;
             removedAt = -1f;
             if (restartOnRemount && off >= minRemovedSeconds)
+            {
                 restartAt = Time.realtimeSinceStartup + settleDelay;
+                Debug.Log($"[Moon Rabbit] Headset back on after {off:F1} s: restarting from the intro.");
+            }
         }
 
         void Update()
@@ -110,7 +120,7 @@ namespace MoonRabbit.World
             if (restartAt >= 0f && Time.realtimeSinceStartup >= restartAt)
             {
                 restartAt = -1f;
-                if (progress != null) progress.RequestDemoReset();
+                if (progress != null) progress.RequestDemoReset("headset");
             }
         }
     }

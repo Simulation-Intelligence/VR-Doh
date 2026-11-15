@@ -75,9 +75,9 @@ namespace MoonRabbit.World
         void Start()
         {
             progress.SkipIntroRequested += () => skip = true;
-            story.Resetted += Play;
+            story.Resetted += () => Play(progress.LastResetReason);
             starHalo = story.HaloMaterialFor("Descent", descentColor);
-            Play();
+            Play("launch");
         }
 
         void OnDestroy()
@@ -85,13 +85,22 @@ namespace MoonRabbit.World
             if (starHalo != null) Destroy(starHalo);
         }
 
-        public void Play()
+        int lastPlayFrame = -1;
+
+        public void Play() => Play("manual");
+
+        /// <summary>(Re)starts the intro once: a running intro is stopped and its text cleared first.</summary>
+        public void Play(string reason)
         {
             if (!playIntro || !isActiveAndEnabled) return;
-            if (running != null) StopCoroutine(running);
+            if (Time.frameCount == lastPlayFrame) return; // two triggers in one frame start it only once
+            lastPlayFrame = Time.frameCount;
+            if (running != null) { StopCoroutine(running); running = null; }
             // a restarted intro never leaves the previous line on screen
             if (narrationText != null) narrationText.SetAlpha(0f);
             if (instructionText != null) instructionText.SetAlpha(0f);
+            Playing = false;
+            Debug.Log("[Moon Rabbit] Intro start (reason: " + reason + ")");
             running = StartCoroutine(Intro());
         }
 
@@ -108,12 +117,10 @@ namespace MoonRabbit.World
             SetFade(1f);
             SpawnStars(cam.transform);
             if (narrationText == null) narrationText = StoryText.Create(transform, "MR_IntroText", narration, story.TextHalo, story.quadMesh);
-            if (instructionText == null) instructionText = StoryText.Create(transform, "MR_IntroInstruction", instruction, story.TextHalo, story.quadMesh);
             text = narrationText;
             // world-fixed: placed once in front of the head, facing the Moon side of the garden
             yield return null; // let the head pose settle for a frame
             narrationText.PlaceInFront(cam.transform, story.textDistance, story.textAboveEyes);
-            instructionText.transform.SetPositionAndRotation(narrationText.transform.position, narrationText.transform.rotation);
 
             introStart = Time.time;
             for (int idx = 0; idx < lines.Length && !skip; idx++)
@@ -122,11 +129,13 @@ namespace MoonRabbit.World
                 while (!skip && Time.time - introStart < 1f) yield return null;
                 if (skip) break;
 
-                bool isInstruction = lines[idx].StartsWith("!");
-                text = isInstruction ? instructionText : narrationText;
-                string body = isInstruction ? lines[idx].Substring(1) : lines[idx];
+                // one text object for every line: "[...]" (or a whole line starting with "!") is the instruction emphasis
+                string raw = lines[idx].StartsWith("!") ? "[" + lines[idx].Substring(1) + "]" : lines[idx];
+                bool isInstruction = raw.Contains("[");
+                text = narrationText;
                 text.maxReveal = maxRevealTime;
-                text.SetText(Wrap(body));
+                string rich = Emphasise(raw, out int from);
+                text.SetText(rich, from);
                 text.SetAlpha(1f); // letters fade in themselves as they rise
                 progress.onIntroLine.Invoke(idx + 1);
 
@@ -170,6 +179,23 @@ namespace MoonRabbit.World
             float t = Time.time - introStart;
             SetFade(1f - Mathf.SmoothStep(0f, 1f, t / blackFade));
             starAlpha = Mathf.Clamp01(t / 1.5f) * Mathf.Clamp01((7f - t) / 2f);
+        }
+
+        /// <summary>Wraps the plain line and turns "[...]" into the instruction look (gold, bold = Cinzel Black via the
+        /// font's bold weight, a little larger). <paramref name="from"/> = index of the first emphasised visible character.</summary>
+        string Emphasise(string raw, out int from)
+        {
+            int open = raw.IndexOf('['), close = raw.IndexOf(']');
+            string plain = raw.Replace("[", "").Replace("]", "");
+            string wrapped = Wrap(plain);
+            from = -1;
+            if (open < 0 || close < open) return wrapped;
+            int a = open, b = close - 1; // plain indices (the brackets are gone); Wrap only swaps a space for a newline
+            from = a;
+            float size = narration.letterHeight > 0f ? instruction.letterHeight / narration.letterHeight * 100f : 120f;
+            string col = ColorUtility.ToHtmlStringRGB(instruction.color);
+            return wrapped.Substring(0, a) + "<b><color=#" + col + "><size=" + size.ToString("0") + "%>" +
+                   wrapped.Substring(a, b - a) + "</size></color></b>" + wrapped.Substring(b);
         }
 
         string Wrap(string s)

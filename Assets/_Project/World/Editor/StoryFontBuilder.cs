@@ -42,7 +42,23 @@ namespace MoonRabbit.WorldEditor
             };
             if (r.intro != null) r.introMat = TextMaterial(r.intro, IntroMatPath, 0.16f, new Color(1f, 0.8f, 0.55f, 0.35f));
             if (r.ending != null) r.endingMat = TextMaterial(r.ending, EndingMatPath, 0.16f, new Color(1f, 0.76f, 0.38f, 0.6f), 0.85f); // wide soft gold glow
-            if (r.instruction != null) r.instructionMat = TextMaterial(r.instruction, InstructionMatPath, 0.2f, new Color(1f, 0.78f, 0.35f, 0.6f), 0.7f);
+            if (r.instruction != null)
+            {
+                r.instructionMat = TextMaterial(r.instruction, InstructionMatPath, 0.2f, new Color(1f, 0.78f, 0.35f, 0.6f), 0.7f);
+                // inside a narration line "<b>" switches to Cinzel Black, which then draws with its own default material:
+                // give that material the same outline / shadow / gold glow
+                Style(r.instruction.material, r.instruction, 0.2f, new Color(1f, 0.78f, 0.35f, 0.6f), 0.7f);
+                EditorUtility.SetDirty(r.instruction.material);
+                if (r.intro != null)
+                {
+                    var table = r.intro.fontWeightTable;
+                    if (table != null && table.Length > 7)
+                    {
+                        table[7].regularTypeface = r.instruction; // weight 700 (<b>) = Cinzel Black (the array is the asset's own)
+                        EditorUtility.SetDirty(r.intro);
+                    }
+                }
+            }
             AssetDatabase.SaveAssets();
             return r;
         }
@@ -106,6 +122,12 @@ namespace MoonRabbit.WorldEditor
         {
             var m = MRAssets.GetMaterial(path, fa.material.shader);
             m.CopyPropertiesFromMaterial(fa.material);
+            Style(m, fa, outline, glow, glowOuter);
+            return m;
+        }
+
+        static void Style(Material m, TMP_FontAsset fa, float outline, Color glow, float glowOuter)
+        {
             m.SetTexture(ShaderUtilities.ID_MainTex, fa.atlasTexture);
             m.SetFloat(ShaderUtilities.ID_OutlineWidth, outline);
             m.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0.08f, 0.07f, 0.12f, 0.85f));
@@ -122,7 +144,6 @@ namespace MoonRabbit.WorldEditor
             m.SetFloat(ShaderUtilities.ID_GlowPower, 0.6f);
             m.SetFloat(ShaderUtilities.ID_FaceDilate, 0.05f);
             EditorUtility.SetDirty(m);
-            return m;
         }
     }
 }
