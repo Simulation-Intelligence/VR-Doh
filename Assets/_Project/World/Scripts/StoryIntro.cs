@@ -17,7 +17,7 @@ namespace MoonRabbit.World
         [TextArea]
         public string[] lines =
         {
-            "It's Chuseok on Earth… but the Moon never rose.",
+            "It's Chuseok, Earth's harvest moon festival…\nbut the Moon never rose.",
             "No wishes. No mochi. No festival.",
             "In the sky garden between Earth and Moon, the Moon Rabbits pick up the mallet.",
             "!Pound the mochi. Light the Moon.",
@@ -207,7 +207,7 @@ namespace MoonRabbit.World
 
         string Wrap(string s)
         {
-            if (s.Length <= wrapAt) return s;
+            if (s.Length <= wrapAt || s.Contains("\n")) return s; // a line with its own break is kept as written
             int mid = s.Length / 2, cut = -1;
             for (int d = 0; d < mid; d++)
             {

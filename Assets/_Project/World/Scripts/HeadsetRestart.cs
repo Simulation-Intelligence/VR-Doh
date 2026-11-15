@@ -103,6 +103,8 @@ namespace MoonRabbit.World
             {
                 restartAt = Time.realtimeSinceStartup + settleDelay;
                 Debug.Log($"[Moon Rabbit] Headset back on after {off:F1} s: restarting from the intro.");
+                var hd = GetComponent<HeightDiagnostics>();
+                if (hd != null) hd.Log("headset-on");
             }
         }
 

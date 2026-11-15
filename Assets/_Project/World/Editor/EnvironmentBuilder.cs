@@ -778,6 +778,7 @@ namespace MoonRabbit.WorldEditor
             snd.strikeClip = s.strikeClip; snd.milestoneClip = s.milestoneClip; snd.fullMoonClip = s.fullMoonClip;
             snd.flightClip = s.flightClip; snd.arrivalClip = s.arrivalClip; snd.wishClip = s.wishClip;
 
+            go.AddComponent<HeightDiagnostics>();
             var hr = go.AddComponent<HeadsetRestart>();
             hr.restartOnRemount = s.headsetRestart;
             hr.minRemovedSeconds = s.headsetRestartMinSeconds;
