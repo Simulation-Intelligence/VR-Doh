@@ -902,6 +902,10 @@ namespace MoonRabbit.WorldEditor
             snd.progressSounds = s.progressSounds;
             snd.strikeSound = s.strikeSound;
             snd.textVolume = s.textSoundVolume;
+            snd.scrollSounds = s.scrollSounds;
+            snd.swellSound = s.swellSound;
+            snd.endingTextSound = s.endingTextSound;
+            snd.endingFirework = s.endingFirework;
             snd.progressSfxVolume = s.progressSfxVolume;
             snd.introLineClip = s.introLineClip; snd.instructionClip = s.instructionClip; snd.endingClip = s.endingClip;
             snd.strikeClip = s.strikeClip; snd.milestoneClip = s.milestoneClip; snd.fullMoonClip = s.fullMoonClip;

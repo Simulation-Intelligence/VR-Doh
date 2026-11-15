@@ -166,6 +166,7 @@ namespace MoonRabbit.World
                 }
                 scrollObj.Setup(narrationText.transform, longest, narrationText.FontSize * 0.45f);
                 scrollObj.Open(scrollOpenTime);
+                if (sounds != null) sounds.PlayScrollUnroll(scrollObj.transform.position, scrollObj.transform.right, scrollOpenTime);
             }
 
             introStart = Time.time;
@@ -187,7 +188,13 @@ namespace MoonRabbit.World
                 instructionShowing = isInstruction;
                 // a soft chime from the text, so it is heard (and located) even when looking elsewhere;
                 // the instruction line rings at its bounce
-                if (sounds != null) sounds.PlayIntroLine(text.transform.position, idx, isInstruction, isInstruction ? text.RevealDuration : 0.1f);
+                // brushed chime bars follow the letters as they rise; the last line's swell brushes a few more
+                if (sounds != null)
+                {
+                    var tt = text.transform;
+                    sounds.PlayIntroLine(tt.position, tt.right, idx, raw.Replace("[", "").Replace("]", "").Length, text.RevealDuration);
+                    if (isInstruction) sounds.PlaySwell(tt.position, tt.right, text.EmphasisDuration, text.RevealDuration);
+                }
                 text.SetAlpha(1f); // letters fade in themselves as they rise
                 progress.onIntroLine.Invoke(idx + 1);
 
@@ -212,6 +219,7 @@ namespace MoonRabbit.World
                 else
                 {
                     scrollObj.Close(scrollCloseTime);
+                    if (sounds != null) sounds.PlayScrollClose(scrollObj.transform.position, scrollCloseTime);
                     float w = 0f;
                     while (!skip && w < scrollCloseTime) { w += Time.deltaTime; yield return null; }
                     if (skip) scrollObj.Fade(0.2f);

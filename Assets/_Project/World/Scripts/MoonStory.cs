@@ -692,7 +692,7 @@ namespace MoonRabbit.World
 
             // the Earth glows and its lights come on
             progress.onMochiArrivedEarth.Invoke();
-            if (sounds != null) sounds.PlayArrival(target);
+            if (sounds != null) { sounds.PlayArrival(target); sounds.PlayFireworkFar(target); }
             burstStart = Time.time;
             if (!moonFollowsProgress) StartCoroutine(Fade(x => moonFull = x, 0f, 1f, 1.2f));
             StartCoroutine(EarthGlowPulse());

@@ -132,12 +132,20 @@ namespace MoonRabbit.WorldEditor
         public bool headsetRestart = true;
         [Header("Story sounds (synthesized unless a clip is set)")]
         [Tooltip("Master switch for StorySounds. Off by default; the MoonProgress sound hooks (onIntroLine, onStrike...) stay.")]
-        public bool storySounds = false;
+        public bool storySounds = true;
         public bool textSounds = true;
-        public bool progressSounds = true;
+        public bool progressSounds = false;
         [Tooltip("Shimmer on every progress step; turn off when the rhythm game plays its own hit sounds.")]
         public bool strikeSound = true;
-        [Range(0f, 1f)] public float textSoundVolume = 0.35f;
+        [Range(0f, 1f)] public float textSoundVolume = 0.11f;
+        [Tooltip("Hanji paper rustle when the intro scroll unrolls / rolls up.")]
+        public bool scrollSounds = true;
+        [Tooltip("Rubbed singing-bowl tone under the last intro line's swell.")]
+        public bool swellSound = true;
+        [Tooltip("Chime when the ending text appears.")]
+        public bool endingTextSound = false;
+        [Tooltip("Distant firework crackle when the mochi reaches the Earth.")]
+        public bool endingFirework = false;
         [Range(0f, 1f)] public float progressSfxVolume = 0.3f;
         public AudioClip introLineClip, instructionClip, endingClip, strikeClip, milestoneClip, fullMoonClip, flightClip, arrivalClip, wishClip;
         public float headsetRestartMinSeconds = 3f;
