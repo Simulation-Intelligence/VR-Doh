@@ -25,6 +25,9 @@ namespace MoonRabbit.World
         public Vector2 heightScaleRange = new Vector2(0.3f, 2f);
 
         Transform station;
+        MochiLink link;
+
+        void Awake() => link = GetComponent<MochiLink>();
         Vector3 lastPos = new Vector3(float.NaN, 0f, 0f);
         float nextSearch;
 
@@ -40,7 +43,10 @@ namespace MoonRabbit.World
             }
             var p = station.position;
             if ((p - lastPos).sqrMagnitude < 1e-8f) return;
+            bool firstFrame = float.IsNaN(lastPos.x);
             lastPos = p;
+            // placed on a real table (or moved): stand the kine back at its rest beside the usu, unless someone holds it
+            if (!firstFrame && link != null) link.RestKine();
 
             float ground = transform.position.y + groundY;
             if (pedestal != null)
