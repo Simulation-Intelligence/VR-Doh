@@ -52,6 +52,7 @@ Audio reaches your ears later than Unity's audio clock says. Hit a few notes, pr
 - `Scripts/RhythmGame.cs`: notes, rings, rim pulse, judging, score, combo and popups (from `rhythm.js`).
 - `Scripts/RhythmMode.cs`: finds the station, kine, grab zone, usu and grabber. Detects strikes (the `KineTool` face reaching the dough surface while moving down), plays the sounds, tracks the kneader's hands, and builds the other parts.
 - `Scripts/MochiSound.cs`: binds Satie's hosts to the station, routes strikes and knocks, detects hand slaps and estimates the native solver's dough release, and publishes kneading speed and game state.
+- `Scripts/SatieStartup.cs`: starts Satie in its `StereoMix` output when the spatializer named in Project Settings > Audio ("Meta XR Audio") is not actually loaded. The Meta XR Audio SDK is not installed, and Satie's default output would otherwise set `spatialize` on its sources, which plays silence on Quest. With a working spatializer it leaves Satie's own start alone. Define `MOCHI_SATIE_DEFAULT_START` to turn it off.
 - `Scripts/RhythmPartner.cs`: the on-beat auto-pound.
 - `Scripts/DoughHeight.cs`: the dough's surface under the kine, from `IMochiSim.RequestParticleReadback`. It is asynchronous: 8 reads/s while playing, 2 when idle.
 - `Scripts/HandPoints.cs`: palms and fingertips through `HandBoneCompat`.
