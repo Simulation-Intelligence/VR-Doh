@@ -47,6 +47,10 @@ MonoBehaviour:
   outwardLean: 5
   useGpuInstancing: 1
   bambooBackThinning: 0.36
+  teamProps: 1
+  teamLanternStands: 1
+  teamMossyStones: 1
+  teamFireflySwarms: 1
   earthViewClear: 1
   earthViewHalfWidth: 24
   earthViewFalloff: 22
@@ -70,12 +74,19 @@ MonoBehaviour:
   riceGrainCount: 2400
   moonFollowsProgress: 1
   storyIntro: 1
+  passthroughIntro: 1
+  passthroughRevealTime: 3.5
+  passthroughRevealAt: 0
+  introScroll: 1
+  introScrollOpacity: 0.62
+  introSwellScale: 1.2
+  introSwellTime: 1.8
   headsetRestart: 1
-  storySounds: 0
+  storySounds: 1
   textSounds: 1
-  progressSounds: 1
+  progressSounds: 0
   strikeSound: 1
-  textSoundVolume: 0.35
+  textSoundVolume: 0.11
   progressSfxVolume: 0.3
   introLineClip: {fileID: 0}
   instructionClip: {fileID: 0}
