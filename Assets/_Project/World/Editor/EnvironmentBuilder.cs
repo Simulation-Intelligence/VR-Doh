@@ -727,6 +727,18 @@ namespace MoonRabbit.WorldEditor
             var grove = root.GetComponentInChildren<BambooGrove>();
             story.bamboo = grove;
 
+            // follow the team's MochiStation if it is moved at runtime (UsuTablePlacer: real table from the room scan)
+            var follow = go.AddComponent<StationFollower>();
+            var ped = root.Find("MR_UsuPedestal");
+            if (ped != null) follow.pedestal = ped;
+            follow.pedestalHeight = s.pedestalHeight;
+            var wl = root.Find("MR_MochiWarmLight");
+            if (wl != null)
+            {
+                follow.warmLight = wl;
+                follow.warmLightOffset = wl.localPosition - (s.mortarPosition + Vector3.up * s.pedestalHeight);
+            }
+
             var intro = go.AddComponent<StoryIntro>();
             intro.playIntro = s.storyIntro;
             var fadeShader = Shader.Find("MoonRabbit/ScreenFade");
@@ -830,7 +842,8 @@ namespace MoonRabbit.WorldEditor
             var col = go.AddComponent<BoxCollider>();
             col.center = new Vector3(0f, H * 0.5f, 0f);
             col.size = new Vector3(R * 2f, H, R * 2f);
-            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            // not static: StationFollower moves/stretches it when the team's MochiStation is placed on a real table
+            GameObjectUtility.SetStaticEditorFlags(go, 0);
         }
 
         // ------------------------------------------------------------------ moonlight
