@@ -716,6 +716,7 @@ namespace MoonRabbit.World
             // reset for the next demo
             link.ResetDough();
             link.SetDoughVisible(true);
+            link.RestKine();
             InEnding = false;
             progress.ResetProgress();
             StartCoroutine(Fade(x => cityOn = x, cityOn, 0f, 1.5f));
@@ -738,6 +739,7 @@ namespace MoonRabbit.World
             InEnding = false;
             link.ResetDough();
             link.SetDoughVisible(true);
+            link.RestKine();            // the kine stands beside the usu again (wherever the last player left it)
             progress.ResetProgress();   // unlocks, progress 0, rice grains re-placed (onReset)
             Resetted?.Invoke();         // StoryIntro restarts (and darkens the Earth)
         }

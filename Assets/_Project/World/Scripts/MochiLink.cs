@@ -62,6 +62,7 @@ namespace MoonRabbit.World
                 if (t != null) DoughRenderer = t.GetComponent<Renderer>();
             }
 
+            WatchKineRelease();
             int n = count != null ? count() : 0;
             if (n <= 0) return;
             if (buffer == null || buffer.Length != n * 3)
@@ -184,6 +185,59 @@ namespace MoonRabbit.World
             if (Solver != null && resetDough != null) resetDough.Invoke(Solver, null);
             Particles = null;
             buffer = null;
+        }
+
+        // ---- kine rest (KineDriver.Rest(): standing on its face beside the usu, station space)
+
+        Component kineDriver, kineGrab;
+        PropertyInfo grabHeld;
+        bool wasHeld;
+
+        [Tooltip("When the kine is let go below the usu's base (inside the pedestal or the ground) or this far from the usu (m), " +
+                 "it is put back to rest so nobody starts with a buried kine.")]
+        public float kineLostDistance = 1.5f;
+
+        void BindKine()
+        {
+            if (Kine == null || kineDriver != null) return;
+            foreach (var c in Kine.GetComponentsInChildren<Component>(true)) // driver and grab zone may sit on a child
+            {
+                var tn = c.GetType().Name;
+                if (tn == "KineDriver") kineDriver = c;
+                else if (tn == "GrabZone") { kineGrab = c; grabHeld = c.GetType().GetProperty("Held", BindingFlags.Public | BindingFlags.Instance); }
+            }
+        }
+
+        bool KineHeld => kineGrab != null && grabHeld != null && (bool)grabHeld.GetValue(kineGrab);
+
+        /// <summary>Puts the kine back to rest beside the usu (KineDriver.Rest(), External mode) unless someone holds it.</summary>
+        public bool RestKine()
+        {
+            BindKine();
+            if (kineDriver == null || KineHeld) return false;
+            var t = kineDriver.GetType();
+            var mode = t.GetField("mode");
+            if (mode != null && mode.FieldType.IsEnum) mode.SetValue(kineDriver, Enum.Parse(mode.FieldType, "External"));
+            var rest = t.GetMethod("Rest", BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null);
+            if (rest == null) return false;
+            rest.Invoke(kineDriver, null);
+            return true;
+        }
+
+        void WatchKineRelease()
+        {
+            BindKine();
+            if (kineGrab == null || Usu == null) return;
+            bool held = KineHeld;
+            if (wasHeld && !held)
+            {
+                // let go: if the face ended up under the usu's base or far away, stand it back up beside the usu
+                var face = Kine.position;
+                var baseY = Usu.position.y;
+                var flat = new Vector2(face.x - Usu.position.x, face.z - Usu.position.z);
+                if (face.y < baseY - 0.02f || flat.magnitude > kineLostDistance) RestKine();
+            }
+            wasHeld = held;
         }
 
         public void SetDoughVisible(bool visible)
