@@ -54,6 +54,9 @@ namespace MochiRhythm
             source.loop = true;
             source.spatialBlend = 0f;
             source.volume = volume;
+            // Highest priority: Satie keeps up to 64 voice sources playing and Unity mixes only the project's
+            // real voice count (32); lower-priority sources beyond that are virtualized and play silently.
+            source.priority = 0;
             CalibrationMs = PlayerPrefs.GetInt(CalibrationKey, 0);
             foreach (var c in songs) if (c != null) entries.Add(new Entry { name = c.name, clip = c });
             AddFolder(Path.Combine(Application.persistentDataPath, folderName));

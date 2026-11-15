@@ -113,6 +113,7 @@ namespace MochiRhythm
             hitSource.spatialBlend = 1f;
             hitSource.minDistance = 0.5f;
             hitSource.maxDistance = 15f;
+            hitSource.priority = 8; // above Satie's voices, so it is never virtualized (see RhythmMusic)
             var knocks = new GameObject("Kine knocks");
             knocks.transform.SetParent(transform, false);
             knockSource = knocks.AddComponent<AudioSource>();
@@ -120,6 +121,7 @@ namespace MochiRhythm
             knockSource.spatialBlend = 1f;
             knockSource.minDistance = 0.5f;
             knockSource.maxDistance = 15f;
+            knockSource.priority = 8; // above Satie's voices, so it is never virtualized (see RhythmMusic)
             knockSource.pitch = 1.35f; // the same mallet takes, higher and shorter: wood on wood
             hitClips = Resources.LoadAll<AudioClip>("MochiRhythm/Sounds");
             var songs = Resources.LoadAll<AudioClip>("MochiRhythm/Music").OrderBy(c => c.name, StringComparer.OrdinalIgnoreCase).ToList();
