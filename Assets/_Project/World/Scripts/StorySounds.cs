@@ -542,48 +542,45 @@ namespace MoonRabbit.World
         }
 
         /// <summary>
-        /// One small firework pop heard from far away: a short dull burst (the high end taken by the air), a few tiny
-        /// crackles after it, and a soft far-away tail (comb reverb, low-passed).
+        /// One small distant firework crackle ("tik-tik, tadak"): 2-4 short bright clicks (band-passed noise, 2-6 kHz,
+        /// 5-20 ms) scattered over ~80 ms, each with a tiny sparkle ping, and a light, airy tail. No low body: distance is
+        /// only the volume and the faint tail, nothing is muffled.
         /// </summary>
         public static float[] FireworkPopData(int seed)
         {
             var rng = new System.Random(seed * 7919 + 13);
-            float len = 1.9f;
+            float len = 0.9f;
             int n = (int)(len * Rate);
             var d = new float[n];
-            // the pop: noise burst with a soft 2-4 ms rise and a 25-45 ms fall, plus a tiny low body
-            int m = (int)(0.25f * Rate);
-            var nz = Noise(m, rng);
-            LowPass(nz, 650f + 500f * (float)rng.NextDouble());
-            float fall = 0.025f + 0.02f * (float)rng.NextDouble(), body = 85f + 40f * (float)rng.NextDouble();
-            for (int i = 0; i < m; i++)
+            int clicks = 2 + rng.Next(3);
+            for (int c = 0; c < clicks; c++)
             {
-                float t = i / (float)Rate;
-                float env = (1f - Mathf.Exp(-t / 0.003f)) * Mathf.Exp(-t / fall);
-                d[i] += env * (nz[i] * 3f + 0.35f * Mathf.Sin(2f * Mathf.PI * body * t));
+                float t0 = c == 0 ? 0f : 0.01f + 0.07f * (float)rng.NextDouble();
+                float dur = 0.005f + 0.015f * (float)rng.NextDouble();
+                int s0 = (int)(t0 * Rate), m = (int)(dur * 1.6f * Rate);
+                var nz = Noise(m, rng);
+                BandPass(nz, 2000f + 4000f * (float)rng.NextDouble(), 1.1f);
+                float g = c == 0 ? 1f : 0.45f + 0.5f * (float)rng.NextDouble();
+                float ping = 3800f + 3200f * (float)rng.NextDouble(), pingDecay = 0.025f + 0.035f * (float)rng.NextDouble();
+                for (int i = 0; s0 + i < n && i < (int)((dur + pingDecay * 4f) * Rate); i++)
+                {
+                    float t = i / (float)Rate;
+                    float env = (1f - Mathf.Exp(-t / 0.0007f)) * Mathf.Exp(-t / (dur * 0.45f)); // fast, but no hard edge
+                    float v = i < m ? nz[i] * env * 2.4f : 0f;
+                    v += 0.18f * (1f - Mathf.Exp(-t / 0.001f)) * Mathf.Exp(-t / pingDecay) * Mathf.Sin(2f * Mathf.PI * ping * t);
+                    d[s0 + i] += g * v;
+                }
             }
-            // a little crackle tail: a few soft snaps over the next 0.1-0.5 s
-            int snaps = 4 + rng.Next(6);
-            for (int g = 0; g < snaps; g++)
-            {
-                float t0 = 0.06f + 0.45f * Mathf.Pow((float)rng.NextDouble(), 1.4f);
-                int s0 = (int)(t0 * Rate), k = (int)((0.0015f + 0.003f * (float)rng.NextDouble()) * Rate);
-                float a = (0.05f + 0.12f * (float)rng.NextDouble()) * Mathf.Exp(-t0 / 0.35f);
-                for (int i = 0; i < k && s0 + i < n; i++)
-                    d[s0 + i] += a * (0.5f - 0.5f * Mathf.Cos(2f * Mathf.PI * i / k)) * ((float)rng.NextDouble() * 2f - 1f);
-            }
-            LowPass(d, 2200f);
-            // far-away tail
+            // light, airy far-away tail (short combs, no low-pass muffling)
             var wet = new float[n];
-            int[] dl = { (int)(0.0297f * Rate), (int)(0.0371f * Rate), (int)(0.0411f * Rate), (int)(0.0437f * Rate) };
+            int[] dl = { (int)(0.0231f * Rate), (int)(0.0297f * Rate), (int)(0.0353f * Rate), (int)(0.0411f * Rate) };
             foreach (var L in dl)
             {
                 var c = new float[n];
-                for (int i = 0; i < n; i++) c[i] = d[i] + (i >= L ? c[i - L] * 0.8f : 0f);
+                for (int i = 0; i < n; i++) c[i] = d[i] + (i >= L ? c[i - L] * 0.62f : 0f);
                 for (int i = 0; i < n; i++) wet[i] += c[i] * 0.25f;
             }
-            LowPass(wet, 1300f);
-            for (int i = 0; i < n; i++) d[i] = d[i] * 0.65f + wet[i] * 0.5f;
+            for (int i = 0; i < n; i++) d[i] = d[i] * 0.85f + wet[i] * 0.3f;
             Normalize(d, 0.6f);
             return d;
         }
