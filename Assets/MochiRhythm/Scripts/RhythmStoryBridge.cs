@@ -51,7 +51,8 @@ namespace MochiRhythm
             if (active && !wasActive) OnSongStart(mp);
             if (!active && wasActive) OnSongEnd(mp);
             wasActive = active;
-            KneadGhostGuide.Suppressed = active;
+            // the knead ghosts keep out of the way during a song and while the song scrolls (with their own pinch hint) are up
+            KneadGhostGuide.Suppressed = active || (mode.Scrolls != null && mode.Scrolls.Offering);
             if (!active || mp == null) return;
 
             // the ending has started (full Moon): the song bows out
