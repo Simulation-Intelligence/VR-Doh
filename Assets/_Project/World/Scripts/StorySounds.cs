@@ -16,7 +16,8 @@ namespace MoonRabbit.World
     public class StorySounds : MonoBehaviour
     {
         [Header("On / off and volume")]
-        public bool soundsEnabled = true;
+        [Tooltip("Master switch. Off by default (Jihyeon): the rhythm game's audio leads; the hooks on MoonProgress stay.")]
+        public bool soundsEnabled = false;
         public bool textSounds = true;
         public bool progressSounds = true;
         [Tooltip("Shimmer on every progress step. Turn off when the rhythm game plays its own hit sounds.")]
@@ -81,6 +82,9 @@ namespace MoonRabbit.World
         {
             name = AudioSettings.GetSpatializerPluginName() ?? "";
             if (string.IsNullOrEmpty(name)) return false;
+#if UNITY_EDITOR
+            // GetSpatializerPluginNames is Editor-only; players cannot tell whether the named
+            // plugin is really present, so they always use Unity's 3D panning (never silent).
             try
             {
                 var available = AudioSettings.GetSpatializerPluginNames();
@@ -88,6 +92,7 @@ namespace MoonRabbit.World
                 foreach (var a in available) if (a == name) return true;
             }
             catch (Exception) { }
+#endif
             return false;
         }
 
@@ -106,7 +111,11 @@ namespace MoonRabbit.World
             var listeners = FindObjectsByType<AudioListener>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             SpatializerLoaded(out string sp);
             string avail = "";
+#if UNITY_EDITOR
             try { avail = string.Join("|", AudioSettings.GetSpatializerPluginNames() ?? new string[0]); } catch (Exception) { }
+#else
+            avail = "(player: not queryable)";
+#endif
             var a = pool.Count > 0 ? pool[0] : null;
             Debug.Log($"[Moon Rabbit] Audio: listeners={listeners.Length}{(listeners.Length > 0 ? " on " + listeners[0].name : "")} " +
                       $"spatializer='{sp}' available='{avail}' spatialize={(a != null && a.spatialize)} " +
