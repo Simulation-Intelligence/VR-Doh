@@ -32,9 +32,11 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     [Tooltip("Pressure wave speed, m/s. Higher keeps volume better under a strike but needs more substeps.")]
     public float waveSpeed = 4f;
     [Tooltip("Below this shear stress (Pa) the dough holds its shape; gravity stress in the lump is about 900 Pa.")]
-    public float yieldStress = 300f;
+    public float yieldStress = 80f;
     [Tooltip("Seconds for stress above the yield to relax. Short = runny, long = rubbery.")]
-    public float relaxTime = 0.3f;
+    public float relaxTime = 0.05f;
+    [Tooltip("Pull toward the usu axis, 1/s^2. With a low yield stress this is what makes the dough settle back into a dome (height at the centre is about centering * radius^2 / 20 above the edge). 0 = off.")]
+    public float centering = 80f;
     [Tooltip("Flow exponent: 1 = no thinning. Below 1 the dough relaxes faster once the stress above yield passes thinningStress, so it stays firm under hands and runs under the kine.")]
     [Range(0.3f, 1f)] public float flowExponent = 1f;
     [Tooltip("Stress above yield where thinning sets in, Pa. Hands stay below it; a strike is far above it.")]
@@ -66,7 +68,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
     [Tooltip("How far into the dough a pulling tool reaches, m. About the lump height gives a tent of the whole lump.")]
     public float pullReach = 0.08f;
     [Tooltip("Falloff of the pull across the reach. 1 = even stretch, higher = a thinner neck under the tool.")]
-    public float pullShape = 1.5f;
+    public float pullShape = 1f;
     [Range(0f, 1f)] public float pullGain = 0.8f;
     [Tooltip("A fist carries the dough within this distance of the hand, m (a handful).")]
     public float gripReach = 0.045f;
@@ -262,6 +264,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetFloat("YieldStress", yieldStress);
         cs.SetFloat("RelaxRate", 1f / Mathf.Max(relaxTime, 1e-3f));
         cs.SetFloat("MaxShear", maxShearStress);
+        cs.SetFloat("Centering", centering);
         cs.SetFloat("FlowExp", flowExponent);
         cs.SetFloat("ThinStress", Mathf.Max(thinningStress, 1f));
         cs.SetFloat("Gravity", -9.81f);
@@ -283,6 +286,7 @@ public class MochiSolver : MonoBehaviour, IMochiSim
         cs.SetFloat("VMax", Mathf.Min(0.8f * dx / dt, maxDoughSpeed));
         cs.SetFloat("PushOut", 1f);
         Vector3 fc = FloorCentre;
+        cs.SetVector("LumpCentre", fc + new Vector3(0f, 0.04f, 0f));
         if (usu != null)
         {
             cs.SetVector("Usu0", new Vector4(fc.x, fc.y, fc.z, usu.innerRadiusBottom));
