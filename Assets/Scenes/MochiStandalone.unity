@@ -15,9 +15,9 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.10980392, g: 0.13333334, b: 0.1882353, a: 1}
+  m_FogColor: {r: 0.11490196, g: 0.15372549, b: 0.2545098, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.04
+  m_FogDensity: 0.027999999
   m_LinearFogStart: 6
   m_LinearFogEnd: 40
   m_AmbientSkyColor: {r: 0.36, g: 0.42, b: 0.6, a: 1}
@@ -53035,6 +53035,7 @@ GameObject:
   - component: {fileID: 726005676}
   - component: {fileID: 726005677}
   - component: {fileID: 726005678}
+  - component: {fileID: 726005679}
   m_Layer: 0
   m_Name: MochiStation
   m_TagString: Untagged
@@ -53128,6 +53129,7 @@ Transform:
   - {fileID: 2054267680}
   - {fileID: 3850581631266766120}
   - {fileID: 238909442}
+  - {fileID: 1154020554}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &726005676
@@ -53189,6 +53191,36 @@ MonoBehaviour:
   minTableHeight: 0.45
   requestSpaceSetupIfNoTable: 1
   headWait: 0.5
+  cutOutTable: 1
+  cutoutMaterial: {fileID: 0}
+  hideWhenOnTable: []
+  hideNames:
+  - MR_UsuPedestal
+--- !u!114 &726005679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 726005672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6d9c379abfdfe7469e762ff8bb16333, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MochiRoomSafety
+  suppressBoundary: 1
+  furnitureStyle: 0
+  wallRevealDistance: 0.8
+  cutoutMaterial: {fileID: 0}
+  head: {fileID: 0}
+  usuClearance: {x: 0.45, y: 0.7}
+  boulderProp: {fileID: 515000712460133896, guid: a82a27c10ee8549c08d0e669688b18ae, type: 3}
+  benchProp: {fileID: 2386694729506570117, guid: 539ade50bdfdb4131b493782c3360675, type: 3}
+  lanternProp: {fileID: 5631741863169537089, guid: 55c78408cb4e2403e8a5318c2a121e28, type: 3}
+  standInSide: {fileID: 2100000, guid: 6af67f54a06d04ec2a649c892920b2b8, type: 2}
+  standInTop: {fileID: 2100000, guid: c277491f120ff421cac68913870d59a8, type: 2}
+  footprintGrow: 1.15
+  tableStandIn: 1
 --- !u!1 &726259096
 GameObject:
   m_ObjectHideFlags: 0
@@ -86414,6 +86446,96 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1154020553
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1154020554}
+  - component: {fileID: 1154020555}
+  m_Layer: 0
+  m_Name: KneadGhostGuide
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1154020554
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154020553}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 726005675}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1154020555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154020553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 384b0ce56e445ee4cac1c48bc6ffac2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KneadGhostGuide
+  station: {fileID: 726005674}
+  ghostProvider: {fileID: 11400000, guid: 9b9df4f150839de48af887d742aabf53, type: 2}
+  gestureFile: {fileID: 4900000, guid: 6c41c071b7effa349a54e9890cb7ca87, type: 3}
+  hand: 1
+  blend: 0.25
+  pause: 1
+  steps:
+  - gesture: fold
+    from: {x: 0.02, y: 0.29, z: 0.13}
+    to: {x: 0.02, y: 0.22, z: 0.02}
+    fingers: {x: 0, y: -1, z: 0.35}
+    palm: {x: 0, y: -0.3, z: -1}
+    seconds: 1
+    bothHands: 0
+  - gesture: press
+    from: {x: 0.02, y: 0.27, z: -0.1}
+    to: {x: 0.02, y: 0.22, z: -0.06}
+    fingers: {x: 0, y: -0.15, z: 1}
+    palm: {x: 0, y: -1, z: 0}
+    seconds: 0.8
+    bothHands: 0
+  - gesture: fold
+    from: {x: 0.1, y: 0.29, z: 0.11}
+    to: {x: 0.05, y: 0.22, z: 0.01}
+    fingers: {x: -0.3, y: -1, z: 0.3}
+    palm: {x: 0.3, y: -0.3, z: -1}
+    seconds: 1
+    bothHands: 0
+  - gesture: press
+    from: {x: 0.04, y: 0.27, z: -0.1}
+    to: {x: 0.04, y: 0.22, z: -0.06}
+    fingers: {x: -0.1, y: -0.15, z: 1}
+    palm: {x: 0, y: -1, z: 0}
+    seconds: 0.8
+    bothHands: 0
+  - gesture: cradle
+    from: {x: 0.13, y: 0.15, z: -0.02}
+    to: {x: 0.11, y: 0.25, z: -0.02}
+    fingers: {x: -1, y: 0.2, z: 0.3}
+    palm: {x: 0, y: 1, z: 0}
+    seconds: 1.4
+    bothHands: 1
+  hideRadius: 0.25
+  showAfter: 4
+  leftHandAnchor: {fileID: 0}
+  rightHandAnchor: {fileID: 0}
 --- !u!1 &1154903326
 GameObject:
   m_ObjectHideFlags: 0
