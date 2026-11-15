@@ -74,6 +74,54 @@ namespace MoonRabbit.WorldEditor
         public Vector3[] lanternPositions = { new Vector3(-2.4f, 0f, 1.5f), new Vector3(2.6f, 0f, 1.2f) };
         public float lanternLightRange = 4f;
         public float lanternLightIntensity = 1.0f;
+        [Tooltip("Fake pool of lantern light on the ground under each lantern: additive MoonRabbit/Glow quad, no lighting cost.")]
+        public bool lanternGlowPools = true;
+        public float lanternPoolRadius = 1.3f;
+        [Range(0f, 1f)] public float lanternPoolIntensity = 0.6f;
+
+        [Header("Story progression (MR_Story in MR_Environment)")]
+        [Tooltip("MoonProgress (0..1) + demo strike detection + rice-to-mochi grains + the night coming alive + the ending.")]
+        public bool storyProgression = true;
+        [Min(1)] public int demoStrikesToFull = 12;
+        [Range(0, 3000)] public int riceGrainCount = 2400;
+        [Tooltip("On: the Moon waxes and brightens with progress. Off: a dark crescent until the mochi reaches the Earth.")]
+        public bool moonFollowsProgress = true;
+        [Tooltip("Intro (fade in, four story lines, about 13 s, skippable) on start and after every reset.")]
+        public bool storyIntro = true;
+
+        [Header("Warm light on the dough (lantern side of the usu)")]
+        [Tooltip("Small warm Spot light that shines into the bowl, so the dough reads as warm white rice cake under the blue moonlight. " +
+                 "Render Mode = ForcePixel (Important): the moonlight takes the one pixel light of Quest's quality level, and an Auto " +
+                 "light would fall back to vertex lighting, which barely shows on the dough. No shadows.")]
+        public bool mochiWarmLight = true;
+        public Color mochiLightColor = new Color(1f, 0.72f, 0.40f);
+        [Tooltip("High because Built-in point/spot attenuation is already ~0.2 at the dough (0.73 m from the light, range 1.5 m).")]
+        public float mochiLightIntensity = 5.5f;
+        [Tooltip("1.5 m reaches the bowl but not the ground below the cone (1.7 m away).")]
+        public float mochiLightRange = 1.5f;
+        [Tooltip("Cone angle (deg). 0 = Point light instead of Spot.")]
+        public float mochiLightSpotAngle = 30f;
+        [Tooltip("Position relative to the dough floor (usu on the pedestal, or the practice mortar's hollow). The light aims at the dough. " +
+                 "Default: up and to the left front, the side of the left stone lantern.")]
+        public Vector3 mochiLightOffset = new Vector3(-0.32f, 0.62f, 0.22f);
+        [Tooltip("Layer for MR_Ground and MR_BambooBases, left out of the warm light's culling mask. Their bounds reach up near the bowl, so " +
+                 "otherwise Built-in would draw these big meshes again in an additive pass for the light. Default 1 = TransparentFX " +
+                 "(only used for lens-flare occlusion, so physics and raycasts are unchanged). -1 = keep Default.")]
+        public int warmLightExcludedLayer = 1;
+
+        [Header("Floating island (the sky garden between Earth and Moon)")]
+        [Tooltip("On: the ground is a finite island with a rocky underside floating in the starry sky; the sky has stars below " +
+                 "the horizon too. Off: the old endless forest floor sinking into the fog.")]
+        public bool floatingIsland = true;
+        [Tooltip("Island radius (m): a few metres outside the bamboo ring (bambooOuterRadius).")]
+        public float islandRadius = 19f;
+        [Range(0f, 0.3f)] public float islandEdgeNoise = 0.12f;
+        [Tooltip("Depth of the rocky underside below the ground (m).")]
+        public float islandDepth = 16f;
+        public Color islandRock = Hex(0x3A3F4C);
+        [Range(0, 16)] public int floatingRocks = 7;
+        [Range(0, 64)] public int skyMistPuffs = 22;
+        public Color skyMistColor = new Color(0.55f, 0.6f, 0.86f);
 
         [Header("Stepping stones")]
         public int stoneCount = 8;
@@ -131,6 +179,20 @@ namespace MoonRabbit.WorldEditor
         [Tooltip("Radius of the stump top (m). Holds the team's usu (outer radius about 0.21 m) and the kine resting " +
                  "beside it (KineDriver.restPosition x = 0.32 m, head radius 0.06 m).")]
         public float pedestalTopRadius = 0.44f;
+
+        [Header("Team usu/kine skins (MochiPound): sizes must match UsuTool / KineTool / KineDriver")]
+        [Tooltip("Generate MR_UsuSkin / MR_KineSkin meshes and materials (World-only installs).")]
+        public bool teamUsuKineSkins = true;
+        public float usuBase = 0.03f;
+        public float usuInnerBottom = 0.125f;
+        public float usuInnerTop = 0.15f;
+        public float usuDepth = 0.13f;
+        public float usuOuterRadius = 0.205f;
+        public float kineHeadRadius = 0.06f;
+        public float kineHeadLength = 0.20f;
+        public float kineFaceRounding = 0.015f;
+        [Tooltip("KineDriver.handleLength: the controller (hand) is this far behind the head centre along local -Z.")]
+        public float kineHandleLength = 0.55f;
 
         [Header("Pestle")]
         public Vector3 pestleRestPosition = new Vector3(0.5f, 0f, -0.2f);

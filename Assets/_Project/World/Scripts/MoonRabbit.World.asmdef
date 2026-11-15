@@ -1,7 +1,9 @@
 {
     "name": "MoonRabbit.World",
     "rootNamespace": "MoonRabbit.World",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -9,6 +11,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "MR_INPUT_SYSTEM"
+        }
+    ],
     "noEngineReferences": false
 }

@@ -56,6 +56,29 @@ MonoBehaviour:
   - {x: 2.6, y: 0, z: 1.2}
   lanternLightRange: 4
   lanternLightIntensity: 1
+  lanternGlowPools: 1
+  lanternPoolRadius: 1.3
+  lanternPoolIntensity: 0.6
+  storyProgression: 1
+  demoStrikesToFull: 12
+  riceGrainCount: 2400
+  moonFollowsProgress: 1
+  storyIntro: 1
+  mochiWarmLight: 1
+  mochiLightColor: {r: 1, g: 0.72, b: 0.4, a: 1}
+  mochiLightIntensity: 5.5
+  mochiLightRange: 1.5
+  mochiLightSpotAngle: 30
+  mochiLightOffset: {x: -0.32, y: 0.62, z: 0.22}
+  warmLightExcludedLayer: 1
+  floatingIsland: 1
+  islandRadius: 19
+  islandEdgeNoise: 0.12
+  islandDepth: 16
+  islandRock: {r: 0.22745098, g: 0.24705882, b: 0.29803923, a: 1}
+  floatingRocks: 7
+  skyMistPuffs: 22
+  skyMistColor: {r: 0.55, g: 0.6, b: 0.86, a: 1}
   stoneCount: 8
   stonePathDirection: -12
   stonePathStart: 4.4
@@ -90,6 +113,16 @@ MonoBehaviour:
   pedestal: 1
   pedestalHeight: 0.8
   pedestalTopRadius: 0.44
+  teamUsuKineSkins: 1
+  usuBase: 0.03
+  usuInnerBottom: 0.125
+  usuInnerTop: 0.15
+  usuDepth: 0.13
+  usuOuterRadius: 0.205
+  kineHeadRadius: 0.06
+  kineHeadLength: 0.2
+  kineFaceRounding: 0.015
+  kineHandleLength: 0.55
   pestleRestPosition: {x: 0.5, y: 0, z: -0.2}
   handleLength: 1
   handleDiameter: 0.05
