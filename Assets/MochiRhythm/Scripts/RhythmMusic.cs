@@ -213,8 +213,30 @@ namespace MochiRhythm
             return true;
         }
 
+        /// <summary>Shows a message on the panel's status line.</summary>
+        public void SetStatus(string message) => Status = message;
+
+        float fade = 1f;
+        Coroutine fading;
+
+        /// <summary>Fades the song out over the given time, then stops it.</summary>
+        public void FadeOutAndStop(float seconds)
+        {
+            if (!IsPlaying || fading != null) return;
+            fading = StartCoroutine(FadeOut(Mathf.Max(0.05f, seconds)));
+        }
+
+        IEnumerator FadeOut(float seconds)
+        {
+            for (float t = 0f; t < seconds; t += Time.unscaledDeltaTime) { fade = 1f - t / seconds; yield return null; }
+            fading = null;
+            Stop();
+        }
+
         public void Stop()
         {
+            if (fading != null) { StopCoroutine(fading); fading = null; }
+            fade = 1f;
             if (source != null) source.Stop();
             IsPlaying = false;
             pausedAt = double.NaN;
@@ -268,7 +290,7 @@ namespace MochiRhythm
 
         void Update()
         {
-            if (source != null) source.volume = volume;
+            if (source != null) source.volume = volume * fade;
             if (!IsPlaying || !double.IsNaN(pausedAt)) return;
             // dspTime only moves once per audio buffer (~10-20 ms): advance with the frame clock and
             // lean gently toward it, snapping if they drift apart

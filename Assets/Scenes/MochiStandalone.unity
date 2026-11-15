@@ -40836,7 +40836,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 260708382738452514, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 505067054499944665, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_IsActive
@@ -41060,7 +41060,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3244417649712432580, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3343093417982249122, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_Enabled
@@ -41080,7 +41080,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3343093418320431118, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3642352042163518208, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_Name
@@ -41132,7 +41132,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 11e74e01af640f64abd77faa74eef0fd, type: 2}
     - target: {fileID: 6112363070437718551, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6240925540845266547, guid: f54012181eacade4ea242c65f804720f, type: 3}
       propertyPath: m_Enabled
@@ -53163,7 +53163,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 726005672}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9acd135b4429d6d4bbada689c780c0d5, type: 3}
   m_Name: 
@@ -98650,6 +98650,10 @@ MonoBehaviour:
   liftSpeed: 1.5
   dwell: 0.05
   strikeOffset: {x: 0, y: 0}
+  tiltOverRim: 1
+  handleRadius: 0.0175
+  rimClearance: 0.005
+  maxTilt: 40
   restPosition: {x: 0.32, y: 0, z: -0.02}
   restYaw: 0
 --- !u!114 &1324462584

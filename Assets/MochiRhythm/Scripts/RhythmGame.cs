@@ -38,6 +38,11 @@ namespace MochiRhythm
         public int Misses { get; private set; }
         public int Turns { get; private set; }
         public int HandHits { get; private set; }
+        /// <summary>Team credit for the Moon story: each note is worth up to 1 (see Judge / PartnerStrike), no combo multiplier.</summary>
+        public float TeamCredit { get; private set; }
+        /// <summary>Notes in one play-through of the song, at the current density.</summary>
+        public int NotesPerPass => strikes != null ? strikes.Length : 0;
+        public double SongDuration => dur;
         public int Mult => Math.Min(4, 1 + Combo / 8);
         /// <summary>Mean signed timing error of your recent strikes (ms; positive = late), or null.</summary>
         public double? MeanErrorMs
@@ -164,7 +169,7 @@ namespace MochiRhythm
             strikes = BeatAnalyzer.StrikesFromBeats(a, Every);
             beats = a.Beats;
             dur = a.Duration;
-            Score = 0; Combo = 0; MaxCombo = 0; Perfects = 0; Goods = 0; Misses = 0; Turns = 0; HandHits = 0;
+            Score = 0; Combo = 0; MaxCombo = 0; Perfects = 0; Goods = 0; Misses = 0; Turns = 0; HandHits = 0; TeamCredit = 0f;
             recent.Clear();
             ClearNotes();
             Active = true;
@@ -193,7 +198,7 @@ namespace MochiRhythm
             Score += points * Mult;
         }
 
-        void Judge(Note note, double err, bool hands)
+        void Judge(Note note, double err, bool hands, bool turned = false)
         {
             note.judged = true;
             double a = Math.Abs(err);
@@ -203,7 +208,13 @@ namespace MochiRhythm
             else { Misses++; Combo = 0; }
             if (hands) HandHits++;
             if (!hands && a <= CatchS) { recent.Add(err); if (recent.Count > 12) recent.RemoveAt(0); }
+            // team credit: the strike (Perfect 1, Good 0.6) plus the dough turned before it (0.5), at most 1 per note
+            bool turnedOk = turned && !hands;
+            if (turnedOk) Turns++;
+            float credit = hands ? 0f : (kind == "perfect" ? 1f : kind == "good" ? 0.6f : 0f) + (turnedOk ? 0.5f : 0f);
+            TeamCredit += Mathf.Min(1f, credit);
             string label = hands ? "Ouch! Hands!" : kind == "perfect" ? "Perfect" : kind == "good" ? (err < 0 ? "Good (early)" : "Good (late)") : err < 0 ? "Early" : "Late";
+            if (turnedOk) label += " + Turned";
             Color color = kind == "perfect" ? Gold : kind == "good" ? Green : Red;
             flash = 1f;
             flashColor = color;
@@ -211,7 +222,7 @@ namespace MochiRhythm
         }
 
         /// <summary>The held kine hit the dough at song time t (as heard); hands = a free hand was under it.</summary>
-        public void PlayerStrike(double t, bool hands)
+        public void PlayerStrike(double t, bool hands, bool turned = false)
         {
             if (!Active || double.IsInfinity(t) || double.IsNaN(t)) return;
             Note best = null;
@@ -222,7 +233,7 @@ namespace MochiRhythm
                 double e = t - n.t;
                 if (Math.Abs(e) < Math.Abs(bestErr)) { bestErr = e; best = n; }
             }
-            if (best != null && Math.Abs(bestErr) <= CatchS) Judge(best, bestErr, hands);
+            if (best != null && Math.Abs(bestErr) <= CatchS) Judge(best, bestErr, hands, turned);
             else
             {
                 Combo = 0; // a strike nowhere near a note breaks the combo
@@ -247,6 +258,7 @@ namespace MochiRhythm
             {
                 Turns++;
                 AddCombo(50);
+                TeamCredit += 1f; // with the partner pounding, the kneader is the whole team
                 flash = 1f;
                 flashColor = Green;
                 ShowPopup("Turned", Green);

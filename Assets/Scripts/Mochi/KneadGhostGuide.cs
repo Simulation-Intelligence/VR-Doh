@@ -65,6 +65,8 @@ public class KneadGhostGuide : MonoBehaviour
     [Tooltip("Seconds the real hands must stay away before the ghosts come back.")]
     public float showAfter = 4f;
     public Transform leftHandAnchor, rightHandAnchor;
+    /// <summary>Set while a rhythm song plays: the ghosts would invite hands into the usu just as notes land.</summary>
+    public static bool Suppressed;
 
     /// <summary>Retargeted finger poses by gesture name, for each hand.</summary>
     public readonly Dictionary<string, HandPose> rightPoses = new(), leftPoses = new();
@@ -152,7 +154,7 @@ public class KneadGhostGuide : MonoBehaviour
     void UpdateVisibility()
     {
         Vector3 c = station.transform.TransformPoint(new Vector3(0f, station.FloorY + 0.08f, 0f));
-        bool near = (leftHandAnchor != null && Vector3.Distance(leftHandAnchor.position, c) < hideRadius)
+        bool near = Suppressed || (leftHandAnchor != null && Vector3.Distance(leftHandAnchor.position, c) < hideRadius)
                  || (rightHandAnchor != null && Vector3.Distance(rightHandAnchor.position, c) < hideRadius);
         awayFor = near ? 0f : awayFor + Time.deltaTime;
         bool show = !near && (visible || awayFor > showAfter);

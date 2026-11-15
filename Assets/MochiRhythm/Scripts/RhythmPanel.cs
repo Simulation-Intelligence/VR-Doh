@@ -146,6 +146,8 @@ namespace MochiRhythm
 
         void StartNow()
         {
+            string wait = RhythmStoryBridge.WaitReason;
+            if (wait != null) { mode.Music.SetStatus(wait); return; }
             if (mode.Music.Play()) mode.Game.StartGame(everyChoice);
         }
 

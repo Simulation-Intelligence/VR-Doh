@@ -47,6 +47,7 @@ namespace MochiRhythm
         public RhythmMusic Music { get; private set; }
         public RhythmGame Game { get; private set; }
         public RhythmPartner Partner { get; private set; }
+        public RhythmStoryBridge Story { get; private set; }
         public RhythmPanel Panel { get; private set; }
         /// <summary>The Satie side of the station's sound (pound, rim_knock, tent_release, dough_slap, knead_speed).</summary>
         public MochiSound Sound { get; private set; }
@@ -129,6 +130,7 @@ namespace MochiRhythm
             Music = AddInactive<RhythmMusic>("Music", transform, m => m.songs = songs);
             Game = AddInactive<RhythmGame>("Rhythm game", transform, g => g.mode = this);
             Partner = AddInactive<RhythmPartner>("Rhythm partner", transform, p => p.mode = this);
+            Story = AddInactive<RhythmStoryBridge>("Story bridge", transform, b => b.mode = this);
             Panel = AddInactive<RhythmPanel>("Rhythm panel", station.transform, p => p.mode = this); // rides along when the station moves
             Panel.transform.localPosition = PanelLocalPosition;
             Panel.transform.localRotation = Quaternion.Euler(-15f, 0f, 0f); // tilted toward the kneader
@@ -178,8 +180,8 @@ namespace MochiRhythm
             Hands.Refresh(KineZone);
             CollectPressPoints();
             height.Tick(Time.unscaledTime, 1f / Mathf.Max(0.5f, Game.Active ? readbackHzPlaying : readbackHzIdle));
-            // time a free hand spends turning the dough, counted between the partner's strikes
-            if (!Partner.Driving) bowlTime = 0f;
+            // time a free hand spends turning the dough, counted between strikes (the partner's or a player's)
+            if (!Game.Active) bowlTime = 0f;
             else if (AnyFreeHand(InBowl)) bowlTime += dt;
             DetectStrike(dt);
         }
@@ -284,7 +286,12 @@ namespace MochiRhythm
                 strikeSurface = surface;
                 double since = Mathf.Clamp((surface - face.y) / down, 0f, dt); // back-date to the crossing
                 PlayHit(Kine.transform.position, down);
-                if (PlayerPounding && Game.Active) Game.PlayerStrike(Music.SongTime() - since, HandsUnder(Kine.transform.position));
+                if (PlayerPounding && Game.Active)
+                {
+                    bool turned = bowlTime >= 0.12f;
+                    bowlTime = 0f;
+                    Game.PlayerStrike(Music.SongTime() - since, HandsUnder(Kine.transform.position), turned);
+                }
             }
         }
 
