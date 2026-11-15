@@ -5,20 +5,22 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Collisions between the kine and the other solid things, which the MPM solver does not do (it only
-/// collides the dough with tools; tools pass through each other). After whatever moved the kine this
-/// frame (MochiGrabber, KineDriver, the rhythm partner):
-///  - the head is pushed out of the usu (the cross-section UsuTool's visual is lathed from: outer wall,
-///    rim, inner bowl, floor), the table top around it, and free tracked hands while the kine moves;
-///  - the handle is kept out of the usu rim by pivoting the kine, about the holding hand or controller
-///    when held (so it stays in the hand and the head swings up), about the head when the kine drives
-///    itself (KineDriver's auto-pound already tips the handle over the rim, so this only mops up);
-///  - the handle is also kept off the table (and, if enabled, free hands) by pushing it out.
-///
-/// Real hands cannot be pushed back, so a held kine stops at the surface while the hand carries on, and
-/// snaps back to the hand when it moves away. Position and rotation are swept in small steps so a fast
-/// swing cannot pass through the rim. A resting kine is not shoved around by hands. Contacts raise
-/// <see cref="Contact"/> and buzz the holding controller. Idle while MochiStrikeRecorder or MochiTestBench runs.
+/// Collisions between the kine and the other solid things, which the MPM solver does not do (it only collides
+/// the dough with tools; tools pass through each other). After whatever moved the kine this frame (MochiGrabber,
+/// KineDriver, the rhythm partner), the kine is kept out of the usu, the table top around it, and free tracked
+/// hands while it moves. The geometry is in <see cref="KineCollision"/>, a port of the three.js scene's
+/// src/kineContact.js:
+///  - the shapes that collide are the shapes that are drawn: the usu skin (MR_UsuSkin) or UsuTool's lathe, the
+///    kine skin (MR_KineSkin: head with its bands, tapered handle, grip wrap, knob) or the KineTool cylinder, each
+///    as the exact solid of revolution its mesh is lathed from. At start the drawn meshes' vertices are measured
+///    against those shapes and the fit is logged ("[kine] collision shapes ...");
+///  - every contact is cleared by the smallest pivot about the holding hand (or push along the handle), so the
+///    kine rests on what it hits instead of jumping to another surface;
+///  - a frame's motion is marched by the free space around the kine, and once it is blocked the kine stays on the
+///    near side: a real hand that carries on through the usu leaves the kine resting on it, and the kine comes
+///    back to the hand when the hand moves away.
+/// Impacts raise <see cref="Contact"/> and buzz the holding controller. Idle while MochiStrikeRecorder or
+/// MochiTestBench runs.
 ///
 /// Added at runtime to every KineTool (see <see cref="KineContactBootstrap"/>) unless one is already in the
 /// scene; define MOCHI_KINE_CONTACT_OFF to stop that.
@@ -38,12 +40,12 @@ public class KineContact : MonoBehaviour
     public bool hitHands = true;
 
     [Header("What the handle hits")]
-    [Tooltip("The handle rests on the rim instead of passing through it; the kine pivots about the hand (held) or the head (driven).")]
+    [Tooltip("The handle rests on the rim instead of passing through it; the kine pivots about the hand.")]
     public bool handleHitsUsu = true;
     public bool handleHitsTable = true;
     [Tooltip("Off by default: the handle reaches over the kneader's wrists.")]
     public bool handleHitsHands = false;
-    [Tooltip("Handle radius, m (HandleVisual is 3.5 cm across).")]
+    [Tooltip("Handle radius, m, when the kine has no skin (HandleVisual is 3.5 cm across). The skin's own handle is used otherwise.")]
     public float handleRadius = 0.0175f;
 
     [Header("Table (station space; the usu stands on it at y = 0, +Z away from the kneader)")]
@@ -53,8 +55,6 @@ public class KineContact : MonoBehaviour
     public float tableNear = float.NaN;
 
     [Header("Feel")]
-    [Tooltip("Longest step (m) a frame's motion of the head or the handle end is swept in, so fast swings cannot pass through the rim.")]
-    public float maxStep = 0.02f;
     [Tooltip("Approach speed (m/s) above which a contact counts as an impact (event + haptics).")]
     public float impactSpeed = 0.5f;
     [Range(0f, 1f)] public float hapticAmplitude = 0.6f;
@@ -63,103 +63,169 @@ public class KineContact : MonoBehaviour
     /// <summary>Impact: world point, approach speed (m/s), what was hit.</summary>
     public event Action<Vector3, float, Kind> Contact;
     public bool InContact { get; private set; }
+    /// <summary>The geometry: shapes, contacts and marching.</summary>
+    public KineCollision Collision { get; private set; }
 
     KineTool kine;
     GrabZone zone;
     MochiGrabber grabber;
-    readonly List<Vector4> headBalls = new List<Vector4>();   // kine-local centre, radius
-    readonly List<Vector4> handleBalls = new List<Vector4>();
+    KineDriver driver;
     readonly List<Vector4> handBalls = new List<Vector4>();   // station-local centre, radius
     readonly Dictionary<MatTool, OVRHand> handFor = new Dictionary<MatTool, OVRHand>();
-    Vector3 handleA, handleB; // handle axis ends, kine local
-    Vector2[] profile;        // usu cross-section (radius, height above the usu base), counter-clockwise
-    Vector3 usuBase;          // station-local position of the usu's base centre
-    Vector3 prevPos;
-    Quaternion prevRot = Quaternion.identity;
-    bool hasPrev, suspended, stepTouched;
+    KineCollision.Revolved handle;  // kine-local, for the grip point
+    float handleFrom, handleTo;     // the handle's extent along its axis
+    Vector3 gripLocal;              // where a hand holds it when nobody is: the middle of the grip
+    Vector3 usuBase;                // station-local position of the usu's base centre
+    Vector3 prevPos, prevTarget;
+    Quaternion prevRot = Quaternion.identity, prevTargetRot = Quaternion.identity;
+    bool hasPrev, suspended;
     float nextSuspendCheck, buzzUntil;
     OVRInput.Controller buzzing = OVRInput.Controller.None;
-    Kind lastKind;
-    Vector3 lastNormal, lastPoint;
 
     void Awake()
     {
         kine = GetComponent<KineTool>();
         zone = GetComponent<GrabZone>();
+        driver = GetComponent<KineDriver>();
         if (station == null) station = GetComponentInParent<MochiStation>();
         if (station == null) station = FindAnyObjectByType<MochiStation>();
         if (usu == null && station != null) usu = station.sharedTools.OfType<UsuTool>().FirstOrDefault();
         if (usu == null && station != null) usu = station.GetComponentInChildren<UsuTool>(true);
         grabber = FindAnyObjectByType<MochiGrabber>();
-        BuildShapes();
     }
 
     void Start()
     {
-        BuildProfile();
-        if (float.IsNaN(tableNear))
-        {
-            var placer = station != null ? station.GetComponent<UsuTablePlacer>() : null;
-            tableNear = usuBase.z - (placer != null ? placer.footprintRadius + placer.edgeInset : 0.3f);
-        }
+        if (station == null || kine == null) return;
+        BuildCollision();
     }
 
-    /// <summary>Re-reads the kine's head size and the GrabZone's handle segment (after a mallet change).</summary>
+    /// <summary>Re-reads the kine's head size, its drawn skin and the GrabZone's handle segment (after a mallet change).</summary>
     public void Rebuild()
     {
-        if (kine == null) return;
-        headBalls.Clear();
-        handleBalls.Clear();
-        BuildShapes();
+        if (kine == null || station == null) return;
+        BuildCollision();
     }
 
-    // The head as a capsule core plus rings of small balls on the face and top edges (its cylinder corners);
-    // the handle as a row of balls along the GrabZone segment.
-    void BuildShapes()
+    // The collision shapes, from the meshes that are drawn.
+    void BuildCollision()
     {
-        float R = kine.headRadius, L = kine.headLength, f = Mathf.Clamp(kine.faceRounding, 0.008f, R * 0.5f);
-        int core = Mathf.Max(2, Mathf.CeilToInt((L - 2f * R) / R) + 1);
-        for (int i = 0; i < core; i++)
-            headBalls.Add(new Vector4(0f, Mathf.Lerp(R, Mathf.Max(R, L - R), i / (float)(core - 1)), 0f, R));
-        for (int ring = 0; ring < 2; ring++)
-            for (int i = 0; i < 8; i++)
-            {
-                float a = i * Mathf.PI / 4f;
-                headBalls.Add(new Vector4(Mathf.Cos(a) * (R - f), ring == 0 ? f : L - f, Mathf.Sin(a) * (R - f), f));
-            }
-        Vector3 a0 = zone != null ? zone.segmentA : new Vector3(0f, 0.1f, 0f);
-        Vector3 b0 = zone != null ? zone.segmentB : new Vector3(0f, 0.1f, -0.63f);
-        handleA = a0;
-        handleB = b0;
-        Vector3 dir = (b0 - a0).normalized;
-        Vector3 start = a0 + dir * R; // the part inside the head is covered by the head
-        float len = Vector3.Distance(start, b0);
-        int n = Mathf.Max(2, Mathf.CeilToInt(len / handleRadius) + 1);
-        for (int i = 0; i < n; i++)
-        {
-            Vector3 p = Vector3.Lerp(start, b0, i / (float)(n - 1));
-            handleBalls.Add(new Vector4(p.x, p.y, p.z, handleRadius));
-        }
-    }
+        Transform st = station.transform;
+        var c = new KineCollision();
 
-    // UsuTool.BuildLatheMesh's profile, closed downward into the table so the base and the table are one solid.
-    void BuildProfile()
-    {
-        float ro = 0.205f, rTop = 0.15f, rBot = 0.125f, floorY = 0.03f, depth = 0.13f;
+        // the usu
+        float ro = 0.205f, rTop = 0.15f, rBot = 0.125f, baseY = 0.03f, depth = 0.13f;
+        Vector3 usuAxis = Vector3.up;
         usuBase = Vector3.zero;
         if (usu != null)
         {
-            ro = usu.outerRadius; rTop = usu.innerRadiusTop; rBot = usu.innerRadiusBottom; floorY = usu.baseThickness; depth = usu.depth;
-            if (station != null) usuBase = station.transform.InverseTransformPoint(usu.transform.position);
+            ro = usu.outerRadius; rTop = usu.innerRadiusTop; rBot = usu.innerRadiusBottom; baseY = usu.baseThickness; depth = usu.depth;
+            usuBase = st.InverseTransformPoint(usu.transform.position);
+            usuAxis = st.InverseTransformDirection(usu.transform.up);
         }
-        float rimY = floorY + depth + 0.02f;
-        profile = new[]
+        MeshFilter usuMesh = DrawnMesh(usu != null ? usu.transform : null, "UsuVisual");
+        bool usuSkin = usuMesh != null && usuMesh.sharedMesh != null && usuMesh.sharedMesh.name.Contains("MR_UsuSkin");
+        c.usu = usuSkin ? KineCollision.UsuSkin(ro, baseY, depth, rTop, rBot, usuBase, usuAxis)
+                        : KineCollision.UsuLathe(ro, baseY, depth, rTop, rBot, usuBase, usuAxis);
+
+        // the table
+        if (float.IsNaN(tableNear))
         {
-            new Vector2(0f, -1f), new Vector2(ro * 0.96f, -1f), new Vector2(ro * 0.96f, 0f), new Vector2(ro, 0.015f),
-            new Vector2(ro, rimY - 0.01f), new Vector2(ro - 0.01f, rimY), new Vector2(rTop + 0.01f, rimY), new Vector2(rTop, rimY - 0.01f),
-            new Vector2(Mathf.Lerp(rBot, rTop, 0.5f), floorY + depth * 0.5f), new Vector2(rBot, floorY + 0.015f),
-            new Vector2(rBot - 0.02f, floorY), new Vector2(0f, floorY),
+            var placer = station.GetComponent<UsuTablePlacer>();
+            tableNear = usuBase.z - (placer != null ? placer.footprintRadius + placer.edgeInset : 0.3f);
+        }
+        c.table = new KineCollision.Box
+        {
+            lo = new Vector3(usuBase.x - tableHalfWidth, -1f, tableNear),
+            hi = new Vector3(usuBase.x + tableHalfWidth, 0f, usuBase.z + tableFar),
         };
+
+        // the kine
+        MeshFilter kineMesh = DrawnMesh(transform, "KineSkin");
+        bool kineSkin = kineMesh != null && kineMesh.sharedMesh != null && kineMesh.sharedMesh.name.Contains("MR_KineSkin");
+        float R = kine.headRadius, L = kine.headLength, f = kine.faceRounding;
+        KineCollision.Revolved head;
+        float thinnest, gripAt;
+        if (kineSkin)
+        {
+            float H = driver != null ? driver.handleLength : 0.55f; // the skin's handle length is KineDriver's (UsuKineSkinBuilder)
+            head = KineCollision.KineSkinHead(R, L, f);
+            handle = KineCollision.KineSkinHandle(R, L, H);
+            thinnest = KineCollision.KineSkinHandleRadius;
+            gripAt = H - 0.07f; // the middle of the pink grip wrap
+        }
+        else
+        {
+            Vector3 a = zone != null ? zone.segmentA : new Vector3(0f, L * 0.5f, 0f);
+            Vector3 b = zone != null ? zone.segmentB : new Vector3(0f, L * 0.5f, -0.63f);
+            head = KineCollision.CylinderHead(R, L, Mathf.Clamp(f, 0.002f, R * 0.5f));
+            handle = KineCollision.CylinderHandle(a, b, handleRadius, R);
+            thinnest = handleRadius;
+            gripAt = (b - a).magnitude - 0.07f;
+        }
+        handleFrom = handle.poly[0].y;
+        handleTo = handle.poly[handle.poly.Length - 1].y;
+        gripLocal = handle.origin + handle.axis * gripAt;
+        c.parts.Add(new KineCollision.Part { shape = head, usu = hitUsu, table = hitTable, hands = hitHands });
+        c.parts.Add(new KineCollision.Part { shape = handle, usu = handleHitsUsu, table = handleHitsTable, hands = handleHitsHands });
+        float hr = head.MaxRadius();
+        c.ends.AddRange(new[]
+        {
+            Vector3.zero, new Vector3(0f, L, 0f), // face and top centres
+            new Vector3(hr, L * 0.5f, 0f), new Vector3(-hr, L * 0.5f, 0f), new Vector3(0f, L * 0.5f, hr), new Vector3(0f, L * 0.5f, -hr),
+            handle.origin + handle.axis * handleTo, // the handle's end
+        });
+        c.minStep = Mathf.Max(0.005f, thinnest);
+        c.Build();
+        Collision = c;
+        LogFit(usuMesh, usuSkin, kineMesh, kineSkin);
+    }
+
+    static MeshFilter DrawnMesh(Transform root, string name)
+    {
+        if (root == null) return null;
+        var t = root.Find(name);
+        if (t != null && t.TryGetComponent(out MeshFilter mf)) return mf;
+        foreach (var m in root.GetComponentsInChildren<MeshFilter>(true))
+        {
+            var r = m.GetComponent<MeshRenderer>();
+            if (r != null && r.enabled && m.gameObject.activeInHierarchy) return m;
+        }
+        return null;
+    }
+
+    // How far the drawn meshes' vertices are from the collision surfaces (the three.js scene builds its collision
+    // from its meshes; here the profiles are copies of the skin builder's, so this catches a skin that changed).
+    void LogFit(MeshFilter usuMesh, bool usuSkin, MeshFilter kineMesh, bool kineSkin)
+    {
+        Transform st = station.transform;
+        float usuDev = -1f, kineDev = -1f;
+        if (usuMesh != null && usuMesh.sharedMesh != null && usuMesh.sharedMesh.isReadable)
+        {
+            usuDev = 0f;
+            foreach (var v in usuMesh.sharedMesh.vertices)
+            {
+                Vector3 p = st.InverseTransformPoint(usuMesh.transform.TransformPoint(v));
+                if (Vector3.Dot(p - usuBase, Collision.usu.axis) < 0.002f) continue; // the bottom it stands on
+                usuDev = Mathf.Max(usuDev, Mathf.Abs(Collision.usu.Sdf(p, out _)));
+            }
+        }
+        if (kineMesh != null && kineMesh.sharedMesh != null && kineMesh.sharedMesh.isReadable)
+        {
+            kineDev = 0f;
+            foreach (var v in kineMesh.sharedMesh.vertices)
+            {
+                Vector3 p = transform.InverseTransformPoint(kineMesh.transform.TransformPoint(v));
+                float d = float.MaxValue;
+                foreach (var part in Collision.parts) d = Mathf.Min(d, Mathf.Abs(part.shape.Sdf(p, out _))); // on some part's surface
+                kineDev = Mathf.Max(kineDev, d);
+            }
+        }
+        string Mm(float x) => x < 0f ? "not readable" : $"{x * 1000f:F1} mm";
+        string msg = $"[kine] collision shapes: usu {(usuSkin ? "MR_UsuSkin" : "UsuTool lathe")} ({Mm(usuDev)} from its drawn vertices), " +
+                     $"kine {(kineSkin ? "MR_KineSkin" : "KineTool cylinder")} ({Mm(kineDev)})";
+        if (usuDev > 0.003f || kineDev > 0.003f) Debug.LogWarning(msg + ". A drawn mesh no longer matches; update the profiles in KineCollision.cs.");
+        else Debug.Log(msg);
     }
 
     // Only an enabled recorder or test bench counts: scenes keep a disabled MochiTestBench on the station,
@@ -173,179 +239,52 @@ public class KineContact : MonoBehaviour
 
     void Update()
     {
-        if (station == null || kine == null || profile == null) return;
+        if (station == null || kine == null || Collision == null) return;
         if (Time.unscaledTime >= nextSuspendCheck)
         {
             nextSuspendCheck = Time.unscaledTime + 1f;
             suspended = Running<MochiStrikeRecorder>() || Running<MochiTestBench>();
         }
         UpdateHaptics();
-        if (suspended) { hasPrev = false; InContact = false; return; }
+        if (suspended) { hasPrev = false; Collision.Reset(); InContact = false; return; }
 
         Transform st = station.transform;
         float dt = Mathf.Max(Time.deltaTime, 1e-4f);
         Vector3 targetPos = st.InverseTransformPoint(transform.position);
         Quaternion targetRot = Quaternion.Inverse(st.rotation) * transform.rotation;
         bool held = zone != null && zone.Held;
-        float moved = hasPrev ? (targetPos - prevPos).magnitude : 0f;
-        float endMoved = hasPrev ? ((targetPos + targetRot * handleB) - (prevPos + prevRot * handleB)).magnitude : 0f;
-        bool resting = !held && moved < 0.001f && endMoved < 0.001f; // a resting kine is not shoved around by hands
-        bool hands = (hitHands || handleHitsHands) && !resting && GatherHands(st, held);
-        Vector3 pivotWorld = default;
-        bool hasPivot = held && HolderPoint(out pivotWorld);
-        Vector3 pivotLocal = hasPivot ? st.InverseTransformPoint(pivotWorld) : default;
+        bool resting = !held && hasPrev && (targetPos - prevTarget).sqrMagnitude < 1e-6f && Quaternion.Angle(targetRot, prevTargetRot) < 0.05f;
+        bool hands = (hitHands || handleHitsHands) && !resting && GatherHands(st, held); // a resting kine is not shoved around by hands
+        Vector3 pivot = gripLocal;
+        if (held && HolderPoint(out Vector3 holder)) pivot = OnHandle(Quaternion.Inverse(targetRot) * (st.InverseTransformPoint(holder) - targetPos));
 
-        stepTouched = false;
-        Vector3 pos;
-        Quaternion rot;
-        // put down or teleported (KineDriver.Rest moves it ~0.45 m in one frame): no sweep. A 10 m/s swing is ~0.14 m a frame.
-        if (!hasPrev || moved > 0.25f)
-        {
-            pos = targetPos;
-            rot = targetRot;
-            Step(ref pos, ref rot, hands, hasPivot, pivotLocal);
-        }
-        else
-        {
-            int n = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(moved, endMoved) / Mathf.Max(maxStep, 0.005f)), 1, 16);
-            pos = prevPos;
-            rot = prevRot;
-            for (int k = 0; k < n; k++)
-            {
-                float t = 1f / (n - k);
-                pos += (targetPos - pos) * t;
-                rot = Quaternion.Slerp(rot, targetRot, t);
-                Step(ref pos, ref rot, hands, hasPivot, pivotLocal);
-            }
-        }
-
-        bool touching = stepTouched;
+        bool touching = Collision.Resolve(targetPos, targetRot, pivot, hands ? handBalls : null, out Vector3 pos, out Quaternion rot);
         if (touching) transform.SetPositionAndRotation(st.TransformPoint(pos), st.rotation * rot);
         if (touching && !InContact && hasPrev)
         {
-            // how fast the contact point was coming at the surface (the same body point at last frame's and this frame's target pose)
-            Vector3 body = Quaternion.Inverse(rot) * (lastPoint - pos);
+            // how fast the contact point was coming at the surface (the same body point at last frame's resolved pose and this frame's target)
+            Vector3 body = Quaternion.Inverse(rot) * (Collision.lastPoint - pos);
             Vector3 before = prevPos + prevRot * body, after = targetPos + targetRot * body;
-            float approach = Vector3.Dot(after - before, -lastNormal) / dt;
+            float approach = Vector3.Dot(after - before, -Collision.lastNormal) / dt;
             if (approach > impactSpeed)
             {
-                Contact?.Invoke(st.TransformPoint(lastPoint), approach, lastKind);
+                Contact?.Invoke(st.TransformPoint(Collision.lastPoint), approach, (Kind)(int)Collision.lastKind);
                 Buzz(approach);
             }
         }
         InContact = touching;
         prevPos = pos;
         prevRot = rot;
+        prevTarget = targetPos;
+        prevTargetRot = targetRot;
         hasPrev = true;
     }
 
-    /// <summary>One sweep step: push out by translation, then pivot the handle off the rim; twice, as each can disturb the other.</summary>
-    void Step(ref Vector3 pos, ref Quaternion rot, bool hands, bool hasPivot, Vector3 pivotLocal)
+    /// <summary>The kine-local point on the handle's axis nearest to p (kine-local), within the handle.</summary>
+    Vector3 OnHandle(Vector3 p)
     {
-        for (int iter = 0; iter < 2; iter++)
-        {
-            pos = Resolve(pos, rot, hands);
-            if (!handleHitsUsu || !PivotHandle(ref pos, ref rot, hasPivot, pivotLocal)) break;
-        }
-    }
-
-    /// <summary>Pushes the kine (station-local origin, rotation) out of everything except handle-versus-usu, a few passes.</summary>
-    Vector3 Resolve(Vector3 pos, Quaternion rot, bool hands)
-    {
-        for (int pass = 0; pass < 4; pass++)
-        {
-            float deepest = 1e-4f;
-            Vector3 push = Vector3.zero, point = Vector3.zero;
-            Kind kind = lastKind;
-            Test(headBalls, pos, rot, hitUsu, hitTable, hands && hitHands, ref deepest, ref push, ref point, ref kind);
-            Test(handleBalls, pos, rot, false, handleHitsTable, hands && handleHitsHands, ref deepest, ref push, ref point, ref kind);
-            if (push.sqrMagnitude < 0.5f) break; // push is a unit normal, or zero when nothing is hit
-            pos += push * (deepest + 1e-4f);
-            Touch(kind, push, point);
-        }
-        return pos;
-    }
-
-    void Test(List<Vector4> balls, Vector3 pos, Quaternion rot, bool useUsu, bool useTable, bool useHands,
-              ref float deepest, ref Vector3 push, ref Vector3 point, ref Kind kind)
-    {
-        if (!useUsu && !useTable && !useHands) return;
-        foreach (var b in balls)
-        {
-            Vector3 c = pos + rot * new Vector3(b.x, b.y, b.z);
-            float r = b.w;
-            if (useUsu)
-            {
-                float d = UsuDistance(c, out Vector3 n);
-                if (r - d > deepest) { deepest = r - d; push = n; point = c; kind = Kind.Usu; }
-            }
-            if (useTable)
-            {
-                float d = TableDistance(c, out Vector3 n);
-                if (r - d > deepest) { deepest = r - d; push = n; point = c; kind = Kind.Table; }
-            }
-            if (useHands)
-                foreach (var h in handBalls)
-                {
-                    Vector3 dv = c - new Vector3(h.x, h.y, h.z);
-                    float dist = dv.magnitude, pen = r + h.w - dist;
-                    if (pen > deepest && dist > 1e-6f) { deepest = pen; push = dv / dist; point = c; kind = Kind.Hand; }
-                }
-        }
-    }
-
-    /// <summary>
-    /// Lifts the handle off the usu by rotating the kine about a pivot: the holding hand's grip on the
-    /// handle when held, else the centre of the head. Returns true if it had to move.
-    /// </summary>
-    bool PivotHandle(ref Vector3 pos, ref Quaternion rot, bool hasPivot, Vector3 holder)
-    {
-        bool moved = false;
-        for (int pass = 0; pass < 4; pass++)
-        {
-            float deepest = 1e-4f;
-            Vector3 n = Vector3.zero, ball = Vector3.zero;
-            foreach (var b in handleBalls)
-            {
-                Vector3 c = pos + rot * new Vector3(b.x, b.y, b.z);
-                float d = UsuDistance(c, out Vector3 nn);
-                if (b.w - d > deepest) { deepest = b.w - d; n = nn; ball = c; }
-            }
-            if (n.sqrMagnitude < 0.5f) break;
-            Vector3 pivot = hasPivot ? ClosestOnHandle(pos, rot, holder) : pos + rot * new Vector3(0f, kine.headLength * 0.5f, 0f);
-            Vector3 r = ball - pivot;
-            Vector3 axis = Vector3.Cross(r, n);
-            float lever = r.magnitude, sin = lever > 1e-4f ? axis.magnitude / lever : 0f;
-            if (sin < 0.2f)
-            {
-                pos += n * (deepest + 1e-4f); // pushing along the handle itself: rotation can't help
-            }
-            else
-            {
-                float angle = Mathf.Min((deepest + 1e-4f) / (lever * sin), 0.5f) * Mathf.Rad2Deg;
-                Quaternion q = Quaternion.AngleAxis(angle, axis / axis.magnitude);
-                pos = pivot + q * (pos - pivot);
-                rot = q * rot;
-            }
-            Touch(Kind.Usu, n, ball);
-            moved = true;
-        }
-        return moved;
-    }
-
-    void Touch(Kind kind, Vector3 normal, Vector3 point)
-    {
-        stepTouched = true;
-        lastKind = kind;
-        lastNormal = normal;
-        lastPoint = point;
-    }
-
-    Vector3 ClosestOnHandle(Vector3 pos, Quaternion rot, Vector3 p)
-    {
-        Vector3 a = pos + rot * handleA, b = pos + rot * handleB, ab = b - a;
-        float t = Mathf.Clamp01(Vector3.Dot(p - a, ab) / Mathf.Max(ab.sqrMagnitude, 1e-8f));
-        return a + ab * t;
+        float t = Mathf.Clamp(Vector3.Dot(p - handle.origin, handle.axis), handleFrom, handleTo);
+        return handle.origin + handle.axis * t;
     }
 
     /// <summary>World position of whatever holds the kine: the holding controller, else the holding hand's palm.</summary>
@@ -367,57 +306,6 @@ public class KineContact : MonoBehaviour
             if (Palm(hand, out Vector3 palm) && zone != null && zone.Distance(palm) < 0.08f) { world = palm; return true; }
         }
         return false;
-    }
-
-    /// <summary>Signed distance (negative inside) from a station-local point to the usu solid, and the outward normal.</summary>
-    float UsuDistance(Vector3 c, out Vector3 normal)
-    {
-        Vector3 rel = c - usuBase;
-        float rho = new Vector2(rel.x, rel.z).magnitude;
-        Vector2 p = new Vector2(rho, rel.y);
-        // inside test over every edge; distance only to the real surfaces (not the axis or the buried bottom)
-        bool inside = false;
-        float best = float.MaxValue;
-        Vector2 bestQ = p, bestEdgeN = Vector2.up;
-        int n = profile.Length;
-        for (int i = 0; i < n; i++)
-        {
-            Vector2 a = profile[i], b = profile[(i + 1) % n];
-            if ((a.y > p.y) != (b.y > p.y) && p.x < a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y)) inside = !inside;
-            if (i < 2 || i == n - 1) continue; // buried bottom, buried side below the table, axis
-            Vector2 ab = b - a;
-            float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / Mathf.Max(ab.sqrMagnitude, 1e-12f));
-            Vector2 q = a + ab * t;
-            float d = (p - q).sqrMagnitude;
-            if (d < best) { best = d; bestQ = q; bestEdgeN = new Vector2(ab.y, -ab.x).normalized; }
-        }
-        float dist = Mathf.Sqrt(best);
-        Vector2 g = dist > 1e-6f ? (inside ? (bestQ - p) : (p - bestQ)) / dist : bestEdgeN;
-        Vector2 radial = rho > 1e-6f ? new Vector2(rel.x, rel.z) / rho : Vector2.right;
-        normal = new Vector3(g.x * radial.x, g.y, g.x * radial.y).normalized;
-        return inside ? -dist : dist;
-    }
-
-    /// <summary>Signed distance from a station-local point to the table (a slab under y = 0), and the outward normal.</summary>
-    float TableDistance(Vector3 c, out Vector3 normal)
-    {
-        Vector3 lo = new Vector3(usuBase.x - tableHalfWidth, -1f, tableNear);
-        Vector3 hi = new Vector3(usuBase.x + tableHalfWidth, 0f, usuBase.z + tableFar);
-        Vector3 centre = (lo + hi) * 0.5f, half = (hi - lo) * 0.5f;
-        Vector3 d = c - centre;
-        Vector3 q = new Vector3(Mathf.Abs(d.x) - half.x, Mathf.Abs(d.y) - half.y, Mathf.Abs(d.z) - half.z);
-        Vector3 outside = new Vector3(Mathf.Max(q.x, 0f), Mathf.Max(q.y, 0f), Mathf.Max(q.z, 0f));
-        float outLen = outside.magnitude;
-        if (outLen > 0f)
-        {
-            normal = new Vector3(outside.x * Mathf.Sign(d.x), outside.y * Mathf.Sign(d.y), outside.z * Mathf.Sign(d.z)) / outLen;
-            return outLen;
-        }
-        // inside: leave through the nearest face
-        if (q.y >= q.x && q.y >= q.z) normal = new Vector3(0f, Mathf.Sign(d.y), 0f);
-        else if (q.x >= q.z) normal = new Vector3(Mathf.Sign(d.x), 0f, 0f);
-        else normal = new Vector3(0f, 0f, Mathf.Sign(d.z));
-        return Mathf.Max(q.x, Mathf.Max(q.y, q.z));
     }
 
     /// <summary>Collects the free tracked hands' primitives as balls in station space. False if there are none.</summary>
