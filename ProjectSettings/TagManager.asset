@@ -2,8 +2,35 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
-  tags: []
+  serializedVersion: 3
+  tags:
+  - QDSUISection
+  - QDSUIAccentColor
+  - QDSUISecondaryButton
+  - QDSUIPrimaryButton
+  - QDSUITextSecondaryInvertedColor
+  - QDSUITextInvertedColor
+  - QDSUIToggleButton
+  - QDSUIIcon
+  - QDSUITextSecondaryColor
+  - QDSUIDestructiveButton
+  - QDSUISharedThemeColor
+  - QDSUIBorderlessButton
+  - QDSUIToggleBorderlessButton
+  - QDSUIBackplateGradient
+  - QDSUITooltip
+  - QDSUIBackplate
+  - QDSUIToggleSwitch
+  - Locomotion
+  - LocoButton
+  - LocoText
+  - PassThroughButton
+  - PassThrough
+  - QDSUILineDrawing
+  - QDSUITextInputField
+  - SamplesInfoPanel
+  - QDSUIToggleCheckboxRadio
+  - QDSUIToggleThumbnail
   layers:
   - Default
   - TransparentFX
@@ -44,3 +71,7 @@ TagManager:
   - name: Color Picker
     uniqueID: 1367071805
     locked: 0
+  m_RenderingLayers:
+  - Default
+  m_MigratedRenderPipelines:
+  - UnityEngine.Rendering.Universal.UniversalRenderPipeline

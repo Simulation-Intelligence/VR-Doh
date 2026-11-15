@@ -1,0 +1,451 @@
+{
+  "schema": "satie.portable.bundle/2",
+  "profile": "satie.portable.scene/2",
+  "abi": 2,
+  "name": "satie-scene",
+  "bundleSha256": "e2ccda987b2730cbe409c8d9bb43c0abb02ebfcf5495664060c0f698422d8dad",
+  "sampleRate": 48000,
+  "seed": 7,
+  "normalizedLufs": -23,
+  "levels": {
+    "topLufs": -18,
+    "eventHeadroomDb": 12,
+    "windowDb": 55,
+    "limiter": true
+  },
+  "sources": [
+    {
+      "index": 0,
+      "id": "knead",
+      "kind": "loop",
+      "host": "mochisolver",
+      "atListener": false,
+      "spatial": true,
+      "event": "",
+      "surfaces": []
+    },
+    {
+      "index": 1,
+      "id": "kine_swing",
+      "kind": "loop",
+      "host": "kine",
+      "atListener": false,
+      "spatial": true,
+      "event": "",
+      "surfaces": []
+    },
+    {
+      "index": 2,
+      "id": "bamboo",
+      "kind": "loop",
+      "host": "mr_bamboo",
+      "atListener": false,
+      "spatial": true,
+      "event": "",
+      "surfaces": []
+    },
+    {
+      "index": 3,
+      "id": "night_insects",
+      "kind": "loop",
+      "host": "",
+      "atListener": false,
+      "spatial": false,
+      "event": "",
+      "surfaces": []
+    },
+    {
+      "index": 4,
+      "id": "pound",
+      "kind": "event",
+      "host": "usu",
+      "atListener": false,
+      "spatial": true,
+      "event": "pound",
+      "surfaces": []
+    },
+    {
+      "index": 5,
+      "id": "rim_knock",
+      "kind": "event",
+      "host": "usu",
+      "atListener": false,
+      "spatial": true,
+      "event": "rim_knock",
+      "surfaces": []
+    },
+    {
+      "index": 6,
+      "id": "tent_release",
+      "kind": "event",
+      "host": "mochisolver",
+      "atListener": false,
+      "spatial": true,
+      "event": "tent_release",
+      "surfaces": []
+    },
+    {
+      "index": 7,
+      "id": "dough_slap",
+      "kind": "event",
+      "host": "mochisolver",
+      "atListener": false,
+      "spatial": true,
+      "event": "dough_slap",
+      "surfaces": []
+    }
+  ],
+  "events": {
+    "pound": [
+      {
+        "source": 4,
+        "host": "usu",
+        "surfaces": []
+      }
+    ],
+    "rim_knock": [
+      {
+        "source": 5,
+        "host": "usu",
+        "surfaces": []
+      }
+    ],
+    "tent_release": [
+      {
+        "source": 6,
+        "host": "mochisolver",
+        "surfaces": []
+      }
+    ],
+    "dough_slap": [
+      {
+        "source": 7,
+        "host": "mochisolver",
+        "surfaces": []
+      }
+    ]
+  },
+  "signals": {
+    "knead_speed": [
+      {
+        "source": 0,
+        "slot": 0
+      }
+    ],
+    "kine_speed": [
+      {
+        "source": 1,
+        "slot": 0
+      }
+    ],
+    "strike_speed": [
+      {
+        "source": 4,
+        "slot": 0
+      },
+      {
+        "source": 5,
+        "slot": 0
+      }
+    ]
+  },
+  "signalRest": {
+    "strike_speed": 0,
+    "kine_speed": 0,
+    "knead_speed": 0
+  },
+  "rooms": [],
+  "states": [
+    "free_play",
+    "rhythm"
+  ],
+  "hosts": {
+    "mochisolver": {
+      "object": "mochisolver",
+      "position": null,
+      "sources": [
+        0,
+        6,
+        7
+      ]
+    },
+    "kine": {
+      "object": "kine",
+      "position": null,
+      "sources": [
+        1
+      ]
+    },
+    "mr_bamboo": {
+      "object": "mr_bamboo",
+      "position": [
+        0,
+        3.75,
+        0
+      ],
+      "sources": [
+        2
+      ]
+    },
+    "usu": {
+      "object": "usu",
+      "position": null,
+      "sources": [
+        4,
+        5
+      ]
+    }
+  },
+  "eventList": [
+    {
+      "name": "pound",
+      "answers": [
+        {
+          "source": 4,
+          "host": "usu",
+          "surfaces": []
+        }
+      ]
+    },
+    {
+      "name": "rim_knock",
+      "answers": [
+        {
+          "source": 5,
+          "host": "usu",
+          "surfaces": []
+        }
+      ]
+    },
+    {
+      "name": "tent_release",
+      "answers": [
+        {
+          "source": 6,
+          "host": "mochisolver",
+          "surfaces": []
+        }
+      ]
+    },
+    {
+      "name": "dough_slap",
+      "answers": [
+        {
+          "source": 7,
+          "host": "mochisolver",
+          "surfaces": []
+        }
+      ]
+    }
+  ],
+  "signalList": [
+    {
+      "name": "knead_speed",
+      "rest": 0,
+      "bindings": [
+        {
+          "source": 0,
+          "slot": 0
+        }
+      ]
+    },
+    {
+      "name": "kine_speed",
+      "rest": 0,
+      "bindings": [
+        {
+          "source": 1,
+          "slot": 0
+        }
+      ]
+    },
+    {
+      "name": "strike_speed",
+      "rest": 0,
+      "bindings": [
+        {
+          "source": 4,
+          "slot": 0
+        },
+        {
+          "source": 5,
+          "slot": 0
+        }
+      ]
+    }
+  ],
+  "hostList": [
+    {
+      "id": "mochisolver",
+      "object": "mochisolver",
+      "hasPosition": false,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "sources": [
+        0,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "kine",
+      "object": "kine",
+      "hasPosition": false,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "sources": [
+        1
+      ]
+    },
+    {
+      "id": "mr_bamboo",
+      "object": "mr_bamboo",
+      "hasPosition": true,
+      "position": [
+        0,
+        3.75,
+        0
+      ],
+      "sources": [
+        2
+      ]
+    },
+    {
+      "id": "usu",
+      "object": "usu",
+      "hasPosition": false,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "sources": [
+        4,
+        5
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "file": "bare_hands_continuously_pressi_dcdc27.mp3",
+      "channels": 1,
+      "frames": 480000,
+      "gainDb": 18.74,
+      "sha256": "fb55fafc5efd6e8bb9a43f2194c4ce615dab34e658a901489f5e13a6ad8fb2b0"
+    },
+    {
+      "file": "air_displaced_by_a_heavy_cylin_86f926.mp3",
+      "channels": 1,
+      "frames": 480000,
+      "gainDb": 3.42,
+      "sha256": "681d536e3ca84dd2f1d538f40bf376e028dcc4cb091d7425710a456dfe892f53"
+    },
+    {
+      "file": "light_breeze_rustling_bamboo_883660.mp3",
+      "channels": 1,
+      "frames": 1056000,
+      "gainDb": 14.67,
+      "sha256": "07867489da5ad0cce1194ffa4cd2b73555afc8c2aca883fb1fc8cd1cc54fec63"
+    },
+    {
+      "file": "summer_night_insects_chirring_7f967b.mp3",
+      "channels": 2,
+      "frames": 1152000,
+      "gainDb": -0.2,
+      "sha256": "dca348b101d1cbb32f790afc9feba71e29b85b4de147d912dc283bf1a20c356f"
+    },
+    {
+      "file": "heavy_wooden_mallet_strike_d4453d.mp3",
+      "channels": 1,
+      "frames": 6240,
+      "gainDb": -3.25,
+      "sha256": "0087e2cfcf36346468b2ab17b1d9f0bb03a0269fb1547a5aeeb2da81ab4bb13e"
+    },
+    {
+      "file": "pound_34095c15_24694bd6_2_71f7f7.mp3",
+      "channels": 1,
+      "frames": 10560,
+      "gainDb": -4.64,
+      "sha256": "4e57d0fb7c32ac7e9b33835dffdcb5f67a1198f4b55baab4468e0ca6224cecbf"
+    },
+    {
+      "file": "pound_34095c15_24694bd6_3_0276bf.mp3",
+      "channels": 1,
+      "frames": 8160,
+      "gainDb": -0.38,
+      "sha256": "91116903449bfebfd49cf90876a9e8aa70c75846a13f6707a39b65710db17bbd"
+    },
+    {
+      "file": "heavy_wooden_mallet_strike_ebe9eb.mp3",
+      "channels": 1,
+      "frames": 5760,
+      "gainDb": -8.99,
+      "sha256": "223878cbbd1d960af926e5d19379ba4b9b1fc191e9269fc54c415c8ee756eba8"
+    },
+    {
+      "file": "heavy_wooden_mallet_strike_rim_b80c9e.mp3",
+      "channels": 1,
+      "frames": 21120,
+      "gainDb": 10.3,
+      "sha256": "a28308700229fbcc5a7e876220954e3196de78fd5f1fe0ee4eaf683c4b2c8ca7"
+    },
+    {
+      "file": "rim_knock_7e23f170_e3e56df1_3_c55541.mp3",
+      "channels": 1,
+      "frames": 16352,
+      "gainDb": -0.7,
+      "sha256": "4cdb3bc98af079ab30151c3c275ef36fa8501ae0eeb438acd476d5a26975b7e1"
+    },
+    {
+      "file": "single_release_of_stretched_st_a89904.mp3",
+      "channels": 1,
+      "frames": 38400,
+      "gainDb": -11.59,
+      "sha256": "e4250d2b709dee6a8daee3c1af78363ea2339cf88ae00e3459a768ef985a8dec"
+    },
+    {
+      "file": "single_release_of_stretched_st_2_92f568.mp3",
+      "channels": 1,
+      "frames": 38400,
+      "gainDb": 1.61,
+      "sha256": "b2cd3368cc7266d4431dddfe995ff1ddbb9343b219ec92308712b49da345f203"
+    },
+    {
+      "file": "release_stretched_sticky_30cabd.mp3",
+      "channels": 1,
+      "frames": 38400,
+      "gainDb": -10.26,
+      "sha256": "1552fc12bec7983290e2fa85f206e8df1953fd12d1da138d74cd9d6549d1a410"
+    },
+    {
+      "file": "bare_palm_slap_moist_sticky_3c52fe.mp3",
+      "channels": 1,
+      "frames": 8160,
+      "gainDb": -0.95,
+      "sha256": "860f29effbfdb4a72582ceb7011d5e4cf13a02859f20ef6a54f6154990045dad"
+    },
+    {
+      "file": "single_bare_palm_slap_onto_moi_2_8f8674.mp3",
+      "channels": 1,
+      "frames": 8160,
+      "gainDb": 2.62,
+      "sha256": "8631381b42558672550b70d95cee40d3f45edbce9421aded9f22bf9eba725acb"
+    },
+    {
+      "file": "bare_palm_slap_moist_sticky_74928e.mp3",
+      "channels": 1,
+      "frames": 8160,
+      "gainDb": 3.04,
+      "sha256": "31a505d170c5f9efbad95c2e5ac3ade1ee4c2a2fcf084f80e60b0f60a23a3459"
+    }
+  ],
+  "notRendered": [
+    "Event voices overlap: a new fire does not cut the previous one."
+  ]
+}

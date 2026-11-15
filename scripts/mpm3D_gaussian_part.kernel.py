@@ -217,7 +217,133 @@ def compile_mpm3D(arch, save_compute_graph, run=False):
                         Z = ti.Matrix([[Em[0], 0, 0], [0, Em[1], 0], [0, 0, Em[2]]])
                     # Reconstruct the deformation gradient with the corrected singular values
                     dg[p] = U @ Z @ V.transpose()
-    
+
+    # ------------------------------------------------------------------
+    # mochi-opt: optimized kernels (added alongside the originals so the
+    # C# side can fall back to the old path if they are missing).
+    # ------------------------------------------------------------------
+
+    @ti.func
+    def return_map_singular_values(sig_vec, E_p, nu_p, material_p, SigY_p, alpha_p, min_clamp_p, max_clamp_p):
+        # Same return mapping as substep_apply_plasticity, operating on singular values only.
+        mu = E_p / (2 * (1 + nu_p))
+        la = E_p * nu_p / ((1 + nu_p) * (1 - 2 * nu_p))
+        plasticity_type = (material_p >> 16) & 0xFFFF
+        out = sig_vec
+        if plasticity_type == 2:  # Clamp
+            for i in ti.static(range(3)):
+                out[i] = min(max(sig_vec[i], 1 - min_clamp_p), 1 + max_clamp_p)
+        elif plasticity_type == 1 or plasticity_type == 3:
+            epsilon = ti.log(ti.abs(sig_vec))
+            trace_epsilon = epsilon.sum()
+            epsilon_hat = epsilon - trace_epsilon / 3 * ti.Vector([1.0, 1.0, 1.0])
+            epsilon_hat_norm = ti.sqrt(epsilon_hat.norm_sqr())
+            delta_gamma = 0.0
+            if plasticity_type == 1:  # Von Mises
+                delta_gamma = epsilon_hat_norm - SigY_p / (2 * mu)
+            else:  # Drucker-Prager
+                if trace_epsilon <= 0:
+                    delta_gamma = epsilon_hat_norm + (3 * la + 2 * mu) / (2 * mu) * trace_epsilon * alpha_p
+                else:
+                    delta_gamma = epsilon_hat_norm
+            if delta_gamma > 0 and epsilon_hat_norm > 1e-12:
+                out = ti.exp(epsilon - (delta_gamma / epsilon_hat_norm) * epsilon_hat)
+        return out
+
+    @ti.kernel
+    def substep_p2g_fused(x: ti.types.ndarray(ndim=1), v: ti.types.ndarray(ndim=1), C: ti.types.ndarray(ndim=1),
+                          dg: ti.types.ndarray(ndim=1), grid_v: ti.types.ndarray(ndim=3), grid_m: ti.types.ndarray(ndim=3),
+                          E: ti.types.ndarray(ndim=1), nu: ti.types.ndarray(ndim=1), material: ti.types.ndarray(ndim=1),
+                          p_vol: ti.types.ndarray(ndim=1), p_mass: ti.types.ndarray(ndim=1),
+                          SigY: ti.types.ndarray(ndim=1), alpha: ti.types.ndarray(ndim=1),
+                          min_clamp: ti.types.ndarray(ndim=1), max_clamp: ti.types.ndarray(ndim=1),
+                          dx: ti.f32, dt: ti.f32, use_unified_material: ti.i32,
+                          min_x: ti.f32, max_x: ti.f32, min_y: ti.f32, max_y: ti.f32, min_z: ti.f32, max_z: ti.f32):
+        # P2G with the plasticity projection folded in: F_trial = (I + dt C) F, one SVD,
+        # return-map the singular values, then compute stress from the projected F.
+        # Replaces substep_p2g_multi + substep_apply_plasticity (two SVDs -> one), and
+        # fixes the original's `la = E[p] * ...` out-of-bounds read in unified-material mode.
+        for p in x:
+            if (x[p][0] > min_x and x[p][0] < max_x and x[p][1] > min_y and x[p][1] < max_y and x[p][2] > min_z and x[p][2] < max_z):
+                m = p
+                if use_unified_material == 1:
+                    m = 0
+                E_p, nu_p, material_p, p_vol_p, p_mass_p = E[m], nu[m], material[m], p_vol[m], p_mass[m]
+                Xp = x[p] / dx
+                base = int(Xp - 0.5)
+                fx = Xp - base
+                w = [0.5 * (1.5 - fx) ** 2, 0.75 - (fx - 1) ** 2, 0.5 * (fx - 0.5) ** 2]
+
+                F = (ti.Matrix.identity(float, dim) + dt * C[p]) @ dg[p]
+                U, sig, V = ti.svd(F)
+                sig_vec = ti.Vector([sig[0, 0], sig[1, 1], sig[2, 2]])
+                sig_vec = return_map_singular_values(sig_vec, E_p, nu_p, material_p, SigY[m], alpha[m], min_clamp[m], max_clamp[m])
+                Z = ti.Matrix([[sig_vec[0], 0.0, 0.0], [0.0, sig_vec[1], 0.0], [0.0, 0.0, sig_vec[2]]])
+                F = U @ Z @ V.transpose()
+                dg[p] = F
+
+                mu = E_p / (2 * (1 + nu_p))
+                la = E_p * nu_p / ((1 + nu_p) * (1 - 2 * nu_p))
+                J = sig_vec[0] * sig_vec[1] * sig_vec[2]
+                stress = ti.Matrix.zero(float, dim, dim)
+                if material_p & 0xFFFF == 1:  # kirchhoff (fixed corotated)
+                    if ((material_p >> 16) & 0xFFFF) == 2:
+                        h = ti.exp(50 * (1.0 - J))
+                        mu, la = mu * h, la * h
+                    stress = 2 * mu * (F - U @ V.transpose()) @ F.transpose() + \
+                             ti.Matrix.identity(float, dim) * la * J * (J - 1)
+                else:  # neohookean
+                    stress = mu * (F @ F.transpose()) + ti.Matrix.identity(float, dim) * (la * ti.log(J) - mu)
+                stress = (-dt * p_vol_p * 4 / dx**2) * stress
+                affine = stress + p_mass_p * C[p]
+
+                for offset in ti.static(ti.grouped(ti.ndrange(*neighbour))):
+                    dpos = (offset - fx) * dx
+                    weight = 1.0
+                    for i in ti.static(range(dim)):
+                        weight *= w[offset[i]][i]
+                    grid_v[base + offset] += weight * (p_mass_p * v[p] + affine @ dpos)
+                    grid_m[base + offset] += weight * p_mass_p
+
+    @ti.kernel
+    def substep_reset_grid_only(grid_v: ti.types.ndarray(ndim=3), grid_m: ti.types.ndarray(ndim=3)):
+        # Per-substep grid clear without touching the (much larger) marching-cubes density volume.
+        for I in ti.grouped(grid_m):
+            grid_v[I] = [0, 0, 0]
+            grid_m[I] = 0
+
+    @ti.kernel
+    def reset_marching(marching_m: ti.types.ndarray(ndim=4)):
+        # Clear the render density volume once per frame, right before substep_p2marching.
+        for I in ti.grouped(marching_m):
+            marching_m[I] = 0
+
+    @ti.kernel
+    def substep_apply_adhesion(grid_v: ti.types.ndarray(ndim=3), grid_m: ti.types.ndarray(ndim=3),
+                               sdf: ti.types.ndarray(ndim=3), obstacle_normals: ti.types.ndarray(ndim=3),
+                               obstacle_velocities: ti.types.ndarray(ndim=3),
+                               sdf_last: ti.types.ndarray(ndim=3), obstacle_normals_last: ti.types.ndarray(ndim=3),
+                               obstacle_velocities_last: ti.types.ndarray(ndim=3),
+                               ratio: ti.f32, adhesion: ti.f32, band: ti.f32,
+                               min_x: ti.f32, max_x: ti.f32, min_y: ti.f32, max_y: ti.f32, min_z: ti.f32, max_z: ti.f32):
+        # Sticky "mochi" contact: in a thin band just outside the hand surface, damp the part of the
+        # dough velocity that separates from the hand, so dough clings and strings as fingers pull away.
+        # Run after substep_update_grid_v_lerp (grid_v holds velocities at that point).
+        dx = 1.0 / grid_v.shape[0]
+        for I in ti.grouped(grid_m):
+            pos = I * dx + dx * 0.5
+            if pos[0] > min_x and pos[0] < max_x and pos[1] > min_y and pos[1] < max_y and pos[2] > min_z and pos[2] < max_z:
+                if grid_m[I] > 0:
+                    d = sdf_last[I] + (sdf[I] - sdf_last[I]) * ratio
+                    if d >= 0 and d < band:
+                        n = obstacle_normals_last[I] + (obstacle_normals[I] - obstacle_normals_last[I]) * ratio
+                        vo = obstacle_velocities_last[I] + (obstacle_velocities[I] - obstacle_velocities_last[I]) * ratio
+                        rel_v = grid_v[I] - vo
+                        vn = rel_v.dot(n)
+                        if vn > 0:  # dough moving away from the hand surface
+                            falloff = 1.0 - d / band
+                            grid_v[I] -= adhesion * falloff * vn * n
+
     @ti.kernel
     def substep_calculate_signed_distance_field(obstacle_pos: ti.types.ndarray(ndim=1),
                                                 sdf: ti.types.ndarray(ndim=3), obstacle_normals: ti.types.ndarray(ndim=3),
@@ -1193,6 +1319,11 @@ def compile_mpm3D(arch, save_compute_graph, run=False):
         mod.add_kernel(substep_p2g_multi, template_args={'x': x, 'v': v, 'C': C,  'dg': dg, 'grid_v': grid_v, 'grid_m': grid_m,'E':E,'nu':nu,'material':material,'p_vol':p_vol,'p_mass':p_mass})
         mod.add_kernel(substep_p2marching, template_args={'x': x, 'point_color': point_color, 'marching_m': marching_m, 'p_mass': p_mass})
         mod.add_kernel(substep_apply_plasticity, template_args={'dg': dg,'x': x,'material':material,"E":E,"nu":nu,"SigY":SigY,"alpha":alpha,"min_clamp":min_clamp,"max_clamp":max_clamp})
+        # mochi-opt kernels
+        mod.add_kernel(substep_p2g_fused, template_args={'x': x, 'v': v, 'C': C, 'dg': dg, 'grid_v': grid_v, 'grid_m': grid_m, 'E': E, 'nu': nu, 'material': material, 'p_vol': p_vol, 'p_mass': p_mass, 'SigY': SigY, 'alpha': alpha, 'min_clamp': min_clamp, 'max_clamp': max_clamp})
+        mod.add_kernel(substep_reset_grid_only, template_args={'grid_v': grid_v, 'grid_m': grid_m})
+        mod.add_kernel(reset_marching, template_args={'marching_m': marching_m})
+        mod.add_kernel(substep_apply_adhesion, template_args={'grid_v': grid_v, 'grid_m': grid_m, 'sdf': sdf, 'obstacle_normals': obstacle_normals, 'obstacle_velocities': obstacle_velocities, 'sdf_last': sdf, 'obstacle_normals_last': obstacle_normals, 'obstacle_velocities_last': obstacle_velocities})
         
         # hand sdf functions
         mod.add_kernel(substep_calculate_mat_sdf, template_args={'mat_primitives': mat_primitives, 'mat_primitives_radius': mat_primitives_radius, 'mat_velocities': mat_velocities, 'mat_sdf': mat_sdf, 'obstacle_normals': obstacle_normals, 'obstacle_velocities': obstacle_velocities})

@@ -2,7 +2,6 @@ using UnityEngine;
 using GaussianSplatting.Runtime;
 using System;
 using Unity.Collections;
-using Oculus.Platform;
 public class GaussianSplatRenderManager : MonoBehaviour, IDisposable
 {
     // Member variable of GaussianSplatRender

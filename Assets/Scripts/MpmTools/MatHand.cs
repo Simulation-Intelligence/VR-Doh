@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using Oculus.Interaction;
 using Oculus.Interaction.Input;
 
+// After SmoothHand (50) has filtered this frame's joints, before the MPM sim (100) reads the primitives.
+[DefaultExecutionOrder(60)]
 public class MatHand : MatTool
 {
     private HandJoint handJoint;
@@ -352,6 +354,12 @@ public class MatHand : MatTool
         }
     }
 
+    // The primitives in hand_mat_2.json are laid out around the rig's origin, matching the bind pose
+    // of the hand joints when the camera rig sits at the world origin. Measure the joints in the
+    // rig root's space, so the binding still works when the rig is placed somewhere else in the scene.
+    static Vector3 RefPosition(Transform joint) => joint.root.InverseTransformPoint(joint.position);
+    static Quaternion RefRotation(Transform joint) => Quaternion.Inverse(joint.root.rotation) * joint.rotation;
+
     void CalculateOffsetForLerp(bool isLeftHand)
     {
         List<Transform> handJoints = isLeftHand ? leftHandJoints : rightHandJoints;
@@ -360,12 +368,12 @@ public class MatHand : MatTool
             int primitiveIndex = entry.Key;
             PrimitiveBinding binding = entry.Value;
             Transform jointStart = handJoints[binding.jointStartIndex];
-            Transform jointEnd = handJoints[binding.jointEndIndex];
+            Transform jointEnd = binding.jointEndIndex >= 0 ? handJoints[binding.jointEndIndex] : jointStart;
             Vector3[] offsets = new Vector3[3];
-            Vector3 interpolatedPosition = Vector3.Lerp(jointStart.position, jointEnd.position, binding.interpolation);
-            offsets[0] = Quaternion.Inverse(jointEnd.rotation) * (init_primitives[primitiveIndex].sphere1 - interpolatedPosition);
-            offsets[1] = Quaternion.Inverse(jointEnd.rotation) * (init_primitives[primitiveIndex].sphere2 - interpolatedPosition);
-            offsets[2] = Quaternion.Inverse(jointEnd.rotation) * (init_primitives[primitiveIndex].sphere3 - interpolatedPosition);
+            Vector3 interpolatedPosition = Vector3.Lerp(RefPosition(jointStart), RefPosition(jointEnd), binding.interpolation);
+            offsets[0] = Quaternion.Inverse(RefRotation(jointEnd)) * (init_primitives[primitiveIndex].sphere1 - interpolatedPosition);
+            offsets[1] = Quaternion.Inverse(RefRotation(jointEnd)) * (init_primitives[primitiveIndex].sphere2 - interpolatedPosition);
+            offsets[2] = Quaternion.Inverse(RefRotation(jointEnd)) * (init_primitives[primitiveIndex].sphere3 - interpolatedPosition);
             primitiveOffsets[primitiveIndex] = offsets;
         }
     }
@@ -378,8 +386,8 @@ public class MatHand : MatTool
         List<Transform> handJoints = isLeftHand ? leftHandJoints : rightHandJoints;
         for (int i = 0; i < rightHandJoints.Count; i++)
         {
-            Vector3 start = handJoints[i].position;
-            Vector3 end = handJoints[i].parent.position;
+            Vector3 start = RefPosition(handJoints[i]);
+            Vector3 end = RefPosition(handJoints[i].parent);
             int parentIndex = GetParentJointIndex(i);
             for (int j = 0; j < numPrimitives; j++)
             {

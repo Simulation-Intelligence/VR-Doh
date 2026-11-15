@@ -1,0 +1,45 @@
+// Smooths the marching-cubes density field before isosurface extraction.
+// The MPM splat gives roughly one particle per render voxel, so the raw field is grainy;
+// a small separable Gaussian turns it into a soft, continuous dough surface.
+#pragma kernel Blur
+#pragma kernel Temporal
+
+StructuredBuffer<float> Src;
+RWStructuredBuffer<float> Dst;
+RWStructuredBuffer<float> History;
+
+uint3 Dims;
+int3 Axis;          // (1,0,0), (0,1,0) or (0,0,1)
+int Radius;         // taps each side, <= 4
+float4 W0123;       // Gaussian weights for offsets 0..3
+float W4;           // weight for offset 4
+float Blend;        // temporal: weight of the new frame (1 = no history)
+
+uint Index(int3 p) { return (uint)p.x + Dims.x * ((uint)p.y + Dims.y * (uint)p.z); }
+
+[numthreads(8, 8, 8)]
+void Blur(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    int3 p = (int3)id;
+    float w[5] = { W0123.x, W0123.y, W0123.z, W0123.w, W4 };
+    float sum = Src[Index(p)] * w[0];
+    [unroll] for (int i = 1; i <= 4; i++)
+    {
+        if (i > Radius) break;
+        int3 a = clamp(p + Axis * i, 0, (int3)Dims - 1);
+        int3 b = clamp(p - Axis * i, 0, (int3)Dims - 1);
+        sum += (Src[Index(a)] + Src[Index(b)]) * w[i];
+    }
+    Dst[Index(p)] = sum;
+}
+
+[numthreads(8, 8, 8)]
+void Temporal(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    uint i = Index((int3)id);
+    float v = lerp(History[i], Dst[i], Blend);
+    History[i] = v;
+    Dst[i] = v;
+}

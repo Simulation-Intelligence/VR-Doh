@@ -141,9 +141,11 @@ float4 VoxelValueWithGradient(uint3 i)
 RWByteAddressBuffer VertexBuffer;
 RWByteAddressBuffer IndexBuffer;
 // 顶点和三角形计数器
-RWStructuredBuffer<uint> VertexCounter;   // 用于顶点计数
-RWStructuredBuffer<uint> TriangleCounter; // 用于三角形计数
-RWStructuredBuffer<uint> Counter; // used only for counting
+// Unity 6: one plain buffer with atomic slots instead of three Counter-type buffers.
+// Counter buffers carry a hidden counter UAV each, which pushed MeshReconstruction past the
+// 8-UAV limit. Slots: [0] vertices, [1] triangles, [2] generic (no-smoothing path).
+RWStructuredBuffer<uint> Counters;
+uint NextCount(uint slot) { uint o; InterlockedAdd(Counters[slot], 1, o); return o; }
 
 // Vertex buffer accessor
 void WriteVertex(uint offset, float3 p, float3 n)
@@ -260,7 +262,7 @@ void MeshReconstruction(uint3 id : SV_DispatchThreadID)
         if (originalIndex == 0xFFFFFFFF) // 该顶点还没有被赋值
         {
             // 如果没有该顶点索引，则分配一个新索引
-            uint newVertexIndex = VertexCounter.IncrementCounter(); // 使用顶点计数器
+            uint newVertexIndex = NextCount(0); // 使用顶点计数器
             if (newVertexIndex >= MaxTriangle * 3) return; // 防止超出最大顶点数
         
             // 写入新顶点数据
@@ -291,7 +293,7 @@ void MeshReconstruction(uint3 id : SV_DispatchThreadID)
         if (e1 == 15) return;
 
         // 分配三角形索引
-        uint triangleIndex = TriangleCounter.IncrementCounter(); // 使用三角形计数器
+        uint triangleIndex = NextCount(1); // 使用三角形计数器
         if (triangleIndex >= MaxTriangle) return;
 
         // 写入三角形索引
@@ -348,7 +350,7 @@ void MeshReconstructionNoSmoothing(uint3 id : SV_DispatchThreadID)
         uint e3 = EdgeIndexFromTriangleTable(tri_data, i + 2);
         if (e1 == 15) return;
 
-        uint count = Counter.IncrementCounter();
+        uint count = NextCount(2);
         if (count >= MaxTriangle) return;
 
         uint vidx = count * 3;
@@ -417,7 +419,7 @@ void ClearUnusedIndices(uint id : SV_DispatchThreadID)
 {
     while (true)
     {
-        uint count = VertexCounter.IncrementCounter();
+        uint count = NextCount(0);
         if (count >= MaxTriangle*3) break;
         WriteVertex(count, 0, 0);
     }
@@ -428,7 +430,7 @@ void ClearUnusedTriangles(uint id : SV_DispatchThreadID)
 {
     while (true)
     {
-        uint count = TriangleCounter.IncrementCounter();
+        uint count = NextCount(1);
         if (count >= MaxTriangle) break;
         uint vidx = count * 3;
         WriteIndices(vidx, uint3(0, 0, 0));
@@ -440,7 +442,7 @@ void ClearUnused(uint id : SV_DispatchThreadID)
 {
     while (true)
     {
-        uint count = Counter.IncrementCounter();
+        uint count = NextCount(2);
         if (count >= MaxTriangle) break;
         uint vidx = count * 3;
         WriteVertex(vidx + 0, 0, 0);

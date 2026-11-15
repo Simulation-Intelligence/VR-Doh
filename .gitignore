@@ -89,3 +89,10 @@ Assets/GaussianAssets/
 Assets/NeRFImages/
 
 Exported3DModels/
+# Android native build scratch written by Unity
+/.utmp/
+
+# MochiRhythm: personal songs stay out of the repo (copyrighted)
+Assets/MochiRhythm/Resources/MochiRhythm/Music/*.mp3
+Assets/MochiRhythm/Resources/MochiRhythm/Music/*.mp3.meta
+.satie/

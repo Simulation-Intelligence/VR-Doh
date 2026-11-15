@@ -1,0 +1,10 @@
+{
+  "name": "world.satie.unity",
+  "version": "0.1.0",
+  "displayName": "Satie",
+  "description": "Plays a Satie scene in Unity through Satie's portable core: the sounds, their levels, rooms and occlusion are Satie's, and Unity's own spatializer gives each sound its direction. Includes the Satie mixer window (Window > Satie > Mixer).",
+  "unity": "2021.3",
+  "documentationUrl": "https://www.satie.world/developers",
+  "author": { "name": "Attractor Labs", "url": "https://www.satie.world" },
+  "keywords": ["audio", "spatial audio", "sound design", "xr"]
+}

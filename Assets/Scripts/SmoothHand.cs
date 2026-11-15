@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using UnityEngine.Rendering;  // To handle file writing and reading
 
+// Runs after OVRHand/OVRSkeleton (order 0) refresh this frame's bones and before MatHand (60) and the MPM sim (100) read them.
+[DefaultExecutionOrder(50)]
 public class SmoothHand : MonoBehaviour
 {
     public enum HandType { LeftHand, RightHand }
@@ -23,7 +25,7 @@ public class SmoothHand : MonoBehaviour
     public List<Transform> SmoothLeftHandJoints => leftHandJoints;
     public List<Transform> SmoothRightHandJoints => rightHandJoints;
 
-    public enum MovingAverage { None, Simple, Weighted, TimeScaled }
+    public enum MovingAverage { None, Simple, Weighted, TimeScaled, OneEuro }
     public MovingAverage movingAverage = MovingAverage.Weighted;
 
     [Range(1, 20)]
@@ -31,6 +33,19 @@ public class SmoothHand : MonoBehaviour
     [Range(0.01f, 1.0f)]
     public float timeWindow = 0.25f;
     private float[] weights;
+
+    [Header("One-Euro filter (MovingAverage = OneEuro)")]
+    [Tooltip("Cutoff frequency at rest, Hz. Lower = steadier when still.")]
+    public float minCutoff = 2.0f;
+    [Tooltip("How fast the cutoff rises with speed (Hz per m/s). Higher = less lag on fast moves.")]
+    public float beta = 25f;
+    [Tooltip("Cutoff for the speed estimate, Hz.")]
+    public float derivativeCutoff = 1.0f;
+    [Tooltip("Keep following the hand when tracking confidence drops (fast moves), with heavier smoothing, instead of freezing it in place.")]
+    public bool acceptLowConfidence = true;
+    [Tooltip("Multiplier on minCutoff/beta while confidence is low.")]
+    public float lowConfidenceScale = 0.4f;
+    Vector3[] euroPos, euroVel; Quaternion[] euroRot; bool[] euroInit;
     private Dictionary<int, List<Vector3>> positionQueue = new Dictionary<int, List<Vector3>>();
     private Dictionary<int, List<Quaternion>> rotationQueue = new Dictionary<int, List<Quaternion>>();
     private Dictionary<int, List<float>> timeStepQueue = new Dictionary<int, List<float>>();
@@ -90,7 +105,11 @@ public class SmoothHand : MonoBehaviour
                     timeStepQueue[i] = new List<float>();
                 }
                 break;
+            case MovingAverage.OneEuro:
+                for (int i = 0; i < numBones; i++) positionQueue[i] = null; // keeps positionQueue.Count == numBones for the loop below
+                break;
         }
+        euroPos = new Vector3[numBones]; euroVel = new Vector3[numBones]; euroRot = new Quaternion[numBones]; euroInit = new bool[numBones];
         if (record_data)
         {
             if (File.Exists(filePath))
@@ -109,18 +128,28 @@ public class SmoothHand : MonoBehaviour
         {
             LoadRecordedData();
         }
-        else if (oculus_hand.IsTracked && oculus_hand.HandConfidence == OVRHand.TrackingConfidence.High)
+        else if (oculus_hand.IsTracked && (oculus_hand.HandConfidence == OVRHand.TrackingConfidence.High || acceptLowConfidence))
         {
-            int numBones = oculus_skeleton.Bones.Count;
+            bool lowConfidence = oculus_hand.HandConfidence != OVRHand.TrackingConfidence.High;
+            float dt = Mathf.Max(Time.unscaledDeltaTime, 1e-4f);
+            // Drive the 24 legacy-OVR-rigged joints, whatever skeleton version the runtime reports
+            // (Meta XR SDK v74+ defaults to the 26-joint OpenXR skeleton).
+            int numBones = Mathf.Min(positionQueue.Count, HandBoneCompat.LegacyBoneCount);
             float currentTime = Time.time;
 
             for (int i = 0; i < numBones; i++)
             {
-                OVRBone bone = oculus_skeleton.Bones[i];
-
                 // Update queue data
-                Vector3 newPosition = bone.Transform.position;
-                Quaternion newRotation = bone.Transform.rotation;
+                if (!HandBoneCompat.TryGetLegacyPose(oculus_skeleton, i, out Vector3 newPosition, out Quaternion newRotation))
+                    continue;
+                if (movingAverage == MovingAverage.OneEuro)
+                {
+                    OneEuro(i, newPosition, newRotation, dt, lowConfidence, out Vector3 fp, out Quaternion fr);
+                    var joints = handType == HandType.LeftHand ? leftHandJoints : rightHandJoints;
+                    joints[i].SetPositionAndRotation(fp, fr);
+                    if (record_data) RecordHandJointsData(newPosition, newRotation, i);
+                    continue;
+                }
                 switch (movingAverage)
                 {
                     case MovingAverage.Simple or MovingAverage.Weighted:
@@ -172,6 +201,27 @@ public class SmoothHand : MonoBehaviour
             }
         }
     }
+    static float Alpha(float cutoff, float dt) { float tau = 1f / (2f * Mathf.PI * cutoff); return 1f / (1f + tau / dt); }
+
+    /// <summary>One-Euro filter (Casiez et al. 2012): heavy smoothing at rest, little lag at speed.</summary>
+    void OneEuro(int i, Vector3 x, Quaternion q, float dt, bool low, out Vector3 outPos, out Quaternion outRot)
+    {
+        if (!euroInit[i] || (x - euroPos[i]).sqrMagnitude > 0.25f)   // first sample, or a >0.5 m jump (tracking re-acquired)
+        {
+            euroInit[i] = true; euroPos[i] = x; euroVel[i] = Vector3.zero; euroRot[i] = q;
+            outPos = x; outRot = q; return;
+        }
+        float scale = low ? lowConfidenceScale : 1f;
+        Vector3 rawVel = (x - euroPos[i]) / dt;
+        euroVel[i] = Vector3.Lerp(euroVel[i], rawVel, Alpha(derivativeCutoff, dt));
+        float cutoff = minCutoff * scale + beta * scale * euroVel[i].magnitude;
+        float a = Alpha(cutoff, dt);
+        euroPos[i] = Vector3.Lerp(euroPos[i], x, a);
+        if (Quaternion.Dot(euroRot[i], q) < 0f) q = new Quaternion(-q.x, -q.y, -q.z, -q.w);
+        euroRot[i] = Quaternion.Slerp(euroRot[i], q, a);
+        outPos = euroPos[i]; outRot = euroRot[i];
+    }
+
     void RecordHandJointsData(Vector3 position, Quaternion rotation, int i)
     {
         // Record position and rotation data for left or right hand joints into a text file

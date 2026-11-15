@@ -1,0 +1,500 @@
+{
+ "scene": {
+  "engine": "unity",
+  "unitsPerMeter": 1,
+  "listener": "first_person",
+  "player": "centereyeanchor",
+  "behaviorContract": {
+   "version": "satie.behaviors/v1",
+   "listener": {
+    "host": "centereyeanchor",
+    "offsetM": [
+     0,
+     0,
+     0
+    ],
+    "maxErrorM": 0.25,
+    "alternates": []
+   },
+   "inventory": [
+    {
+     "host": "usu",
+     "discovery": {
+      "kind": "host-code",
+      "references": [
+       "Assets/MochiRhythm/Scripts/RhythmMode.cs DetectStrike(): the kine face reaches the dough surface (SurfaceY from MochiStation.Sim particle readback) moving down faster than minStrikeSpeed 0.8 m/s, back-dated to the crossing; PlayHit(at, speed); OnPartnerStrike(faceWorld)",
+       "Assets/MochiRhythm/Scripts/RhythmPartner.cs Pound(): the partner's strike",
+       "Assets/Scripts/Mochi/UsuTool.cs (innerRadiusBottom 0.125, innerRadiusTop 0.15, depth 0.13, outerRadius 0.205)",
+       "Assets/Scripts/Mochi/UsuTablePlacer.cs PlaceOnNearestTable(): moves the station once at startup",
+       "Assets/Scripts/Mochi/KineTool.cs: face at the local origin, strike along local -Y"
+      ],
+      "unresolved": [
+       "rim_knock has no callback yet: it will be added next to DetectStrike (head entering the rim band outside the bowl radius)."
+      ]
+     },
+     "states": [
+      {
+       "name": "on_stand",
+       "group": "state",
+       "behaviors": [
+        "pound",
+        "rim_knock"
+       ]
+      }
+     ]
+    },
+    {
+     "host": "mochisolver",
+     "discovery": {
+      "kind": "host-code",
+      "references": [
+       "Assets/Scripts/Mochi/MochiSolver.cs TackFor(): kine tack 0.15 s, open hands 0",
+       "Assets/Resources/MochiSolver.compute Particles: bonds age only while the tool pulls away and release together after the tool's tack time",
+       "Assets/Scripts/MpmTools/MatHand.cs: tracked hands as colliders"
+      ],
+      "unresolved": [
+       "tent_release, dough_slap and knead_speed have no existing callback; the new sound-events component derives them (tent_release: 0.15 s of simulated lift after a pound; dough_slap: a hand crossing the dough surface faster than a threshold)."
+      ]
+     },
+     "states": [
+      {
+       "name": "resting",
+       "group": "contact",
+       "behaviors": [],
+       "silentReason": "Dough at rest in the bowl makes no sound."
+      },
+      {
+       "name": "kneaded",
+       "group": "contact",
+       "behaviors": [
+        "knead",
+        "dough_slap"
+       ]
+      },
+      {
+       "name": "stretched",
+       "group": "contact",
+       "behaviors": [
+        "tent_release"
+       ]
+      }
+     ]
+    },
+    {
+     "host": "kine",
+     "discovery": {
+      "kind": "host-code",
+      "references": [
+       "Assets/Scripts/Mochi/KineDriver.cs Mode Controller|AutoPound|External, Rest()",
+       "Assets/Scripts/Mochi/GrabZone.cs Grabbed / Released events",
+       "Assets/Scripts/Mochi/MochiGrabber.cs pinch and closed-hand grab",
+       "Assets/Scripts/Mochi/KineSafety.cs head speed"
+      ],
+      "unresolved": []
+     },
+     "states": [
+      {
+       "name": "resting",
+       "group": "control",
+       "behaviors": [],
+       "silentReason": "Stands on its face beside the usu (KineDriver.restPosition) until picked up."
+      },
+      {
+       "name": "held",
+       "group": "control",
+       "behaviors": [
+        "kine_swing"
+       ]
+      },
+      {
+       "name": "auto_pound",
+       "group": "control",
+       "behaviors": [
+        "kine_swing"
+       ]
+      },
+      {
+       "name": "partner",
+       "group": "control",
+       "behaviors": [
+        "kine_swing"
+       ]
+      }
+     ]
+    },
+    {
+     "host": "centereyeanchor",
+     "discovery": {
+      "kind": "host-code",
+      "references": [
+       "MochiStandalone.unity: OVRCameraRig at (0, 0.30, -1.0), floor tracking (commit 5d230c6)"
+      ],
+      "unresolved": []
+     },
+     "states": [
+      {
+       "name": "standing",
+       "group": "state",
+       "behaviors": [],
+       "silentReason": "Room-scale VR without locomotion: the player stands at the usu, so there are no footsteps."
+      }
+     ]
+    }
+   ],
+   "behaviors": [
+    {
+     "id": "pound",
+     "host": "usu",
+     "sourceIds": [
+      "pound"
+     ],
+     "kind": "impact",
+     "authority": "physics-impact",
+     "event": "pound",
+     "signals": [
+      "strike_speed"
+     ],
+     "sourceRole": "isolated-impact",
+     "spatial": {
+      "kind": "point",
+      "nearM": 0.5,
+      "farM": 8,
+      "minDropDb": 10
+     },
+     "maxLatencyMs": 40,
+     "minEvents": 2,
+     "minDistinctTakes": 4,
+     "stateCases": []
+    },
+    {
+     "id": "rim_knock",
+     "host": "usu",
+     "sourceIds": [
+      "rim_knock"
+     ],
+     "kind": "impact",
+     "authority": "physics-impact",
+     "event": "rim_knock",
+     "signals": [
+      "strike_speed"
+     ],
+     "sourceRole": "isolated-impact",
+     "spatial": {
+      "kind": "point",
+      "nearM": 0.5,
+      "farM": 8,
+      "minDropDb": 10
+     },
+     "maxLatencyMs": 40,
+     "minEvents": 2,
+     "minDistinctTakes": 3,
+     "stateCases": []
+    },
+    {
+     "id": "tent_release",
+     "host": "mochisolver",
+     "sourceIds": [
+      "tent_release"
+     ],
+     "kind": "state",
+     "authority": "physics-state",
+     "event": "tent_release",
+     "signals": [],
+     "sourceRole": "isolated-impact",
+     "spatial": {
+      "kind": "point",
+      "nearM": 0.5,
+      "farM": 6,
+      "minDropDb": 10
+     },
+     "maxLatencyMs": 60,
+     "minEvents": 2,
+     "minDistinctTakes": 3,
+     "stateCases": []
+    },
+    {
+     "id": "dough_slap",
+     "host": "mochisolver",
+     "sourceIds": [
+      "dough_slap"
+     ],
+     "kind": "impact",
+     "authority": "physics-impact",
+     "event": "dough_slap",
+     "signals": [],
+     "sourceRole": "isolated-impact",
+     "spatial": {
+      "kind": "point",
+      "nearM": 0.5,
+      "farM": 6,
+      "minDropDb": 10
+     },
+     "maxLatencyMs": 40,
+     "minEvents": 2,
+     "minDistinctTakes": 3,
+     "stateCases": []
+    },
+    {
+     "id": "knead",
+     "host": "mochisolver",
+     "sourceIds": [
+      "knead"
+     ],
+     "kind": "continuous",
+     "authority": "physics-state",
+     "signals": [
+      "knead_speed"
+     ],
+     "sourceRole": "stationary-texture",
+     "spatial": {
+      "kind": "point",
+      "nearM": 0.5,
+      "farM": 6,
+      "minDropDb": 10
+     },
+     "minEvents": 2,
+     "minDistinctTakes": 1,
+     "stateCases": []
+    },
+    {
+     "id": "kine_swing",
+     "host": "kine",
+     "sourceIds": [
+      "kine_swing"
+     ],
+     "kind": "continuous",
+     "authority": "physics-state",
+     "signals": [
+      "kine_speed"
+     ],
+     "sourceRole": "stationary-texture",
+     "spatial": {
+      "kind": "point",
+      "nearM": 0.5,
+      "farM": 6,
+      "minDropDb": 10
+     },
+     "minEvents": 2,
+     "minDistinctTakes": 1,
+     "stateCases": []
+    }
+   ]
+  },
+  "objects": [
+   {
+    "id": "usu",
+    "role": "pounding mortar",
+    "label": "mortar (usu)",
+    "material": "wood (carved wooden bowl, inner radius 0.125-0.15 m, 0.13 m deep, outer radius 0.205 m)",
+    "motion": "moves",
+    "notes": "Child of MochiStation. Starts on the stump with its base at (0, 0.80, 0); UsuTablePlacer may move the station once at startup onto the player's real table. Every strike happens here: the dough sits in the bowl. Unity GameObject: Usu (bound with SatieCore.Bind)."
+   },
+   {
+    "id": "mochisolver",
+    "role": "dough",
+    "label": "mochi dough",
+    "material": "soft, elastic, sticky pounded glutinous rice (about 2.2 kg)",
+    "motion": "moves",
+    "notes": "Child of MochiStation at the usu floor; its rendered surface is the child MochiSurface. Dents under the kine, stretches into a tent when the kine lifts, then lets go and slumps back into a mound. Pushed and slapped by bare tracked hands. Unity GameObject: MochiSolver (bound with SatieCore.Bind)."
+   },
+   {
+    "id": "kine",
+    "role": "held tool",
+    "label": "mallet (kine)",
+    "material": "wood (cylindrical head 12 cm across and 20 cm long on a long handle)",
+    "motion": "moves",
+    "notes": "Stands on its face on the stump beside the usu until picked up (pinch or closed-hand grab on its handle). Swung by the player at up to about 4-8 m/s; in rhythm mode the partner swings it on the beat while nobody holds it. Its strikes sound at the usu (pound, rim_knock). Unity GameObject: Kine (bound with SatieCore.Bind)."
+   },
+   {
+    "id": "centereyeanchor",
+    "label": "you",
+    "material": "person",
+    "motion": "moves",
+    "notes": "The headset (OVRCameraRig/TrackingSpace/CenterEyeAnchor). Room-scale VR with no locomotion: the player stands at the usu. Unity GameObject: CenterEyeAnchor (bound with SatieCore.Bind)."
+   },
+   {
+    "id": "mr_usupedestal",
+    "label": "tree-stump pedestal",
+    "position": [
+     0,
+     0.4,
+     0
+    ],
+    "sizeM": [
+     0.88,
+     0.8,
+     0.88
+    ],
+    "material": "wood stump on a stone slab",
+    "motion": "static",
+    "notes": "Silent. Holds the usu and the resting kine. Unity GameObject: MR_UsuPedestal."
+   },
+   {
+    "id": "mr_cassiatree",
+    "label": "cassia tree",
+    "position": [
+     2.4,
+     1.8,
+     2.8
+    ],
+    "sizeM": [
+     3.2,
+     3.6,
+     3.2
+    ],
+    "occludes": false,
+    "material": "tree trunk with a rounded leafy canopy and golden blossoms",
+    "motion": "static",
+    "notes": "3.6 m tall, canopy radius 1.6 m. Not animated. Unity GameObject: MR_CassiaTree."
+   },
+   {
+    "id": "mr_stonelantern_0",
+    "label": "stone lantern (left)",
+    "position": [
+     -2.4,
+     0.57,
+     1.5
+    ],
+    "sizeM": [
+     0.5,
+     1.15,
+     0.5
+    ],
+    "material": "stone, with a warm glowing light inside",
+    "motion": "static",
+    "notes": "Silent glow. Unity GameObject: MR_StoneLantern_0."
+   },
+   {
+    "id": "mr_stonelantern_1",
+    "label": "stone lantern (right)",
+    "position": [
+     2.6,
+     0.57,
+     1.2
+    ],
+    "sizeM": [
+     0.5,
+     1.15,
+     0.5
+    ],
+    "material": "stone, with a warm glowing light inside",
+    "motion": "static",
+    "notes": "Silent glow. Unity GameObject: MR_StoneLantern_1."
+   },
+   {
+    "id": "mr_bamboo",
+    "label": "bamboo grove",
+    "position": [
+     0,
+     3.75,
+     0
+    ],
+    "radiusM": 10,
+    "occludes": false,
+    "material": "bamboo stalks and leaves",
+    "motion": "static",
+    "notes": "A ring of about 300 stalks from 4.8 m to 15 m out, 5.5-9.5 m tall, open over 55 degrees toward +Z. Drawn as static instanced meshes; no sway. Unity GameObject: MR_Bamboo."
+   },
+   {
+    "id": "mr_steppingstones",
+    "label": "stepping stones",
+    "position": [
+     -1.4,
+     0.02,
+     7.7
+    ],
+    "material": "flat stones",
+    "motion": "static",
+    "notes": "Silent. A path out through the gap, 4.4-11 m from the mortar. Unity GameObject: MR_SteppingStones."
+   },
+   {
+    "id": "mr_moon",
+    "label": "the Moon",
+    "position": [
+     0,
+     56.9,
+     127.9
+    ],
+    "radiusM": 16,
+    "material": "sky body",
+    "motion": "static",
+    "notes": "Silent, 140 m away in the sky straight ahead. Unity GameObject: MR_Moon."
+   },
+   {
+    "id": "mr_earth",
+    "label": "the Earth",
+    "position": [
+     -61.3,
+     83.6,
+     78.5
+    ],
+    "radiusM": 4.5,
+    "material": "sky body",
+    "motion": "static",
+    "notes": "Silent, 130 m away, high to the front left. Unity GameObject: MR_Earth."
+   }
+  ],
+  "environment": {
+   "setting": "The Moon of the moon-rabbit legend: a small moonlit clearing ringed by bamboo, a golden cassia tree beside a wooden mochi mortar (usu) on a tree stump, two glowing stone lanterns; the Moon and Earth in the sky ahead (+Z)",
+   "time": "Night, moonlit",
+   "weather": "Still and misty (ink-wash fog). No wind is animated anywhere in the world.",
+   "ground": "Soft packed earth in the clearing; forest earth and leaf litter under the bamboo; a few flat stepping stones leading out through the gap",
+   "enclosure": "Open air inside a ring of about 300 bamboo stalks 5.5-9.5 m tall, from 4.8 m to 15 m out from the mortar, open over 55 degrees toward +Z",
+   "notes": "Unity 6, Meta Quest 3 standalone, left-handed coordinates in metres, +Y up, the player faces +Z. Mixed reality: the player stands about 1 m south of the usu (camera rig at (0, 0.30, -1.0), floor tracking) and swings a virtual kine (mallet) held with tracked hands; a second person can knead the dough with bare hands between strikes. The usu stands on the stump at the origin (its base at y = 0.80 m), or, when the headset's room scan has a table within 3 m, the whole station moves once at startup onto the real table and the table shows through passthrough. The dough is a real-time particle simulation: it dents under a strike, sticks to the lifting kine and stretches up into a tent, lets go about 0.15 s into the lift and falls back into a mound. Nothing else in the world moves. The game has no sound at all yet."
+  },
+  "events": [
+   {
+    "name": "pound",
+    "description": "The kine's flat face meets the dough in the usu moving downward (faster than 0.8 m/s): a heavy wooden mallet into soft, elastic, sticky mochi in a wooden mortar. Louder and heavier with strike_speed (published just before the event). Swung by the player, or in rhythm mode by the on-beat partner when nobody holds the kine. From about one strike every 1-2 s to one per beat of a song.",
+    "with": "kine"
+   },
+   {
+    "name": "rim_knock",
+    "description": "A missed strike: the kine head hits the usu's wooden rim or wall instead of the dough. Wood on wood.",
+    "with": "kine",
+    "by": "centereyeanchor"
+   },
+   {
+    "name": "tent_release",
+    "description": "As the kine lifts, the dough stuck to its face stretches up into a tent, then lets go of the kine about 0.15 s into the lift (all at once) and falls back into the mound: a sticky peel and soft flop."
+   },
+   {
+    "name": "dough_slap",
+    "description": "A bare hand slaps or presses quickly into the dough (the kneader between strikes): a wet soft slap of palm on warm mochi."
+   }
+  ],
+  "states": [
+   {
+    "name": "free_play",
+    "description": "No song: the player pounds and kneads freely in the quiet clearing."
+   },
+   {
+    "name": "rhythm",
+    "description": "Rhythm mode: one of the player's own songs plays (Unity AudioSource, not Satie) and notes approach the rim; judgements are shown visually only. The ambience should sit under the music."
+   }
+  ],
+  "signals": [
+   {
+    "name": "strike_speed",
+    "description": "Downward speed of the kine face at the moment it reaches the dough or the rim. Published right before pound or rim_knock.",
+    "min": 0,
+    "max": 8,
+    "unit": "m/s"
+   },
+   {
+    "name": "kine_speed",
+    "description": "Speed of the kine head whenever it moves: held and swung, auto-pound, or the rhythm partner's swing (0 while it rests). For the swing.",
+    "min": 0,
+    "max": 8,
+    "unit": "m/s"
+   },
+   {
+    "name": "knead_speed",
+    "description": "Speed of the fastest bare hand that is touching the dough (0 when no hand touches it).",
+    "min": 0,
+    "max": 1.5,
+    "unit": "m/s"
+   }
+  ]
+ }
+}

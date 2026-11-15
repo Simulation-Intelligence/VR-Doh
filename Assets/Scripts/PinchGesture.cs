@@ -360,25 +360,12 @@ public class PinchGesture : MonoBehaviour
 
     Transform GetBoneTransform(OVRSkeleton.BoneId boneId)
     {
+        // boneId is a legacy OVR id; the smoothed hand joints are stored in that same legacy order.
         if (!UseSmoothHand)
-        {
-            foreach (var bone in oculus_skeleton.Bones)
-            {
-                if (bone.Id == boneId) return bone.Transform;
-            }
-        }
-        else
-        {
-            for (int i = 0; i < oculus_skeleton.Bones.Count; i++)
-            {
-                OVRBone bone = oculus_skeleton.Bones[i];
-                if (bone.Id == boneId)
-                {
-                    return _handJointsData[i];
-                }
-            }
-        }
-        return null;
+            return HandBoneCompat.Find(oculus_skeleton, boneId);
+
+        int i = (int)boneId;
+        return (_handJointsData != null && i >= 0 && i < _handJointsData.Count) ? _handJointsData[i] : null;
     }
 
     void CreateOrUpdatePinchSphere(Vector3 position)

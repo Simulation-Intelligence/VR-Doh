@@ -1,0 +1,9 @@
+{
+  "name": "Satie.Runtime",
+  "rootNamespace": "Satie.Core",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

@@ -1,0 +1,101 @@
+{
+  "about": "Satie's generated impacts held several hits each, so each slot is cut to one hit (or, for the dough release, about 0.8 s around its loudest part). Cut files are in Satie/takes/; copy them into .satie/takes/ (node Satie/use-cut-takes.mjs) before running the satie-unity line again, or it compiles the uncut downloads. Made 2026-11-14 with ffmpeg from the takes in Satie/samples.json.",
+  "cuts": {
+    "Audio/generation/pound_34095c15_24694bd6": {
+      "file": "heavy_wooden_mallet_strike_d4453d.mp3",
+      "source": "c8670e41-3e59-4a25-b703-800e59e39305",
+      "start": 0.07,
+      "duration": 0.13,
+      "fadeIn": 0.004,
+      "fadeOut": 0.03
+    },
+    "Audio/generation/pound_34095c15_24694bd6#2": {
+      "file": "pound_34095c15_24694bd6_2_71f7f7.mp3",
+      "source": "c8670e41-3e59-4a25-b703-800e59e39305",
+      "start": 2.57,
+      "duration": 0.22,
+      "fadeIn": 0.004,
+      "fadeOut": 0.05
+    },
+    "Audio/generation/pound_34095c15_24694bd6#3": {
+      "file": "pound_34095c15_24694bd6_3_0276bf.mp3",
+      "source": "56be4800-78cf-46af-8c7e-1b42350f8c59",
+      "start": 0.72,
+      "duration": 0.17,
+      "fadeIn": 0.004,
+      "fadeOut": 0.05
+    },
+    "Audio/generation/pound_34095c15_24694bd6#4": {
+      "file": "heavy_wooden_mallet_strike_ebe9eb.mp3",
+      "source": "2173f170-ba5b-4dba-9f39-8701224c08d6",
+      "start": 1.78,
+      "duration": 0.12,
+      "fadeIn": 0.004,
+      "fadeOut": 0.03
+    },
+    "Audio/generation/rim_knock_7e23f170_e3e56df1": {
+      "file": "heavy_wooden_mallet_strike_rim_b80c9e.mp3",
+      "source": "947cb11a-6ee9-4926-afef-5e735dbab2ed",
+      "start": 0.0,
+      "duration": 0.44,
+      "fadeIn": 0.004,
+      "fadeOut": 0.05
+    },
+    "Audio/generation/rim_knock_7e23f170_e3e56df1#3": {
+      "file": "rim_knock_7e23f170_e3e56df1_3_c55541.mp3",
+      "source": "947cb11a-6ee9-4926-afef-5e735dbab2ed",
+      "start": 2.23,
+      "duration": 0.34,
+      "fadeIn": 0.004,
+      "fadeOut": 0.05
+    },
+    "Audio/generation/single_bare_palm_slap_onto_moi": {
+      "file": "bare_palm_slap_moist_sticky_3c52fe.mp3",
+      "source": "c17c964c-0691-4b7d-a5cc-af19a275c570",
+      "start": 0.28,
+      "duration": 0.17,
+      "fadeIn": 0.004,
+      "fadeOut": 0.05
+    },
+    "Audio/generation/single_bare_palm_slap_onto_moi#2": {
+      "file": "single_bare_palm_slap_onto_moi_2_8f8674.mp3",
+      "source": "31e6d8bf-48ec-4a6d-a508-255028f268e3",
+      "start": 1.7,
+      "duration": 0.17,
+      "fadeIn": 0.004,
+      "fadeOut": 0.05
+    },
+    "Audio/generation/single_bare_palm_slap_onto_moi#3": {
+      "file": "bare_palm_slap_moist_sticky_74928e.mp3",
+      "source": "31e6d8bf-48ec-4a6d-a508-255028f268e3",
+      "start": 0.01,
+      "duration": 0.17,
+      "fadeIn": 0.004,
+      "fadeOut": 0.05
+    },
+    "Audio/generation/single_release_of_stretched_st": {
+      "file": "single_release_of_stretched_st_a89904.mp3",
+      "source": "837ea276-46da-4efb-ab6d-abc5484e73e4",
+      "start": 1.78,
+      "duration": 0.8,
+      "fadeIn": 0.02,
+      "fadeOut": 0.15
+    },
+    "Audio/generation/single_release_of_stretched_st#2": {
+      "file": "single_release_of_stretched_st_2_92f568.mp3",
+      "source": "32705790-c64b-4f52-9035-417bf7dea60a",
+      "start": 1.18,
+      "duration": 0.8,
+      "fadeIn": 0.02,
+      "fadeOut": 0.15
+    },
+    "Audio/generation/single_release_of_stretched_st#3": {
+      "file": "release_stretched_sticky_30cabd.mp3",
+      "source": "abfb7a5b-e5a5-44e6-b6b9-40831c344e86",
+      "start": 0.78,
+      "duration": 0.8,
+      "fadeIn": 0.02,
+      "fadeOut": 0.15
+    }
+  }
+}

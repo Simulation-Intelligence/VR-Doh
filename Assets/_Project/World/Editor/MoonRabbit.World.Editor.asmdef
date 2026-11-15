@@ -1,0 +1,30 @@
+{
+    "name": "MoonRabbit.World.Editor",
+    "rootNamespace": "MoonRabbit.WorldEditor",
+    "references": [
+        "MoonRabbit.World",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "MR_TMP"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "3.2.0",
+            "define": "MR_TMP"
+        }
+    ],
+    "noEngineReferences": false
+}

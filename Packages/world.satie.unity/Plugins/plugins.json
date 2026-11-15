@@ -1,0 +1,12 @@
+{
+  "abi": 4,
+  "commit": "3a9f509c913dc058aeb9966f73f64f41254b9d18",
+  "run": 43574708361,
+  "coreSourceSha256": "8cfa275bf0339b3db44ff206322b74346d42d78822418cb142621e704b5e2c19",
+  "files": {
+    "macOS/libsatie_core.dylib": "b2901b178204a3a5037b52c6987d6c1b12377d705661fc48c6103bf3fb5ed234",
+    "Windows/x86_64/satie_core.dll": "35f3eca8ea56fd79798e8b85b4cba367b04b866b48c66a9a47f3f67a67330031",
+    "Linux/x86_64/libsatie_core.so": "92879ea963ac727b62fbbf7af3a514728ca542f189b6ef2af54e54b6a4ae8489",
+    "Android/arm64-v8a/libsatie_core.so": "bdfbc1f8e3673216abe3e44985c549527747ff27075d973acfd3e728c291ad41"
+  }
+}

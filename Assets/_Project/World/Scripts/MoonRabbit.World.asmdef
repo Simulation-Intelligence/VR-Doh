@@ -1,0 +1,33 @@
+{
+    "name": "MoonRabbit.World",
+    "rootNamespace": "MoonRabbit.World",
+    "references": [
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "MR_INPUT_SYSTEM"
+        },
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "MR_TMP"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "3.2.0",
+            "define": "MR_TMP"
+        }
+    ],
+    "noEngineReferences": false
+}
