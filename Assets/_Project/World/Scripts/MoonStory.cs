@@ -255,6 +255,7 @@ namespace MoonRabbit.World
 
             progress.onComplete.AddListener(OnComplete);
             progress.onStrike.AddListener(_ => pulse = 1f);
+            progress.DemoResetRequested += HardReset;
             started = true;
         }
 
@@ -721,6 +722,24 @@ namespace MoonRabbit.World
             StartCoroutine(Fade(x => EarthPulse = x, EarthPulse, 0f, 1.5f));
             if (!moonFollowsProgress) StartCoroutine(Fade(x => moonFull = x, moonFull, 0f, 1.5f));
             Resetted?.Invoke();
+        }
+
+        /// <summary>Demo reset (hold A / R): stop the ending wherever it is, clear its effects, give the dough back,
+        /// darken the Earth and start again from the intro, exactly like the reset after the ending.</summary>
+        public void HardReset()
+        {
+            StopAllCoroutines();
+            if (orb != null) orb.SetActive(false);
+            if (text != null) text.SetAlpha(0f);
+            trailCount = 0; trailUntil = -1f;
+            burstStart = -10f; wishStart = -100f;
+            cityOn = 0f; EarthPulse = 0f; pulse = 0f;
+            if (!moonFollowsProgress) moonFull = 0f;
+            InEnding = false;
+            link.ResetDough();
+            link.SetDoughVisible(true);
+            progress.ResetProgress();   // unlocks, progress 0, rice grains re-placed (onReset)
+            Resetted?.Invoke();         // StoryIntro restarts (and darkens the Earth)
         }
 
         IEnumerator EarthGlowPulse()

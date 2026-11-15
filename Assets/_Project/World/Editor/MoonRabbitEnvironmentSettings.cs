@@ -103,6 +103,9 @@ namespace MoonRabbit.WorldEditor
         public bool moonFollowsProgress = true;
         [Tooltip("Intro (fade in, four story lines, about 13 s, skippable) on start and after every reset.")]
         public bool storyIntro = true;
+        [Tooltip("Demo: putting the headset back on after it was off for headsetRestartMinSeconds restarts from the intro.")]
+        public bool headsetRestart = true;
+        public float headsetRestartMinSeconds = 3f;
 
         [Header("Warm light on the dough (lantern side of the usu)")]
         [Tooltip("Small warm Spot light that shines into the bowl, so the dough reads as warm white rice cake under the blue moonlight. " +

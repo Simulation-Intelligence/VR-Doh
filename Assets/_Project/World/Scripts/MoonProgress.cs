@@ -20,7 +20,7 @@ namespace MoonRabbit.World
     /// </code>
     /// When the real strike events are wired up, untick <see cref="demoStrikeDetection"/>.
     /// Demo controls (presentation backup): right controller A = +1/N, hold A 1 s = reset;
-    /// keyboard P = +1/N, R = reset, F = finish.
+    /// keyboard P = +1/N, R = reset, F = finish. The demo reset restarts everything from the intro.
     /// </summary>
     [DefaultExecutionOrder(-50), DisallowMultipleComponent]
     public class MoonProgress : MonoBehaviour
@@ -115,6 +115,17 @@ namespace MoonRabbit.World
         /// <summary>Visual only (rice grains hop); does not change the progress.</summary>
         public void NotifyStrike(Vector3 worldPoint) => onStrike.Invoke(worldPoint);
 
+        /// <summary>Raised by the demo reset (hold A 1 s, R key): MoonStory clears the ending and restarts from the intro.</summary>
+        public event Action DemoResetRequested;
+
+        /// <summary>Demo reset: like the automatic reset after the ending (story, dough, rice, intro). Falls back to
+        /// <see cref="ResetProgress"/> when nothing handles it.</summary>
+        public void RequestDemoReset()
+        {
+            if (DemoResetRequested != null) DemoResetRequested.Invoke();
+            else ResetProgress();
+        }
+
         /// <summary>Back to 0 (crescent). Also unlocks after the ending.</summary>
         public void ResetProgress()
         {
@@ -160,7 +171,7 @@ namespace MoonRabbit.World
             if (aDown && !holdFired && aDownTime >= 0f && Time.unscaledTime - aDownTime >= holdToReset)
             {
                 holdFired = true;
-                ResetProgress();
+                RequestDemoReset();
             }
             if (!aDown && aWasDown && !holdFired) AddDemoStep();
             aWasDown = aDown;
@@ -170,12 +181,12 @@ namespace MoonRabbit.World
             if (kb != null)
             {
                 if (kb.pKey.wasPressedThisFrame) AddDemoStep();
-                if (kb.rKey.wasPressedThisFrame) ResetProgress();
+                if (kb.rKey.wasPressedThisFrame) RequestDemoReset();
                 if (kb.fKey.wasPressedThisFrame) Set(1f);
             }
 #elif ENABLE_LEGACY_INPUT_MANAGER
             if (Input.GetKeyDown(KeyCode.P)) AddDemoStep();
-            if (Input.GetKeyDown(KeyCode.R)) ResetProgress();
+            if (Input.GetKeyDown(KeyCode.R)) RequestDemoReset();
             if (Input.GetKeyDown(KeyCode.F)) Set(1f);
 #endif
         }

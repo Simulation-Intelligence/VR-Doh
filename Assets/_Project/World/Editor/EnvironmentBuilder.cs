@@ -767,6 +767,10 @@ namespace MoonRabbit.WorldEditor
                 follow.warmLightOffset = wl.localPosition - (s.mortarPosition + Vector3.up * s.pedestalHeight);
             }
 
+            var hr = go.AddComponent<HeadsetRestart>();
+            hr.restartOnRemount = s.headsetRestart;
+            hr.minRemovedSeconds = s.headsetRestartMinSeconds;
+
             var intro = go.AddComponent<StoryIntro>();
             intro.playIntro = s.storyIntro;
 #if MR_TMP
