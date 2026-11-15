@@ -104,6 +104,7 @@ namespace MoonRabbit.WorldEditor
             {
                 EditorUtility.DisplayProgressBar("Moon Rabbit", "Environment (bamboo, cassia tree, lanterns, sky)...", 0.2f);
                 env = EnvironmentBuilder.BuildPrefab(s, scene);
+                if (s.teamUsuKineSkins && PropBuilder == null) UsuKineSkinBuilder.Build(s);
                 if (PropBuilder != null)
                 {
                     EditorUtility.DisplayProgressBar("Moon Rabbit", "Mortar and pestle...", 0.75f);

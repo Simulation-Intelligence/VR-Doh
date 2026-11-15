@@ -33,6 +33,7 @@ namespace MoonRabbit.WorldEditor
             BuildStones(s, t, mats, rng);
             if (s.pedestal && MoonRabbitMenu.PropBuilder == null) BuildPedestal(s, t, mats, rng);
             var moonlight = BuildMoonlight(s, t);
+            if (s.mochiWarmLight) BuildMochiLight(s, t);
             var sky = BuildSky(s, rng);
             BuildCelestial(s, t);
 
@@ -41,13 +42,16 @@ namespace MoonRabbit.WorldEditor
             atm.moonlight = moonlight;
             atm.fog = true;
             atm.fogMode = s.fogMode;
-            atm.fogColor = s.horizonFog;
-            atm.fogDensity = s.fogDensity;
+            atm.fogColor = s.floatingIsland ? Color.Lerp(s.horizonFog, s.navySky, 0.65f) : s.horizonFog; // island: fog meets the open sky
+            atm.fogDensity = s.floatingIsland ? s.fogDensity * 0.7f : s.fogDensity; // island: see past the edge into the sky
             atm.fogStart = s.fogStart;
             atm.fogEnd = s.fogEnd;
             atm.ambientSky = s.ambientSky;
             atm.ambientEquator = s.ambientEquator;
             atm.ambientGround = s.ambientGround;
+
+            if (s.teamProps) BuildTeamProps(s, t);
+            if (s.storyProgression) BuildStory(s, t, atm, moonlight);
 
             var prefab = MRAssets.SavePrefab(root, PrefabPath);
             Object.DestroyImmediate(root);
@@ -105,8 +109,24 @@ namespace MoonRabbit.WorldEditor
             float bump = Mathf.Lerp(GroundBump[k], GroundBump[k + 1], t);
             float noise = (Noise3(new Vector3(x, 0f, z), 0.22f, 11f) - 0.5f) * 2f + (Noise3(new Vector3(x, 0f, z), 0.8f, 5f) - 0.5f) * 0.6f;
             float h = lift + noise * bump;
+            if (s.floatingIsland)
+            {
+                // island: the forest floor rolls on to the edge and rounds off slightly at the lip
+                float edge = IslandEdge(s, x, z);
+                h = Mathf.Lerp(h, h - 0.35f, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(edge - 1.8f, edge, r)));
+                return h;
+            }
             if (r > s.groundRadius - 6f) h = Mathf.Lerp(h, -0.3f, Mathf.InverseLerp(s.groundRadius - 6f, s.groundRadius, r)); // rim sinks into the fog
             return h;
+        }
+
+        /// <summary>Island edge radius in the direction of (x, z): islandRadius with a slow irregular wobble.</summary>
+        public static float IslandEdge(MoonRabbitEnvironmentSettings s, float x, float z)
+        {
+            var d = new Vector3(x, 0f, z);
+            d = d.sqrMagnitude > 1e-6f ? d.normalized : Vector3.forward;
+            float n = (Noise3(d * 2.2f, 1f, 23f) - 0.5f) * 2f + (Noise3(d * 5f, 1f, 31f) - 0.5f) * 0.6f;
+            return s.islandRadius * (1f + s.islandEdgeNoise * n);
         }
 
         static void BuildGround(MoonRabbitEnvironmentSettings s, Transform root, Mats m, Rng rng)
@@ -117,8 +137,12 @@ namespace MoonRabbit.WorldEditor
             var radii = new List<float> { 0f, R * 0.5f, R };
             foreach (var o in GroundRadiiOffsets) if (o > 0f) radii.Add(R + o);
             float last = radii[radii.Count - 1];
-            for (float rr = last + 4f; rr < s.groundRadius; rr += 5f) radii.Add(rr);
-            radii.Add(Mathf.Max(last + 1f, s.groundRadius));
+            float outer = s.floatingIsland ? s.islandRadius : s.groundRadius;
+            radii.RemoveAll(rr => rr > outer - 0.5f);
+            last = radii[radii.Count - 1];
+            for (float rr = last + 4f; rr < outer - 1f; rr += 4f) radii.Add(rr);
+            if (s.floatingIsland) { radii.Add(outer - 0.9f); radii.Add(outer - 0.3f); }
+            radii.Add(Mathf.Max(last + 1f, outer));
 
             var rings = new Vector3[radii.Count][];
             for (int k = 0; k < radii.Count; k++)
@@ -128,7 +152,10 @@ namespace MoonRabbit.WorldEditor
                 for (int i = 0; i < n; i++)
                 {
                     float a = (i + offset) / n * Mathf.PI * 2f;
-                    float x = Mathf.Sin(a) * radii[k], z = Mathf.Cos(a) * radii[k];
+                    float rk = radii[k];
+                    // island: the rings beyond the clearing follow the irregular edge
+                    if (s.floatingIsland && rk > R) rk = Mathf.Lerp(rk, rk * IslandEdge(s, Mathf.Sin(a), Mathf.Cos(a)) / s.islandRadius, Mathf.InverseLerp(R, s.islandRadius, rk));
+                    float x = Mathf.Sin(a) * rk, z = Mathf.Cos(a) * rk;
                     rings[k][i] = new Vector3(x, GroundHeight(s, x, z), z);
                 }
             }
@@ -160,12 +187,109 @@ namespace MoonRabbit.WorldEditor
                 }
             }
 
+            islandEdgeRing = rings[rings.Length - 1];
             var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_Ground"), $"{G}/Meshes/MR_Ground.asset");
             var go = MeshObject("MR_Ground", root, mesh, new[] { m.clearing, m.ground }, ShadowCastingMode.Off);
+            if (s.mochiWarmLight && s.warmLightExcludedLayer >= 0) go.layer = s.warmLightExcludedLayer; // see the setting
             var col = go.AddComponent<BoxCollider>();
             col.center = new Vector3(0f, -0.05f, 0f);
-            col.size = new Vector3(s.groundRadius * 2f, 0.1f, s.groundRadius * 2f);
+            float cr = s.floatingIsland ? s.islandRadius : s.groundRadius;
+            col.size = new Vector3(cr * 2f, 0.1f, cr * 2f);
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            if (s.floatingIsland) BuildIslandUnderside(s, root, m, rng);
+        }
+
+        static Vector3[] islandEdgeRing;
+
+        // ------------------------------------------------------------------ floating island underside
+
+        /// <summary>Low-poly rocky underside (roughly an inverted cone) from the ground's edge ring down to a tip, an earthy
+        /// band at the top, plus a few small rocks floating further out below. Flat-shaded, no collider, no shadows.</summary>
+        static void BuildIslandUnderside(MoonRabbitEnvironmentSettings s, Transform root, Mats m, Rng rng)
+        {
+            var edge = islandEdgeRing;
+            if (edge == null || edge.Length < 3) return;
+            int n = edge.Length;
+            var rock = MRAssets.Lit(G, "MR_IslandRock", s.islandRock, 0.06f);
+            var mb = new MeshBuilder(2); // 0 earth band, 1 rock
+            float D = Mathf.Max(3f, s.islandDepth);
+            float[] depth = { 0f, 0.55f, 1.6f, 3.2f, 5.0f, 7.0f, 9.0f, 1f };
+            float[] scale = { 1f, 0.97f, 0.86f, 0.68f, 0.5f, 0.32f, 0.15f, 0f };
+            depth[depth.Length - 1] = D;
+            for (int k = 1; k < depth.Length - 1; k++) depth[k] *= D / 11f;
+            var rings = new Vector3[depth.Length][];
+            for (int k = 0; k < depth.Length; k++)
+            {
+                rings[k] = new Vector3[n];
+                for (int i = 0; i < n; i++)
+                {
+                    var e = edge[i];
+                    if (k == 0) { rings[k][i] = e; continue; }
+                    var flat = new Vector3(e.x, 0f, e.z);
+                    float jag = k < depth.Length - 1 ? (Noise3(flat * 0.35f + Vector3.up * k, 1f, 41f) - 0.5f) * 0.28f : 0f;
+                    var p = flat * (scale[k] * (1f + jag)) + Vector3.up * (e.y - depth[k] + (rng.Value - 0.5f) * 0.6f * Mathf.Min(1f, k / 2f));
+                    rings[k][i] = p;
+                }
+            }
+            var tip = new Vector3(0f, -D - 1.5f, 0f);
+            for (int k = 0; k < depth.Length - 1; k++)
+                for (int i = 0; i < n; i++)
+                {
+                    int j = (i + 1) % n;
+                    int sub = k == 0 ? 0 : 1;
+                    var a = rings[k][i]; var b = rings[k][j];
+                    var c = k + 1 == depth.Length - 1 ? tip : rings[k + 1][j];
+                    var d = k + 1 == depth.Length - 1 ? tip : rings[k + 1][i];
+                    var outward = (new Vector3(a.x + b.x, 0f, a.z + b.z)).normalized + Vector3.down * 0.6f;
+                    mb.Tri(a, b, c, outward, sub);
+                    if (k + 1 < depth.Length - 1) mb.Tri(a, c, d, outward, sub);
+                }
+            var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_IslandUnderside"), $"{G}/Meshes/MR_IslandUnderside.asset");
+            var go = MeshObject("MR_IslandUnderside", root, mesh, new[] { m.earth, rock }, ShadowCastingMode.Off, false);
+            if (s.mochiWarmLight && s.warmLightExcludedLayer >= 0) go.layer = s.warmLightExcludedLayer;
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+
+            // small rocks drifting below and around the island
+            if (s.floatingRocks > 0)
+            {
+                var rb = new MeshBuilder(1);
+                for (int i = 0; i < s.floatingRocks; i++)
+                {
+                    float az = rng.Range(0f, 360f);
+                    if (Mathf.Abs(Mathf.DeltaAngle(az, s.moonAzimuth)) < 25f) az += 50f; // keep the view to the Moon clear
+                    float r = rng.Range(s.islandRadius + 6f, s.islandRadius + 26f);
+                    float size = rng.Range(0.8f, 2.6f);
+                    var c = MoonRabbitEnvironmentSettings.Azimuth(az) * r + Vector3.up * rng.Range(-14f, -3f);
+                    rb.Blob(c, new Vector3(size, size * 0.8f, size), 1, 0.3f, rng.Raw, 0);
+                    rb.Blob(c + Vector3.down * size * 0.7f, new Vector3(size * 0.6f, size * 0.9f, size * 0.6f), 1, 0.3f, rng.Raw, 0);
+                }
+                var rmesh = MRAssets.SaveMesh(rb.ToMesh("MR_FloatingRocks"), $"{G}/Meshes/MR_FloatingRocks.asset");
+                var rgo = MeshObject("MR_FloatingRocks", root, rmesh, new[] { rock }, ShadowCastingMode.Off, false);
+                GameObjectUtility.SetStaticEditorFlags(rgo, StaticEditorFlags.BatchingStatic);
+            }
+
+            // slow star mist around and below the edge (runtime, one instanced draw)
+            if (s.skyMistPuffs > 0)
+            {
+                var glow = Shader.Find("MoonRabbit/Glow");
+                if (glow != null)
+                {
+                    var mat = MRAssets.GetMaterial($"{G}/Materials/MR_SkyMist.mat", glow);
+                    mat.SetTexture("_MainTex", HaloTexture());
+                    mat.SetColor("_Color", s.skyMistColor);
+                    mat.SetFloat("_Intensity", 0.3f);
+                    mat.enableInstancing = true;
+                    EditorUtility.SetDirty(mat);
+                    var mist = new GameObject("MR_SkyMist");
+                    mist.transform.SetParent(root, false);
+                    var sm = mist.AddComponent<SkyMist>();
+                    sm.material = mat;
+                    sm.quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+                    sm.count = s.skyMistPuffs;
+                    sm.radius = new Vector2(s.islandRadius - 2f, s.islandRadius + 16f);
+                    sm.height = new Vector2(-9f, -1.5f);
+                }
+            }
         }
 
         // ------------------------------------------------------------------ bamboo
@@ -242,7 +366,7 @@ namespace MoonRabbit.WorldEditor
             float midR = (inner + outer) * 0.5f;
             var placed = new List<Vector3>();
             var clumps = new List<List<Vector3>>();
-            int made = 0, guard = 0;
+            int made = 0, guard = 0, skippedBack = 0;
 
             bool InOpening(float azDeg) => Mathf.Abs(Mathf.DeltaAngle(azDeg, s.openingDirection)) < s.openingWidth * 0.5f;
 
@@ -271,15 +395,36 @@ namespace MoonRabbit.WorldEditor
                     var rot = tilt * Quaternion.Euler(0f, rng.Range(0f, 360f), 0f);
                     float sc = rng.Range(0.85f, 1.15f);
                     p.y = GroundHeight(s, p.x, p.z);
-                    clumpStalks.Add(p);
-                    var mtx = Matrix4x4.TRS(p + Vector3.down * s.bambooSink, rot, Vector3.one * sc);
                     int vi = rng.Int(0, V);
+                    // behind the player (away from the Moon): leave some stalks out; same draws, so the rest keeps its layout
+                    float back = Mathf.Abs(Mathf.DeltaAngle(Mathf.Atan2(p.x, p.z) * Mathf.Rad2Deg, s.moonAzimuth + 180f));
+                    float thin = s.bambooBackThinning * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(60f, 95f, back)));
+                    if (thin > 0f && Hash01(p * 1.7f + Vector3.one * 3.1f) < thin) { made++; skippedBack++; continue; }
+                    clumpStalks.Add(p);
+                    var scale = Vector3.one * sc;
+                    if (s.earthViewClear)
+                    {
+                        // toward the Earth: younger, lower bamboo so the ending's flight stays in view; grows back smoothly
+                        var eye = new Vector3(s.playerPosition.x, 0f, s.playerPosition.z);
+                        var d = new Vector3(p.x, 0f, p.z) - eye;
+                        float off = Mathf.Abs(Mathf.DeltaAngle(Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg, s.earthAzimuth));
+                        float w = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(s.earthViewHalfWidth, s.earthViewHalfWidth + s.earthViewFalloff, off));
+                        if (w > 0f)
+                        {
+                            float h = Mathf.Lerp(s.bambooHeight.x, s.bambooHeight.y, (vi + 0.5f) / V) * sc;
+                            float allowed = s.earthViewEyeHeight + d.magnitude * Mathf.Tan(s.earthViewMaxElevation * Mathf.Deg2Rad);
+                            float k = Mathf.Lerp(1f, Mathf.Clamp(allowed / h, 0.25f, 1f) * Mathf.Lerp(0.85f, 1f, Hash01(p)), w); // no rng draw: the rest of the grove keeps its layout
+                            scale = new Vector3(sc * Mathf.Sqrt(k), sc * k, sc * Mathf.Sqrt(k)); // shorter and a little slimmer
+                        }
+                    }
+                    var mtx = Matrix4x4.TRS(p + Vector3.down * s.bambooSink, rot, scale);
                     (pr < midR ? near : far)[vi].Add(mtx);
                     made++;
                 }
                 if (clumpStalks.Count > 0) clumps.Add(clumpStalks);
             }
             BuildBambooBases(s, root, m, rng, clumps);
+            BambooPlaced = made - skippedBack;
 
             var grove = new GameObject("MR_Bamboo");
             grove.transform.SetParent(root, false);
@@ -358,6 +503,7 @@ namespace MoonRabbit.WorldEditor
             }
             var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_BambooBases"), $"{G}/Meshes/MR_BambooBases.asset");
             var go = MeshObject("MR_BambooBases", root, mesh, new[] { m.earth, m.litter, m.stone }, ShadowCastingMode.Off);
+            if (s.mochiWarmLight && s.warmLightExcludedLayer >= 0) go.layer = s.warmLightExcludedLayer; // see the setting
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
         }
 
@@ -416,12 +562,16 @@ namespace MoonRabbit.WorldEditor
                 var d = RandomDir(rng, -0.2f, 1f);
                 var p = c + Vector3.Scale(d, new Vector3(R * 1.05f, R * 0.85f, R * 1.05f));
                 mb.Blob(p, Vector3.one * rng.Range(0.05f, 0.09f), 0, 0.1f, rng.Raw, 2);
+                blossomLocal.Add(p);
             }
 
             var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_CassiaTree"), $"{G}/Meshes/MR_CassiaTree.asset");
             var go = MeshObject("MR_CassiaTree", root, mesh, new[] { m.trunk, m.canopy, m.canopyGold }, ShadowCastingMode.On);
             go.transform.localPosition = s.treePosition;
             go.transform.localRotation = Quaternion.Euler(0f, rng.Range(0f, 360f), 0f);
+            blossomPoints.Clear();
+            foreach (var bp in blossomLocal) blossomPoints.Add(go.transform.localPosition + go.transform.localRotation * bp);
+            blossomLocal.Clear();
             var col = go.AddComponent<CapsuleCollider>();
             col.center = new Vector3(0f, H * 0.31f, 0f);
             col.radius = 0.2f;
@@ -472,23 +622,361 @@ namespace MoonRabbit.WorldEditor
                 l.intensity = s.lanternLightIntensity;
                 l.shadows = LightShadows.None; // the moonlight is the only real-time shadow
             }
+            if (s.lanternGlowPools) BuildLanternPools(s, root, positions);
+        }
+
+        /// <summary>Soft additive discs on the ground under the lanterns: a fake light pool, no lighting cost.</summary>
+        static void BuildLanternPools(MoonRabbitEnvironmentSettings s, Transform root, Vector3[] positions)
+        {
+            var glow = Shader.Find("MoonRabbit/Glow");
+            if (glow == null) return;
+            var mat = MRAssets.GetMaterial($"{G}/Materials/MR_LanternPool.mat", glow);
+            mat.SetTexture("_MainTex", HaloTexture());
+            mat.SetColor("_Color", s.lantern);
+            mat.SetFloat("_Intensity", s.lanternPoolIntensity);
+            mat.renderQueue = 2999; // before other transparents (it lies on the ground)
+            EditorUtility.SetDirty(mat);
+            var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            for (int i = 0; i < positions.Length; i++)
+            {
+                var p = positions[i];
+                var go = MeshObject($"MR_LanternPool_{i}", root, quad, new[] { mat }, ShadowCastingMode.Off, false);
+                go.transform.localPosition = new Vector3(p.x, GroundHeight(s, p.x, p.z) + 0.02f, p.z);
+                go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // quad faces up
+                go.transform.localScale = Vector3.one * (s.lanternPoolRadius * 2f);
+            }
+        }
+
+        // ------------------------------------------------------------------ team props (tzhu235)
+
+        /// <summary>The team's model, referenced as is (never moved or changed); null when not in this project.</summary>
+        static (Mesh mesh, Material[] mats) TeamModel(string name)
+        {
+            var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/" + name + ".obj");
+            if (go == null) return (null, null);
+            var mf = go.GetComponentInChildren<MeshFilter>(true);
+            var mr = go.GetComponentInChildren<MeshRenderer>(true);
+            return mf != null && mr != null ? (mf.sharedMesh, mr.sharedMaterials) : (null, null);
+        }
+
+        static GameObject PlaceTeamProp(MoonRabbitEnvironmentSettings s, Transform parent, string model, Vector3 pos, float faceTo,
+                                        bool onGround, bool isStatic, string swapMaterial = null, Material swapWith = null)
+        {
+            var (mesh, mats) = TeamModel(model);
+            if (mesh == null) return null;
+            mats = (Material[])mats.Clone();
+            if (swapMaterial != null)
+                for (int i = 0; i < mats.Length; i++) if (mats[i] != null && mats[i].name == swapMaterial) mats[i] = swapWith;
+            var go = MeshObject("MR_Prop_" + model, parent, mesh, mats, ShadowCastingMode.Off);
+            if (onGround) pos.y += GroundHeight(s, pos.x, pos.z);
+            go.transform.localPosition = pos;
+            // face the clearing (the usu) unless a yaw is given
+            var toCentre = -new Vector3(pos.x, 0f, pos.z);
+            go.transform.localRotation = float.IsNaN(faceTo) ? Quaternion.LookRotation(toCentre.sqrMagnitude > 1e-4f ? toCentre : Vector3.forward)
+                                                             : Quaternion.Euler(0f, faceTo, 0f);
+            if (isStatic) GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            return go;
+        }
+
+        /// <summary>
+        /// tzhu235's garden props, placed around the clearing so the view to the Moon and the Earth, the kine's swing
+        /// around the usu and the stepping-stone path stay clear. Only the paper and firefly glow materials are swapped
+        /// for our own Standard + emission copies (GardenProps lights them with progress); everything else is the
+        /// original model and materials. Static batching for what does not move.
+        /// </summary>
+        static void BuildTeamProps(MoonRabbitEnvironmentSettings s, Transform root)
+        {
+            if (TeamModel("01_Paper_Lanterns").mesh == null && TeamModel("04_Bench_With_Basket").mesh == null) return; // kit project: no team models
+            var group = new GameObject("MR_TeamProps");
+            group.transform.SetParent(root, false);
+            var gp = group.AddComponent<GardenProps>();
+            var paperGlow = MRAssets.Lit(G, "MR_PropPaperGlow", MoonRabbitEnvironmentSettings.Hex(0xFDCE8B), 0.1f, new Color(0.01f, 0.006f, 0.002f));
+            var fireflyGlow = MRAssets.Lit(G, "MR_PropFireflyGlow", MoonRabbitEnvironmentSettings.Hex(0xF8E169), 0.2f, new Color(0.01f, 0.01f, 0.004f));
+
+            // paper lantern stands at the clearing's right edge (lit one lantern at a time with progress)
+            var stands = new List<Renderer>(); var lanternPoints = new List<Vector3>();
+            Vector3[] standPos = { new Vector3(3.5f, 0f, 0.4f), new Vector3(-3.6f, 0f, 0.2f), new Vector3(0.9f, 0f, -3.7f) };
+            for (int i = 0; i < Mathf.Min(s.teamLanternStands, standPos.Length); i++)
+            {
+                var go = PlaceTeamProp(s, group.transform, "01_Paper_Lanterns", standPos[i], float.NaN, true, true, "Amber_paper", paperGlow);
+                if (go == null) break;
+                go.name += "_" + i;
+                stands.Add(go.GetComponent<Renderer>());
+                // the two lanterns: centres of the paper on the left and right half of the frame
+                var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+                foreach (var c in PaperCentres(mesh, go.GetComponent<MeshRenderer>().sharedMaterials, "MR_PropPaperGlow"))
+                    lanternPoints.Add(root.InverseTransformPoint(go.transform.TransformPoint(c)));
+            }
+            gp.lanternStands = stands.ToArray();
+            gp.lanternPoints = lanternPoints.ToArray();
+
+            // wind chime hanging from the cassia tree (pivot = top), swaying a little
+            var chime = PlaceTeamProp(s, group.transform, "03_Bamboo_Wind_Chime",
+                                      s.treePosition + new Vector3(-0.75f, s.treeHeight * 0.66f, -0.65f), 0f, false, false);
+            if (chime != null) gp.chimes = new[] { chime.transform };
+
+            // bench with basket behind the clearing's left side, sign beside the start of the stepping-stone path
+            PlaceTeamProp(s, group.transform, "04_Bench_With_Basket", new Vector3(-3.1f, 0f, -1.9f), float.NaN, true, true);
+            var pathDir = MoonRabbitEnvironmentSettings.Azimuth(s.stonePathDirection);
+            var side = Vector3.Cross(Vector3.up, pathDir).normalized;
+            PlaceTeamProp(s, group.transform, "05_Moon_Rabbit_Sign", pathDir * (s.stonePathStart - 0.3f) - side * 0.95f,
+                          float.NaN, true, true);
+
+            // bamboo fountain at the clearing's back-right edge
+            PlaceTeamProp(s, group.transform, "Bamboo_Fountain", new Vector3(3.0f, 0f, -2.6f), float.NaN, true, true);
+
+            // mossy stones at bamboo bases / island edge
+            Vector3[] stonePos = { new Vector3(-4.7f, 0f, -0.9f), new Vector3(4.9f, 0f, 1.9f), new Vector3(-2.2f, 0f, -4.6f), new Vector3(1.8f, 0f, 4.8f) };
+            float[] stoneYaw = { 30f, 140f, 260f, 75f };
+            for (int i = 0; i < Mathf.Min(s.teamMossyStones, stonePos.Length); i++)
+                PlaceTeamProp(s, group.transform, "06_Mossy_Stones_And_Leaves", stonePos[i], stoneYaw[i], true, true);
+
+            // firefly swarms drifting in the bamboo
+            var flies = new List<Transform>(); var flyRenderers = new List<Renderer>();
+            Vector3[] flyPos = { new Vector3(-5.6f, 1.3f, 2.6f), new Vector3(5.8f, 1.6f, -0.4f), new Vector3(-1.5f, 1.4f, 6.2f) };
+            for (int i = 0; i < Mathf.Min(s.teamFireflySwarms, flyPos.Length); i++)
+            {
+                var go = PlaceTeamProp(s, group.transform, "Firefly_Swarm", flyPos[i] + Vector3.up * GroundHeight(s, flyPos[i].x, flyPos[i].z),
+                                       i * 97f, false, false, "Firefly_lantern", fireflyGlow);
+                if (go == null) break;
+                flies.Add(go.transform); flyRenderers.Add(go.GetComponent<Renderer>());
+            }
+            gp.fireflies = flies.ToArray();
+            gp.fireflyRenderers = flyRenderers.ToArray();
+            gp.paperGlowColor = MoonRabbitEnvironmentSettings.Hex(0xFFB65C);
+            gp.fireflyGlowColor = MoonRabbitEnvironmentSettings.Hex(0xFFE27A);
+            var glow = Shader.Find("MoonRabbit/Glow");
+            if (glow != null)
+            {
+                var halo = MRAssets.GetMaterial($"{G}/Materials/MR_PropLanternHalo.mat", glow);
+                halo.SetTexture("_MainTex", HaloTexture());
+                halo.SetColor("_Color", MoonRabbitEnvironmentSettings.Hex(0xFFB65C));
+                halo.SetFloat("_Intensity", 1f);
+                halo.enableInstancing = true;
+                EditorUtility.SetDirty(halo);
+                gp.haloMaterial = halo;
+                gp.quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            }
+        }
+
+        /// <summary>Centres of the paper lanterns in a stand (paper sub-mesh split into its left and right half).</summary>
+        static List<Vector3> PaperCentres(Mesh mesh, Material[] mats, string paperMat)
+        {
+            var res = new List<Vector3>();
+            int sub = System.Array.FindIndex(mats, m => m != null && m.name == paperMat);
+            if (sub < 0) return res;
+            var v = mesh.vertices; var idx = mesh.GetIndices(sub);
+            Vector3 l = Vector3.zero, r = Vector3.zero; int nl = 0, nr = 0;
+            foreach (var i in idx) { if (v[i].x < 0f) { l += v[i]; nl++; } else { r += v[i]; nr++; } }
+            if (nl > 0) res.Add(l / nl);
+            if (nr > 0) res.Add(r / nr);
+            return res;
+        }
+
+        // ------------------------------------------------------------------ story progression
+
+        static readonly List<Vector3> blossomLocal = new List<Vector3>(), blossomPoints = new List<Vector3>(), stonePoints = new List<Vector3>();
+
+        /// <summary>MR_Story: MoonProgress + MochiLink + DemoStrikeDetector + RiceToMochi + MoonStory, wired to the
+        /// environment's Moon, lanterns, tree, stones and bamboo. Everything it changes is runtime only.</summary>
+        static void BuildStory(MoonRabbitEnvironmentSettings s, Transform root, EnvironmentAtmosphere atm, Light moonlight)
+        {
+            var go = new GameObject("MR_Story");
+            go.transform.SetParent(root, false);
+            var progress = go.AddComponent<MoonProgress>();
+            progress.demoStrikesToFull = Mathf.Max(1, s.demoStrikesToFull);
+            go.AddComponent<MochiLink>();
+            go.AddComponent<DemoStrikeDetector>();
+
+            var rice = go.AddComponent<RiceToMochi>();
+            rice.grainCount = s.riceGrainCount;
+            var riceShader = Shader.Find("MoonRabbit/RiceGrain");
+            if (riceShader != null)
+            {
+                var rm = MRAssets.GetMaterial($"{G}/Materials/MR_RiceGrain.mat", riceShader);
+                rm.shader = riceShader;
+                rm.SetColor("_Color", new Color(0.95f, 0.94f, 0.91f));
+                rm.SetColor("_DoughColor", new Color(0.965f, 0.955f, 0.925f)); // MochiSurface.mat _Color
+                rm.SetColor("_Lit", new Color(0.95f, 0.8f, 0.71f)); // how the warm-lit dough reads
+                rm.SetFloat("_Sheen", 0.35f);
+                rm.SetFloat("_Translucency", 0.35f);
+                rm.enableInstancing = true;
+                EditorUtility.SetDirty(rm);
+                rice.grainMaterial = rm;
+            }
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/RiceGrain shader missing (Assets/_Project/World/Shaders).");
+
+            var story = go.AddComponent<MoonStory>();
+            var glow = Shader.Find("MoonRabbit/Glow");
+            if (glow != null)
+            {
+                var halo = MRAssets.GetMaterial($"{G}/Materials/MR_StoryHalo.mat", glow);
+                halo.SetTexture("_MainTex", HaloTexture());
+                halo.SetColor("_Color", Color.white);
+                halo.SetFloat("_Intensity", 1f);
+                halo.enableInstancing = true;
+                EditorUtility.SetDirty(halo);
+                story.haloMaterial = halo;
+            }
+            var orbShader = Shader.Find("MoonRabbit/MochiOrb");
+            if (orbShader != null)
+            {
+                var orb = MRAssets.GetMaterial($"{G}/Materials/MR_MochiOrb.mat", orbShader);
+                // linear colour space: keep these well below 1 or the ball clips to a flat white disc
+                orb.SetColor("_Color", new Color(0.85f, 0.8f, 0.74f));
+                orb.SetColor("_Shade", new Color(0.32f, 0.28f, 0.3f));
+                orb.SetColor("_RimColor", new Color(1f, 0.9f, 0.72f));
+                orb.SetFloat("_Glow", 0.06f);
+                EditorUtility.SetDirty(orb);
+                story.orbMaterial = orb;
+            }
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/MochiOrb shader missing (Assets/_Project/World/Shaders).");
+            story.quadMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            story.sphereMesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+
+            var moon = root.Find("MR_Moon");
+            if (moon != null)
+            {
+                story.moon = moon.GetComponent<Renderer>();
+                var mg = moon.Find("Glow");
+                if (mg != null) story.moonGlow = mg.GetComponent<Renderer>();
+            }
+            var earthT = root.Find("MR_Earth");
+            if (earthT != null)
+            {
+                story.earth = earthT.GetComponent<Renderer>();
+                var eg = earthT.Find("Glow");
+                if (eg != null) story.earthGlow = eg.GetComponent<Renderer>();
+            }
+            story.moonFollowsProgress = s.moonFollowsProgress;
+            var island = new List<Renderer>();
+            foreach (var n in new[] { "MR_IslandUnderside", "MR_FloatingRocks" })
+            {
+                var t = root.Find(n);
+                if (t != null) island.Add(t.GetComponent<Renderer>());
+            }
+            story.islandRenderers = island.ToArray();
+            story.moonlight = moonlight;
+            story.atmosphere = atm;
+
+            var lanterns = new List<Renderer>(); var lights = new List<Light>(); var pools = new List<Renderer>();
+            for (int i = 0; ; i++)
+            {
+                var l = root.Find($"MR_StoneLantern_{i}");
+                if (l == null) break;
+                lanterns.Add(l.GetComponent<Renderer>());
+                lights.Add(l.GetComponentInChildren<Light>());
+                var pool = root.Find($"MR_LanternPool_{i}");
+                pools.Add(pool != null ? pool.GetComponent<Renderer>() : null);
+            }
+            story.lanterns = lanterns.ToArray();
+            story.lanternLights = lights.ToArray();
+            story.lanternPools = pools.ToArray();
+
+            var tree = root.Find("MR_CassiaTree");
+            if (tree != null) story.cassiaTree = tree.GetComponent<Renderer>();
+            story.blossomGlowColor = Color.Lerp(s.cassiaGold, s.lantern, 0.4f);
+            story.blossomPoints = blossomPoints.ToArray();
+            story.stonePoints = stonePoints.ToArray();
+            story.stoneGlowColor = s.moonlight;
+            var grove = root.GetComponentInChildren<BambooGrove>();
+            story.bamboo = grove;
+
+            // follow the team's MochiStation if it is moved at runtime (UsuTablePlacer: real table from the room scan)
+            var follow = go.AddComponent<StationFollower>();
+            var ped = root.Find("MR_UsuPedestal");
+            if (ped != null) follow.pedestal = ped;
+            follow.pedestalHeight = s.pedestalHeight;
+            var wl = root.Find("MR_MochiWarmLight");
+            if (wl != null)
+            {
+                follow.warmLight = wl;
+                follow.warmLightOffset = wl.localPosition - (s.mortarPosition + Vector3.up * s.pedestalHeight);
+            }
+
+            var snd = go.AddComponent<StorySounds>();
+            snd.soundsEnabled = s.storySounds;
+            snd.textSounds = s.textSounds;
+            snd.progressSounds = s.progressSounds;
+            snd.strikeSound = s.strikeSound;
+            snd.textVolume = s.textSoundVolume;
+            snd.progressSfxVolume = s.progressSfxVolume;
+            snd.introLineClip = s.introLineClip; snd.instructionClip = s.instructionClip; snd.endingClip = s.endingClip;
+            snd.strikeClip = s.strikeClip; snd.milestoneClip = s.milestoneClip; snd.fullMoonClip = s.fullMoonClip;
+            snd.flightClip = s.flightClip; snd.arrivalClip = s.arrivalClip; snd.wishClip = s.wishClip;
+
+            go.AddComponent<HeightDiagnostics>();
+            var hr = go.AddComponent<HeadsetRestart>();
+            hr.restartOnRemount = s.headsetRestart;
+            hr.minRemovedSeconds = s.headsetRestartMinSeconds;
+
+            var intro = go.AddComponent<StoryIntro>();
+            intro.playIntro = s.storyIntro;
+#if MR_TMP
+            var fonts = StoryFontBuilder.Build();
+            intro.narration.font = fonts.intro; intro.narration.material = fonts.introMat;
+            intro.instruction.font = fonts.instruction; intro.instruction.material = fonts.instructionMat;
+            story.endingStyle.font = fonts.ending; story.endingStyle.material = fonts.endingMat;
+#endif
+            var fadeShader = Shader.Find("MoonRabbit/ScreenFade");
+            if (fadeShader != null)
+            {
+                var fm = MRAssets.GetMaterial($"{G}/Materials/MR_ScreenFade.mat", fadeShader);
+                fm.SetColor("_Color", new Color(0f, 0f, 0f, 1f));
+                EditorUtility.SetDirty(fm);
+                intro.fadeMaterial = fm;
+            }
+            else Debug.LogError("[Moon Rabbit] MoonRabbit/ScreenFade shader missing (Assets/_Project/World/Shaders).");
+        }
+
+        // ------------------------------------------------------------------ warm light on the dough
+
+        static void BuildMochiLight(MoonRabbitEnvironmentSettings s, Transform root)
+        {
+            bool teamUsu = s.pedestal && MoonRabbitMenu.PropBuilder == null;
+            var dough = s.mortarPosition + Vector3.up * (teamUsu ? s.pedestalHeight + s.usuBase + 0.02f
+                                                                 : s.mortarHeight - s.hollowDepth + 0.02f);
+            var go = new GameObject("MR_MochiWarmLight");
+            go.transform.SetParent(root, false);
+            go.transform.localPosition = dough + s.mochiLightOffset;
+            var aim = dough - go.transform.localPosition;
+            if (aim.sqrMagnitude > 1e-6f) go.transform.localRotation = Quaternion.LookRotation(aim);
+            var l = go.AddComponent<Light>();
+            l.type = s.mochiLightSpotAngle > 0f ? LightType.Spot : LightType.Point;
+            if (l.type == LightType.Spot)
+            {
+                l.spotAngle = s.mochiLightSpotAngle;
+                l.innerSpotAngle = s.mochiLightSpotAngle * 0.4f;
+            }
+            l.color = s.mochiLightColor;
+            l.intensity = s.mochiLightIntensity;
+            l.range = s.mochiLightRange;
+            l.shadows = LightShadows.None;
+            l.renderMode = LightRenderMode.ForcePixel; // Important: otherwise a vertex light, see the setting's tooltip
+            if (s.warmLightExcludedLayer >= 0) l.cullingMask = ~(1 << s.warmLightExcludedLayer);
+            l.lightmapBakeType = LightmapBakeType.Realtime;
         }
 
         // ------------------------------------------------------------------ stepping stones
 
         static void BuildStones(MoonRabbitEnvironmentSettings s, Transform root, Mats m, Rng rng)
         {
+            stonePoints.Clear();
             if (s.stoneCount <= 0) return;
+            // island: the path runs on to the edge and stops at the drop, pointing out into the sky
+            float pathEnd = s.floatingIsland ? IslandEdge(s, MoonRabbitEnvironmentSettings.Azimuth(s.stonePathDirection).x, MoonRabbitEnvironmentSettings.Azimuth(s.stonePathDirection).z) - 1.1f : s.stonePathEnd;
+            int stoneCount = s.floatingIsland ? Mathf.Max(s.stoneCount, Mathf.RoundToInt((pathEnd - s.stonePathStart) / 0.95f)) : s.stoneCount;
             var mb = new MeshBuilder(1);
-            for (int i = 0; i < s.stoneCount; i++)
+            for (int i = 0; i < stoneCount; i++)
             {
-                float t = s.stoneCount == 1 ? 0f : (float)i / (s.stoneCount - 1);
-                float r = Mathf.Lerp(s.stonePathStart, s.stonePathEnd, t);
+                float t = stoneCount == 1 ? 0f : (float)i / (stoneCount - 1);
+                float r = Mathf.Lerp(s.stonePathStart, pathEnd, t);
                 float az = s.stonePathDirection + Mathf.Sin(t * Mathf.PI * 2f) * 10f;
                 var p = MoonRabbitEnvironmentSettings.Azimuth(az) * r + new Vector3(rng.Range(-0.1f, 0.1f), 0f, rng.Range(-0.1f, 0.1f));
                 float size = rng.Range(0.3f, 0.45f) * Mathf.Lerp(1f, 0.8f, t);
                 p.y = GroundHeight(s, p.x, p.z);
                 mb.Blob(p, new Vector3(size, size * 0.22f, size * rng.Range(0.75f, 1f)), 1, 0.15f, rng.Raw, 0);
+                stonePoints.Add(p + Vector3.up * size * 0.22f);
             }
             var mesh = MRAssets.SaveMesh(mb.ToMesh("MR_SteppingStones"), $"{G}/Meshes/MR_SteppingStones.asset");
             var go = MeshObject("MR_SteppingStones", root, mesh, new[] { m.stone }, ShadowCastingMode.Off);
@@ -531,7 +1019,8 @@ namespace MoonRabbit.WorldEditor
             var col = go.AddComponent<BoxCollider>();
             col.center = new Vector3(0f, H * 0.5f, 0f);
             col.size = new Vector3(R * 2f, H, R * 2f);
-            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            // not static: StationFollower moves/stretches it when the team's MochiStation is placed on a real table
+            GameObjectUtility.SetStaticEditorFlags(go, 0);
         }
 
         // ------------------------------------------------------------------ moonlight
@@ -563,21 +1052,29 @@ namespace MoonRabbit.WorldEditor
             for (int y = 0; y < H; y++)
             {
                 float elev = ((y + 0.5f) / H - 0.5f) * 180f;
-                Color c = elev <= 0f ? s.horizonFog : Color.Lerp(s.navySky, s.skyZenith, Mathf.Pow(elev / 90f, 0.7f));
-                if (elev > 0f && elev < 4f) c = Color.Lerp(s.horizonFog, c, elev / 4f); // dark forest-floor haze meets the sky
+                Color c;
+                if (s.floatingIsland)
+                    c = Color.Lerp(s.navySky, s.skyZenith, Mathf.Pow(Mathf.Abs(elev) / 90f, 0.7f) * (elev < 0f ? 0.85f : 1f)); // open sky all round
+                else
+                {
+                    c = elev <= 0f ? s.horizonFog : Color.Lerp(s.navySky, s.skyZenith, Mathf.Pow(elev / 90f, 0.7f));
+                    if (elev > 0f && elev < 4f) c = Color.Lerp(s.horizonFog, c, elev / 4f); // dark forest-floor haze meets the sky
+                }
                 float mist = Mathf.Exp(-Mathf.Pow((elev - 5f) / 6f, 2f)) * 0.07f; // pale ink-wash band above the horizon
                 c = Color.Lerp(c, s.moonlight, mist);
                 for (int x = 0; x < W; x++) px[y * W + x] = c;
             }
 
-            float minSin = Mathf.Sin(6f * Mathf.Deg2Rad);
-            for (int i = 0; i < s.starCount; i++)
+            float minSin = Mathf.Sin((s.floatingIsland ? -84f : 6f) * Mathf.Deg2Rad);
+            int stars = s.floatingIsland ? Mathf.RoundToInt(s.starCount * 1.8f) : s.starCount; // the lower half of the sky too
+            for (int i = 0; i < stars; i++)
             {
                 float elev = Mathf.Asin(rng.Range(minSin, 1f));
                 float cx = rng.Value * W;
                 float cy = (elev / Mathf.PI + 0.5f) * H;
                 float b = Mathf.Pow(rng.Value, 3f) * 0.9f + 0.1f;
-                b *= Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(6f, 22f, elev * Mathf.Rad2Deg));
+                if (!s.floatingIsland) b *= Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(6f, 22f, elev * Mathf.Rad2Deg));
+                else b *= Mathf.Lerp(0.45f, 1f, Mathf.InverseLerp(0f, 20f, Mathf.Abs(elev * Mathf.Rad2Deg))); // softer near the horizon haze
                 float size = 0.55f + b * 1.3f;
                 float sx = size / Mathf.Max(0.12f, Mathf.Cos(elev));
                 var tint = Color.Lerp(Color.white, rng.Value < 0.2f ? s.lantern : s.moonlight, 0.35f) * b;
@@ -759,6 +1256,11 @@ namespace MoonRabbit.WorldEditor
             }
             return Vector3.up;
         }
+
+        /// <summary>Stalks actually placed by the last build (after the back thinning).</summary>
+        public static int BambooPlaced;
+
+        static float Hash01(Vector3 p) { float v = Mathf.Sin(p.x * 12.9898f + p.z * 78.233f) * 43758.5453f; return v - Mathf.Floor(v); }
 
         static float Noise3(Vector3 p, float freq, float seed)
         {

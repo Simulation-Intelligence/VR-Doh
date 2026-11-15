@@ -31,6 +31,11 @@ namespace MoonRabbit.World
         [Tooltip("Local-space bounds of all stalks (for culling).")]
         public Bounds localBounds = new Bounds(Vector3.zero, Vector3.one * 40f);
 
+        /// <summary>0..1 tint toward <see cref="silverColor"/> (MoonStory sets it at the end of the night). Runtime only.</summary>
+        [NonSerialized] public float silver;
+        [NonSerialized] public Color silverColor = new Color(0.72f, 0.8f, 0.86f);
+        MaterialPropertyBlock silverBlock;
+
         const int MaxPerCall = 1023;
         readonly List<Matrix4x4[]> worldCache = new List<Matrix4x4[]>();
         Matrix4x4 cachedLocalToWorld;
@@ -104,6 +109,12 @@ namespace MoonRabbit.World
                         shadowCastingMode = castShadows,
                         receiveShadows = receiveShadows,
                     };
+                    if (silver > 0.001f && mat.HasProperty("_Color"))
+                    {
+                        silverBlock ??= new MaterialPropertyBlock();
+                        silverBlock.SetColor("_Color", Color.Lerp(mat.color, silverColor, Mathf.Clamp01(silver)));
+                        rp.matProps = silverBlock;
+                    }
 
                     if (mats.Length <= MaxPerCall)
                     {

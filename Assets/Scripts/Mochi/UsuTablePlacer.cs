@@ -34,6 +34,10 @@ public class UsuTablePlacer : MonoBehaviour
     public bool cutOutTable = true;
     [Tooltip("Material using Mochi/PassthroughCutout. Loaded from Resources/MochiHandCutout if empty.")]
     public Material cutoutMaterial;
+    [Tooltip("Virtual stands for the usu (e.g. the Moon environment's MR_UsuPedestal) switched off once the usu is on a real table: " +
+             "otherwise they stand in the room where nothing real is and get in the player's way. Found by name if empty.")]
+    public GameObject[] hideWhenOnTable;
+    public string[] hideNames = { "MR_UsuPedestal" };
 
     MochiStation station;
     bool spaceSetupRequested;
@@ -93,7 +97,7 @@ public class UsuTablePlacer : MonoBehaviour
         MRUKAnchor best = null; Vector3 bestPoint = default; float bestDist = float.MaxValue;
         foreach (var room in MRUK.Instance.Rooms)
         {
-            float floorY = room.FloorAnchor != null ? room.FloorAnchor.transform.position.y : float.NegativeInfinity;
+            float floorY = FloorY(room, float.NegativeInfinity);
             foreach (var anchor in room.Anchors)
             {
                 if (anchor == null || !anchor.HasAnyLabel(MRUKAnchor.SceneLabels.TABLE)) continue;
@@ -117,8 +121,35 @@ public class UsuTablePlacer : MonoBehaviour
         station.transform.SetPositionAndRotation(bestPoint, Quaternion.LookRotation(fwd.normalized, Vector3.up));
         Table = best;
         if (cutOutTable) BuildCutout(best);
+        HideStands();
         Debug.Log($"UsuTablePlacer: usu on '{best.name}' at {bestPoint} ({bestDist:F2} m from the head, table top {bestPoint.y:F2} m).");
         return true;
+    }
+
+    /// <summary>Height of the room's lowest floor anchor, or fallback if it has none.</summary>
+    static float FloorY(MRUKRoom room, float fallback)
+    {
+        if (room == null || room.FloorAnchors == null || room.FloorAnchors.Count == 0) return fallback;
+        float y = float.PositiveInfinity;
+        foreach (var f in room.FloorAnchors) if (f != null) y = Mathf.Min(y, f.transform.position.y);
+        return float.IsPositiveInfinity(y) ? fallback : y;
+    }
+
+    void HideStands()
+    {
+        var list = new List<GameObject>();
+        if (hideWhenOnTable != null) list.AddRange(hideWhenOnTable);
+        if (list.Count == 0 && hideNames != null)
+            foreach (var n in hideNames) { var go = GameObject.Find(n); if (go != null) list.Add(go); }
+        foreach (var go in list)
+            if (go != null && go.activeSelf) { go.SetActive(false); Debug.Log($"UsuTablePlacer: hid '{go.name}' (usu is on a real table)."); }
+    }
+
+    /// <summary>Removes the table's passthrough cut-out (another component shows the table instead).</summary>
+    public void ClearTableCutout()
+    {
+        if (tableCutout != null) Destroy(tableCutout);
+        tableCutout = null;
     }
 
     /// <summary>A box over the table's volume (or its top, down to the floor) drawn with the passthrough cutout.</summary>
@@ -133,7 +164,7 @@ public class UsuTablePlacer : MonoBehaviour
         else if (table.PlaneRect is Rect pr)
         {
             // Plane only: extend from the top down to the floor along the local axis that points down.
-            float depth = table.transform.position.y - (table.Room != null && table.Room.FloorAnchor != null ? table.Room.FloorAnchor.transform.position.y : table.transform.position.y - 0.75f);
+            float depth = table.transform.position.y - FloorY(table.Room, table.transform.position.y - 0.75f);
             Vector3 down = table.transform.InverseTransformDirection(Vector3.down);
             b = new Bounds(new Vector3(pr.center.x, pr.center.y, 0f), new Vector3(pr.width, pr.height, 0f));
             b.Encapsulate(b.center + down * depth);
